@@ -65,8 +65,8 @@ document.getElementById('tab-kitchen').innerHTML = `
         <!-- Hidden file input -->
         <input type="file" id="k-ten-wiz-file" accept="image/*" capture="environment" style="display:none;"/>
         <!-- Buttons -->
-        <button id="k-ten-wiz-take-btn" class="cc-btn cc-btn--primary" style="width:100%;max-width:320px;" onclick="_kTenWizTake()"></button>
         <button id="k-ten-wiz-next-btn" class="cc-btn" style="width:100%;max-width:320px;display:none;" onclick="_kTenWizNext()"></button>
+        <button id="k-ten-wiz-take-btn" class="cc-btn cc-btn--primary" style="width:100%;max-width:320px;" onclick="_kTenWizTake()"></button>
       </div>
       <!-- Progress dots -->
       <div style="display:flex;justify-content:center;gap:8px;padding:20px;">
@@ -387,21 +387,18 @@ async function _kTenWizSubmit() {
 // Called from _kTenRenderWeekCard with state+freshRow already derived — no extra fetch.
 function _kTenRenderActBtnFromState(state, freshRow) {
   const el = document.getElementById('k-ten-act'); if (!el) return;
-  // state is the authoritative source — covers null row (no DB row yet = pending)
-  if (state === 'skipped' || state === 'absent' || state === 'done' || state === 'missed') {
-    el.innerHTML = ''; return;
-  }
-  if (state === 'now') {
-    const dbStatus = freshRow ? freshRow.status : null;
-    if (dbStatus === 'flagged') {
-      el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
-        <i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
-    } else {
-      // pending, null row, or any unrecognised status — show Proof
-      el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
-        <i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
-    }
+  if (state !== 'now') { el.innerHTML = ''; return; }
+  const dbStatus = freshRow ? freshRow.status : null;
+  if (dbStatus === 'flagged') {
+    // Landlord flagged — tenant must re-upload
+    el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
+      <i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
+  } else if (!dbStatus || dbStatus === 'pending') {
+    // No row yet or explicitly pending — first upload
+    el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
+      <i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
   } else {
+    // submitted, approved, missed — no button needed
     el.innerHTML = '';
   }
 }
@@ -464,15 +461,22 @@ async function _kTenRenderWeekCard(overrideRow) {
         skipped: 'skipped',
         next:    'pending',
       };
-      chip.className   = 'k-mob-status-chip ' + (isResub ? 'resubmitted' : (chipMap[state] || 'pending'));
-      chip.textContent = {
-        now:     isResub ? '↑↑ Re-submitted' : (freshRow && freshRow.status === 'submitted' ? '↑ Submitted' : 'Pending'),
-        done:    '✓ Approved',
-        missed:  '✗ Missed',
-        flagged: '⚑ Redo',
-        absent:  '— Away',
-        skipped: '— Skipped',
-      }[state] || 'Pending';
+      const dbStatus = freshRow ? freshRow.status : null;
+      const chipCls = isResub         ? 'resubmitted'
+                    : state === 'done'    ? 'approved'
+                    : state === 'missed'  ? 'missed'
+                    : state === 'absent'  ? 'skipped'
+                    : state === 'skipped' ? 'skipped'
+                    : dbStatus === 'flagged'   ? 'flagged'
+                    : dbStatus === 'submitted' ? 'submitted'
+                    : 'pending';
+      chip.className   = 'k-mob-status-chip ' + chipCls;
+      chip.textContent = state !== 'now'
+        ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
+        : isResub                      ? '↑↑ Re-submitted'
+        : dbStatus === 'submitted'     ? '↑ Submitted'
+        : dbStatus === 'flagged'       ? '⚑ Redo'
+        : 'Pending';
     }
   }
 

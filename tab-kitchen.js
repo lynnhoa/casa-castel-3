@@ -505,7 +505,7 @@ async function _kRenderLandlordButtons() {
 }
 
 /* ── MOBILE WEEK CARD ───────────────────────────────────── */
-async function _kRenderMobWeekCard(row) {
+async function _kRenderMobWeekCard(overrideRow) {
   const idx = kWeekIdx();
   const wi  = _kWeekInfo(idx); if (!wi) return;
   document.getElementById('k-mob-room-name').textContent = wi.room;
@@ -514,9 +514,10 @@ async function _kRenderMobWeekCard(row) {
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : ' · ends today');
 
-  // Single fetch drives both chip and action buttons
+  // If caller passes overrideRow (optimistic patch), use it directly — no race.
+  // Otherwise fetch fresh from Supabase. Realtime always calls without arg → authoritative re-sync.
   const [freshRow, absRes] = await Promise.all([
-    _kGetWeek(idx),
+    overrideRow ? Promise.resolve(overrideRow) : _kGetWeek(idx),
     sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
   ]);
   const state   = _kRotState({
@@ -540,15 +541,22 @@ async function _kRenderMobWeekCard(row) {
       skipped:  'skipped',
       next:     'pending',
     };
-    chip.className   = 'k-mob-status-chip ' + (chipMap[state] || 'pending');
-    chip.textContent = {
-      now:      isResub ? '↑↑ Re-submitted' : (freshRow && freshRow.status === 'submitted' ? '↑ Submitted' : 'Pending'),
-      done:     '✓ Approved',
-      missed:   '✗ Missed',
-      flagged:  '⚑ Redo',
-      absent:   '— Away',
-      skipped:  '— Skipped',
-    }[state] || 'Pending';
+      const dbStatusNow = freshRow ? freshRow.status : null;
+      const chipClsNow = isResub              ? 'resubmitted'
+                       : state === 'done'     ? 'approved'
+                       : state === 'missed'   ? 'missed'
+                       : state === 'absent'   ? 'skipped'
+                       : state === 'skipped'  ? 'skipped'
+                       : dbStatusNow === 'flagged'   ? 'flagged'
+                       : dbStatusNow === 'submitted' ? 'submitted'
+                       : 'pending';
+      chip.className   = 'k-mob-status-chip ' + chipClsNow;
+      chip.textContent = state !== 'now'
+        ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
+        : isResub                        ? '↑↑ Re-submitted'
+        : dbStatusNow === 'submitted'    ? '↑ Submitted'
+        : dbStatusNow === 'flagged'      ? '⚑ Redo'
+        : 'Pending';
   }
 
   // Action buttons — same state, no separate fetch
@@ -862,6 +870,7 @@ async function _kSendPhoto(file, feedId) {
 // _kRenderMobWeekCard is async and does its own fresh fetch — no stale patch passed.
 async function _kMobApplyPatch(patch) {
   _kWeekRow = { ..._kWeekRow, ...patch };
+  // Pass patched row directly — no re-fetch race. Realtime fires later for authoritative sync.
   await _kRenderMobWeekCard(_kWeekRow);
   _kRenderMobRotation();
 }
