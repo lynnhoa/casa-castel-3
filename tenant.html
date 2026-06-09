@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Casa Castel"/>
+  <meta name="theme-color" content="#F5F2ED"/>
+
+  <title>Casa Castel</title>
+  <link rel="manifest" href="manifest-tenant.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+
+  <link rel="stylesheet" href="casa-castel.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+</head>
+<body>
+
+  <!-- ══ LOGIN ══ -->
+  <div class="login-screen" id="loginScreen">
+    <p class="login-logo">Casa Castel</p>
+    <p class="login-sub">Alsenstraße 60 · 55252 Mainz-Kastel</p>
+    <div class="login-box">
+      <p class="login-title">Tenant login</p>
+      <div class="login-error" id="loginError">Incorrect room or password.</div>
+      <div class="cc-input-wrap cc-mb-12">
+        <label class="cc-input-label" for="tenantRoom">Your room</label>
+        <select class="cc-select" id="tenantRoom">
+          <option value="">Select your room</option>
+          <option value="Paris">Paris</option>
+          <option value="Copenhagen">Copenhagen</option>
+          <option value="Stockholm">Stockholm</option>
+          <option value="Oslo">Oslo</option>
+          <option value="London">London</option>
+          <option value="New York">New York</option>
+          <option value="Los Angeles">Los Angeles</option>
+        </select>
+      </div>
+      <div class="cc-input-wrap cc-mb-16">
+        <label class="cc-input-label" for="tenantPass">Password</label>
+        <input class="cc-input" id="tenantPass" type="password" placeholder="Enter your password" autocomplete="current-password"/>
+      </div>
+      <button class="cc-btn cc-btn--primary" id="tenantLoginBtn">Enter</button>
+    </div>
+    <p class="cc-note cc-mt-24" style="text-align:center;">
+      Management? <a href="landlord.html" style="color:var(--cc-gold);text-decoration:underline;text-underline-offset:2px;">Go to landlord login ›</a>
+    </p>
+  </div>
+
+  <!-- ══ APP SHELL ══ -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sticky header: nav + tabs -->
+    <div class="cc-header">
+      <nav class="cc-nav">
+        <a class="cc-nav__logo" href="#">Casa Castel</a>
+        <div class="nav-actions">
+          <div class="nav-profile" id="navProfile">
+            <button class="nav-role-pill" id="navRoomPill" onclick="toggleProfileMenu()" aria-haspopup="true">Room</button>
+            <div class="nav-profile-menu" id="navProfileMenu">
+              <button class="nav-profile-menu-item" id="changePwBtn">Change password</button>
+              <button class="nav-profile-menu-item" id="langToggleBtn" onclick="toggleLang()">Deutsch</button>
+              <button class="nav-profile-menu-item" id="logoutBtn">Log out</button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="cc-tabs" id="appTabs">
+        <button class="cc-tab active" data-tab="lounge"   data-i18n="tab_lounge">Lounge</button>
+        <button class="cc-tab"        data-tab="cleaning" data-i18n="tab_cleaning">House Cleaning</button>
+        <button class="cc-tab" id="kitchenTab" data-tab="kitchen" data-i18n="tab_kitchen" style="display:none;">Kitchen</button>
+      </div>
+    </div>
+
+    <div class="cc-layout" id="appLayout">
+      <div class="cc-main" id="appMain">
+        <div class="tab-content" id="tab-lounge"></div>
+        <div class="tab-content" id="tab-cleaning" style="display:none;"></div>
+        <div class="tab-content" id="tab-kitchen"  style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Change password modal -->
+    <div class="cc-modal-overlay" id="changePwModal">
+      <div class="cc-modal-sheet">
+        <div class="cc-modal-hdr">
+          <span class="cc-modal-title">Change password</span>
+          <button class="cc-modal-close" onclick="closeModal('changePwModal')">✕</button>
+        </div>
+        <div class="cc-modal-body">
+          <div class="cc-input-wrap cc-mb-12">
+            <label class="cc-input-label">New password</label>
+            <input class="cc-input" id="newPw1" type="password" placeholder="New password"/>
+          </div>
+          <div class="cc-input-wrap cc-mb-16">
+            <label class="cc-input-label">Confirm password</label>
+            <input class="cc-input" id="newPw2" type="password" placeholder="Confirm password"/>
+          </div>
+          <div class="login-error" id="pwError" style="margin-bottom:12px;"></div>
+          <button class="cc-btn cc-btn--primary" id="changePwSubmit">Save new password</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.app-shell -->
+
+  <!-- ══ SCRIPTS — must be after DOM ══ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="constants.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="utils.js"></script>
+  <script src="storage.js"></script>
+  <script src="auth.js"></script>
+  <script src="chat-viewport.js"></script>
+  <script src="layout.js"></script>
+  <script src="nav.js"></script>
+  <script src="settings.js"></script>
+  <script src="rooms-data.js"></script>
+  <!-- Tab modules -->
+  <script src="tab-lounge-tenant.js"></script>
+  <script src="tab-cleaning-tenant.js"></script>
+  <script src="tab-kitchen-tenant.js"></script>
+  <script>
+    initTabs();
+    initNav();
+    initTenantLogin();
+    loadRoomsData();
+    initRoomsRealtime();
+
+    // Change password modal
+    document.getElementById('changePwBtn')?.addEventListener('click', () => {
+      toggleProfileMenu();
+      document.getElementById('changePwModal')?.classList.add('open');
+    });
+    document.getElementById('changePwModal')?.addEventListener('click', e => {
+      if (e.target === document.getElementById('changePwModal')) closeModal('changePwModal');
+    });
+    document.getElementById('changePwSubmit')?.addEventListener('click', async () => {
+      const p1  = document.getElementById('newPw1').value;
+      const p2  = document.getElementById('newPw2').value;
+      const err = document.getElementById('pwError');
+      err.classList.remove('visible');
+      if (!p1 || p1 !== p2) { err.textContent = 'Passwords do not match.'; err.classList.add('visible'); return; }
+      if (p1.length < 6)    { err.textContent = 'Minimum 6 characters.';   err.classList.add('visible'); return; }
+      if (!sbL) { err.textContent = 'No database connection.'; err.classList.add('visible'); return; }
+      // Hash and store in lounge_data (matches v1 approach)
+      const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p1));
+      const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+      const { error } = await sbL.from('lounge_data').insert({ type:'password', room: currentRoom, body: hash });
+      if (error) { err.textContent = 'Failed to save. Please try again.'; err.classList.add('visible'); return; }
+      closeModal('changePwModal');
+      document.getElementById('newPw1').value = '';
+      document.getElementById('newPw2').value = '';
+    });
+
+    function closeModal(id) {
+      document.getElementById(id)?.classList.remove('open');
+      window.scrollTo(0, 0);
+    }
+  </script>
+</body>
+</html>

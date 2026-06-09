@@ -1,0 +1,136 @@
+/* ─────────────────────────────────────────────────────────────
+   CASA CASTEL v2 — AUTH
+   js/auth.js
+
+   Login / logout / PWA detection.
+   Depends on: constants.js
+   ───────────────────────────────────────────────────────────── */
+
+/* ── PWA DETECTION ──────────────────────────────────────── */
+// Global: set by showApp so tab modules can read it
+let currentRoom = null;
+function isPWA() {
+  return window.matchMedia('(display-mode:standalone)').matches
+      || window.navigator.standalone === true;
+}
+
+/* Measures actual Safari browser chrome height instead of
+   hardcoding 70px. Sets --cc-browser-chrome-h on :root.    */
+function detectPWAMode() {
+  if (!isPWA()) {
+    document.body.classList.add('browser-mode');
+    const chromeH = window.screen.height - window.innerHeight;
+    if (chromeH > 20) {
+      document.documentElement.style.setProperty(
+        '--cc-browser-chrome-h',
+        Math.min(chromeH + 10, 100) + 'px'
+      );
+    }
+  }
+  return isPWA();
+}
+
+/* ── LANDLORD AUTH ──────────────────────────────────────── */
+function doLandlordLogin() {
+  const input = document.getElementById('landlordPass');
+  if (!input) return;
+  if (input.value === LANDLORD_PASS) {
+    localStorage.setItem('cc_role', 'landlord');
+    document.getElementById('loginError')?.classList.remove('visible');
+    showApp();
+  } else {
+    document.getElementById('loginError')?.classList.add('visible');
+    input.value = '';
+    input.focus();
+  }
+}
+
+function initLandlordLogin() {
+  document.getElementById('landlordLoginBtn')
+    ?.addEventListener('click', doLandlordLogin);
+  document.getElementById('landlordPass')
+    ?.addEventListener('keydown', e => { if (e.key === 'Enter') doLandlordLogin(); });
+  if (localStorage.getItem('cc_role') === 'landlord') showApp();
+}
+
+/* ── TENANT AUTH — room + password (matches v1 exactly) ─── */
+const ROOM_PASSWORDS = {
+  'Paris':       'paris2026',
+  'Copenhagen':  'copenhagen2026',
+  'Stockholm':   'stockholm2026',
+  'Oslo':        'oslo2026',
+  'London':      'london2026',
+  'New York':    'newyork2026',
+  'Los Angeles': 'losangeles2026'
+};
+
+async function _hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doTenantLogin() {
+  const room = document.getElementById('tenantRoom')?.value;
+  const pass = document.getElementById('tenantPass')?.value;
+  const err  = document.getElementById('loginError');
+  if (!room || !pass) { err?.classList.add('visible'); return; }
+
+  let valid = false;
+  // Check Supabase for a custom (changed) password first
+  try {
+    if (sbL) {
+      const { data } = await sbL.from('lounge_data').select('body')
+        .eq('type','password').eq('room', room)
+        .order('created_at',{ascending:false}).limit(1).maybeSingle();
+      if (data && data.body) {
+        const h = await _hashPassword(pass);
+        valid = (h === data.body);
+      }
+    }
+  } catch(e) { /* fall through */ }
+
+  // Fall back to hardcoded room password
+  if (!valid && ROOM_PASSWORDS[room] && pass === ROOM_PASSWORDS[room]) valid = true;
+
+  if (valid) {
+    localStorage.setItem('cc_role', 'tenant');
+    localStorage.setItem('cc_room', room);
+    err?.classList.remove('visible');
+    showApp(room);
+    if (typeof loadRoomsData === 'function') loadRoomsData();
+  } else {
+    err?.classList.add('visible');
+    document.getElementById('tenantPass').value = '';
+    document.getElementById('tenantPass').focus();
+  }
+}
+
+function initTenantLogin() {
+  document.getElementById('tenantLoginBtn')
+    ?.addEventListener('click', doTenantLogin);
+  document.getElementById('tenantPass')
+    ?.addEventListener('keydown', e => { if (e.key === 'Enter') doTenantLogin(); });
+
+  // Preview mode (landlord previewing as tenant)
+  const previewRoom = new URLSearchParams(window.location.search).get('preview');
+  if (previewRoom) {
+    document.getElementById('loginScreen').style.display = 'none';
+    showApp(previewRoom);
+    return;
+  }
+
+  // Auto-login if session exists
+  const savedRoom = localStorage.getItem('cc_room');
+  if (localStorage.getItem('cc_role') === 'tenant' && savedRoom) {
+    showApp(savedRoom);
+  }
+}
+
+/* ── LOGOUT ─────────────────────────────────────────────── */
+function logout() {
+  localStorage.removeItem('cc_role');
+  localStorage.removeItem('cc_room');
+  sessionStorage.removeItem('cc_preview_room');
+  if (sbL) sbL.auth.signOut().catch(() => {});
+  location.reload();
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Casa Castel"/>
+  <meta name="theme-color" content="#F5F2ED"/>
+
+  <title>Casa Castel — Management</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+
+  <link rel="stylesheet" href="casa-castel.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+</head>
+<body>
+
+  <!-- ══ PHOTO MODAL (kitchen) ══ -->
+  <div class="k-photo-modal" id="k-photo-modal" onclick="if(event.target===this)closePhotoModal()">
+    <div class="k-photo-modal__inner">
+      <button class="k-photo-modal__close" onclick="closePhotoModal()">✕</button>
+      <img class="k-photo-modal__img" id="k-photo-modal-img" src="" alt=""/>
+      <p class="k-photo-modal__label" id="k-photo-modal-label"></p>
+    </div>
+  </div>
+
+  <!-- ══ LOGIN ══ -->
+  <div class="login-screen" id="loginScreen">
+    <p class="login-logo">Casa Castel</p>
+    <p class="login-sub">Management · Alsenstraße 60 · 55252 Mainz-Kastel</p>
+    <div class="login-box">
+      <p class="login-title">Landlord access</p>
+      <div class="login-error" id="loginError">Incorrect password.</div>
+      <div class="cc-input-wrap cc-mb-16">
+        <label class="cc-input-label" for="landlordPass">Password</label>
+        <input class="cc-input" id="landlordPass" type="password" placeholder="Enter your password" autocomplete="current-password"/>
+      </div>
+      <button class="cc-btn cc-btn--primary" id="landlordLoginBtn">Enter</button>
+    </div>
+    <p class="cc-note cc-mt-24" style="text-align:center;">
+      Tenant? <a href="tenant.html" style="color:var(--cc-gold);text-decoration:underline;text-underline-offset:2px;">Go to tenant login ›</a>
+    </p>
+  </div>
+
+  <!-- ══ APP SHELL ══ -->
+  <div class="app-shell" id="appShell">
+
+    <div class="preview-banner" id="previewBanner">
+      <span>Landlord preview — <strong id="previewRoomLabel">—</strong></span>
+      <button class="preview-banner__exit" id="exitPreviewBtn">Exit preview</button>
+    </div>
+
+    <!-- Sticky header: nav + tabs -->
+    <div class="cc-header">
+      <nav class="cc-nav">
+        <a class="cc-nav__logo" href="#">Casa Castel</a>
+        <div class="nav-actions">
+          <button class="nav-preview-btn" id="previewBtn">Preview tenant</button>
+          <div class="nav-profile" id="navProfile">
+            <button class="nav-role-pill" onclick="toggleProfileMenu()" aria-haspopup="true">Management</button>
+            <div class="nav-profile-menu" id="navProfileMenu">
+              <button class="nav-profile-menu-item" id="profileBtn" data-i18n="nav_profile">Profile</button>
+              <button class="nav-profile-menu-item" id="langToggleBtn" onclick="toggleLang()">Deutsch</button>
+              <button class="nav-profile-menu-item" id="logoutBtn">Log out</button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="cc-tabs" id="appTabs">
+        <button class="cc-tab active" data-tab="lounge"   data-i18n="tab_lounge">Lounge</button>
+        <button class="cc-tab"        data-tab="cleaning" data-i18n="tab_cleaning">Cleaning</button>
+        <button class="cc-tab"        data-tab="kitchen"  data-i18n="tab_kitchen">Kitchen</button>
+        <button class="cc-tab"        data-tab="rooms"    data-i18n="tab_rooms">Rooms</button>
+        <button class="cc-tab"        data-tab="tenants"  data-i18n="tab_tenants">Tenants</button>
+      </div>
+    </div>
+
+    <div class="cc-layout" id="appLayout">
+      <div class="cc-main" id="appMain">
+        <div class="tab-content" id="tab-lounge"></div>
+        <div class="tab-content" id="tab-cleaning" style="display:none;"></div>
+        <div class="tab-content" id="tab-kitchen"  style="display:none;"></div>
+        <div class="tab-content" id="tab-rooms"    style="display:none;"></div>
+        <div class="tab-content" id="tab-tenants"  style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Room picker -->
+    <div class="room-picker-overlay" id="roomPickerOverlay">
+      <div class="room-picker">
+        <p class="room-picker__title">Preview as tenant</p>
+        <button class="room-picker__item" data-room="Paris">Paris</button>
+        <button class="room-picker__item" data-room="Copenhagen">Copenhagen</button>
+        <button class="room-picker__item" data-room="Stockholm">Stockholm</button>
+        <button class="room-picker__item" data-room="Oslo">Oslo</button>
+        <button class="room-picker__item" data-room="London">London</button>
+        <button class="room-picker__item" data-room="New York">New York</button>
+        <button class="room-picker__item" data-room="Los Angeles">Los Angeles</button>
+        <button class="room-picker__cancel" id="cancelPickerBtn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Tenant preview iframe -->
+    <div class="tenant-preview-overlay" id="tenantPreviewOverlay">
+      <div class="tenant-preview-bar">
+        <span class="tenant-preview-bar__label" id="tenantPreviewLabel">Preview</span>
+        <button class="tenant-preview-bar__close" id="tenantPreviewClose">✕</button>
+      </div>
+      <iframe class="tenant-preview-iframe" id="tenantPreviewFrame" src=""></iframe>
+    </div>
+
+  </div><!-- /.app-shell -->
+
+  <!-- ══ SCRIPTS — must be after DOM ══ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="constants.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="utils.js"></script>
+  <script src="storage.js"></script>
+  <script src="auth.js"></script>
+  <script src="chat-viewport.js"></script>
+  <script src="layout.js"></script>
+  <script src="nav.js"></script>
+  <script src="settings.js"></script>
+  <script src="rooms-data.js"></script>
+  <script src="profile-modal.js"></script>
+  <!-- Tab modules — inject innerHTML into tab divs above -->
+  <script src="tab-lounge.js"></script>
+  <script src="tab-cleaning.js"></script>
+  <script src="tab-kitchen.js"></script>
+  <script src="tab-rooms.js"></script>
+  <script src="tab-tenants.js"></script>
+  <script>
+    initProfileModal();
+    initSettingsRealtime();
+    initRoomsRealtime();
+
+    loadRooms();
+    initTabs();
+    initNav();
+    initPreviewTenant();
+    initLandlordLogin();
+  </script>
+</body>
+</html>

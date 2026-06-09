@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Casa Castel — Design System</title>
+  <link rel="stylesheet" href="casa-castel.css"/>
+  <style>
+    .ds-section { padding: 28px 20px; border-bottom: 0.5px solid var(--cc-rule); max-width: 430px; margin: 0 auto; }
+    .ds-label   { font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cc-stone); margin: 0 0 18px; }
+    .ds-row     { display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px; }
+    .ds-row:last-child { margin-bottom: 0; }
+    .ds-spec    { font-size: 10px; color: var(--cc-stone); min-width: 120px; flex-shrink: 0; line-height: 1.4; }
+    .swatch-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+    .swatch     { border-radius: 8px; padding: 12px 12px 10px; }
+  </style>
+</head>
+<body>
+
+  <nav class="cc-nav">
+    <a class="cc-nav__logo" href="#">Casa Castel</a>
+    <div class="cc-nav__icon" role="button" aria-label="Menu">&#9776;</div>
+  </nav>
+
+  <div class="cc-tabs">
+    <button class="cc-tab active">Design system</button>
+    <button class="cc-tab">Components</button>
+    <button class="cc-tab">Tokens</button>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="ds-section">
+    <p class="ds-label">Typography</p>
+    <div class="ds-row"><span class="ds-spec">H1 · Cormorant 28 light</span><h1 class="cc-h1">Casa Castel</h1></div>
+    <div class="ds-row"><span class="ds-spec">H2 · Cormorant 22</span><h2 class="cc-h2">Room Paris</h2></div>
+    <div class="ds-row"><span class="ds-spec">H3 · Cormorant 18 italic</span><h3 class="cc-h3">No place like home</h3></div>
+    <div class="ds-row"><span class="ds-spec">H4 · Inter 15 medium</span><h4 class="cc-h4">Monthly overview</h4></div>
+    <div class="ds-row"><span class="ds-spec">Body · Inter 14 light</span><p class="cc-body">Furnished rooms near the Rhine.</p></div>
+    <div class="ds-row"><span class="ds-spec">Small · Inter 13</span><p class="cc-small">Alsenstraße 60, Mainz-Kastel</p></div>
+    <div class="ds-row"><span class="ds-spec">Note · Inter 12</span><p class="cc-note">Last updated 14 May 2025</p></div>
+    <div class="ds-row"><span class="ds-spec">Label · Inter 10 caps</span><p class="cc-label">Status · Available</p></div>
+    <div class="ds-row"><span class="ds-spec">Price · Inter 13 medium</span><p class="cc-price">€ 620 / month</p></div>
+  </div>
+
+  <!-- COLOURS -->
+  <div class="ds-section">
+    <p class="ds-label">Colour palette</p>
+    <div class="swatch-grid">
+      <div class="swatch" style="background:#F5F2ED;border:0.5px solid #E0DAD0;"><div style="font-size:11px;font-weight:500;color:#3A3530;">Cream</div><div style="font-size:10px;color:#9A8E7E;margin-top:2px;">#F5F2ED · page bg</div></div>
+      <div class="swatch" style="background:#EDE8E0;border:0.5px solid #E0DAD0;"><div style="font-size:11px;font-weight:500;color:#3A3530;">Warm</div><div style="font-size:10px;color:#9A8E7E;margin-top:2px;">#EDE8E0 · surface</div></div>
+      <div class="swatch" style="background:#C8BFB0;"><div style="font-size:11px;font-weight:500;color:#3A3530;">Stone</div><div style="font-size:10px;color:#3A3530;margin-top:2px;opacity:.7;">#C8BFB0 · border</div></div>
+      <div class="swatch" style="background:#9A8E7E;"><div style="font-size:11px;font-weight:500;color:#FDFCFA;">Taupe</div><div style="font-size:10px;color:#FDFCFA;margin-top:2px;opacity:.7;">#9A8E7E · muted</div></div>
+      <div class="swatch" style="background:#3A3530;"><div style="font-size:11px;font-weight:500;color:#FDFCFA;">Charcoal</div><div style="font-size:10px;color:#FDFCFA;margin-top:2px;opacity:.7;">#3A3530 · body</div></div>
+      <div class="swatch" style="background:#1E1B18;"><div style="font-size:11px;font-weight:500;color:#FDFCFA;">Ink</div><div style="font-size:10px;color:#FDFCFA;margin-top:2px;opacity:.7;">#1E1B18 · headings</div></div>
+      <div class="swatch" style="background:#B8956A;"><div style="font-size:11px;font-weight:500;color:#FDFCFA;">Gold</div><div style="font-size:10px;color:#FDFCFA;margin-top:2px;opacity:.7;">#B8956A · accent</div></div>
+      <div class="swatch" style="background:#E8D9C4;border:0.5px solid #C8BFB0;"><div style="font-size:11px;font-weight:500;color:#7A5A2A;">Gold light</div><div style="font-size:10px;color:#7A5A2A;margin-top:2px;opacity:.7;">#E8D9C4 · tint</div></div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="ds-section">
+    <p class="ds-label">Status badges</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="cc-badge cc-badge--available">Available</span>
+      <span class="cc-badge cc-badge--occupied">Occupied</span>
+      <span class="cc-badge cc-badge--notice">Notice given</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="ds-section">
+    <p class="ds-label">Stat cells</p>
+    <div class="cc-grid-2">
+      <div class="cc-stat"><p class="cc-stat__label">Rooms</p><p class="cc-stat__value">7</p></div>
+      <div class="cc-stat"><p class="cc-stat__label">Occupied</p><p class="cc-stat__value">6</p></div>
+      <div class="cc-stat"><p class="cc-stat__label">Monthly rent</p><p class="cc-stat__value--sm">€ 4,200</p></div>
+      <div class="cc-stat"><p class="cc-stat__label">Occupancy</p><p class="cc-stat__value">86%</p></div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="ds-section">
+    <p class="ds-label">Room cards</p>
+    <div class="cc-stack">
+      <div class="cc-card">
+        <div class="cc-card__img"><span class="cc-card__img-placeholder">Stockholm</span></div>
+        <div class="cc-card__header"><h4 class="cc-h4">Stockholm</h4><span class="cc-badge cc-badge--occupied">Occupied</span></div>
+        <p class="cc-small">16 m² · 1st floor · Balcony</p>
+        <p class="cc-note cc-mt-4">Lease ends 31 Aug 2025</p>
+        <hr class="cc-card__divider"/>
+        <p class="cc-price">€ 620 / month</p>
+      </div>
+      <div class="cc-card">
+        <div class="cc-card__img" style="background:#F5F2ED;"><span class="cc-card__img-placeholder">Paris</span></div>
+        <div class="cc-card__header"><h4 class="cc-h4">Paris</h4><span class="cc-badge cc-badge--available">Available</span></div>
+        <p class="cc-small">28 m² · Attic · Own kitchen</p>
+        <p class="cc-note cc-mt-4">Available from 1 Jun 2025</p>
+        <hr class="cc-card__divider"/>
+        <p class="cc-price">€ 890 / month</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST ROWS -->
+  <div class="ds-section">
+    <p class="ds-label">List rows</p>
+    <div>
+      <div class="cc-list-row cc-list-row--tap">
+        <div class="cc-list-row__left"><p class="cc-list-row__title">Copenhagen</p><p class="cc-list-row__sub">12 m² · Ground floor</p></div>
+        <div class="cc-list-row__right"><span class="cc-badge cc-badge--occupied">Occupied</span><span class="cc-list-row__chevron">›</span></div>
+      </div>
+      <div class="cc-list-row cc-list-row--tap">
+        <div class="cc-list-row__left"><p class="cc-list-row__title">Oslo</p><p class="cc-list-row__sub">13 m² · 1st floor</p></div>
+        <div class="cc-list-row__right"><span class="cc-badge cc-badge--notice">Notice given</span><span class="cc-list-row__chevron">›</span></div>
+      </div>
+      <div class="cc-list-row cc-list-row--tap">
+        <div class="cc-list-row__left"><p class="cc-list-row__title">Los Angeles</p><p class="cc-list-row__sub">11 m² · Basement</p></div>
+        <div class="cc-list-row__right"><span class="cc-badge cc-badge--available">Available</span><span class="cc-list-row__chevron">›</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="ds-section">
+    <p class="ds-label">Filter pills</p>
+    <div class="cc-filters">
+      <span class="cc-filter active">All</span>
+      <span class="cc-filter">Available</span>
+      <span class="cc-filter">Occupied</span>
+      <span class="cc-filter">Attic</span>
+      <span class="cc-filter">Basement</span>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="ds-section">
+    <p class="ds-label">Buttons</p>
+    <div class="cc-stack-sm">
+      <button class="cc-btn cc-btn--primary">View room details</button>
+      <button class="cc-btn cc-btn--secondary">Send message</button>
+      <button class="cc-btn cc-btn--ghost">View all ›</button>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="ds-section">
+    <p class="ds-label">Input fields</p>
+    <div class="cc-stack-sm">
+      <div class="cc-input-wrap">
+        <label class="cc-input-label" for="i1">Search</label>
+        <input class="cc-input" id="i1" type="text" placeholder="Search rooms, tenants…"/>
+      </div>
+      <div class="cc-input-wrap">
+        <label class="cc-input-label" for="i2">Notes</label>
+        <textarea class="cc-input cc-textarea" id="i2" placeholder="Add a note…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.cc-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.cc-tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+      });
+    });
+    document.querySelectorAll('.cc-filter').forEach(f => {
+      f.addEventListener('click', () => {
+        document.querySelectorAll('.cc-filter').forEach(x => x.classList.remove('active'));
+        f.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>
