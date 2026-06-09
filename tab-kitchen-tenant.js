@@ -49,30 +49,23 @@ document.getElementById('tab-kitchen').innerHTML = `
       <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
     </div>
 
-    <!-- Proof wizard overlay — hidden until upload starts -->
-    <div id="k-ten-wizard" style="display:none;position:fixed;inset:0;background:var(--cc-bg);z-index:200;display:none;flex-direction:column;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--cc-rule);">
-        <span id="k-ten-wiz-step" style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);"></span>
+    <!-- Proof wizard overlay — 3-slot single screen -->
+    <div id="k-ten-wizard" style="display:none;position:fixed;inset:0;background:var(--cc-bg);z-index:200;flex-direction:column;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;">
+        <span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);">Kitchen proof</span>
         <button onclick="_kTenWizCancel()" style="font-size:14px;color:var(--cc-stone);background:none;border:none;cursor:pointer;padding:4px 8px;">✕</button>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px;">
-        <p id="k-ten-wiz-label" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;font-weight:300;color:var(--cc-ink);text-align:center;"></p>
-        <p id="k-ten-wiz-hint"  style="font-size:12px;color:var(--cc-taupe);text-align:center;"></p>
-        <!-- Preview of staged photo -->
-        <div id="k-ten-wiz-preview" style="display:none;width:100%;max-width:320px;border-radius:var(--cc-r-md);overflow:hidden;border:0.5px solid var(--cc-rule);">
-          <img id="k-ten-wiz-img" style="width:100%;object-fit:contain;display:block;" src="" alt=""/>
-        </div>
-        <!-- Hidden file input -->
-        <input type="file" id="k-ten-wiz-file" accept="image/*" capture="environment" style="display:none;"/>
-        <!-- Buttons -->
-        <button id="k-ten-wiz-next-btn" class="cc-btn" style="width:100%;max-width:320px;display:none;" onclick="_kTenWizNext()"></button>
-        <button id="k-ten-wiz-take-btn" class="cc-btn cc-btn--primary" style="width:100%;max-width:320px;" onclick="_kTenWizTake()"></button>
+      <!-- 3 photo slots -->
+      <div style="flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px;">
+        <p style="font-size:12px;color:var(--cc-taupe);text-align:center;margin:0 0 4px;">Tap each slot to take a photo. Tap again to retake.</p>
+        <div id="k-ten-wiz-slots" style="display:flex;gap:10px;"></div>
       </div>
-      <!-- Progress dots -->
-      <div style="display:flex;justify-content:center;gap:8px;padding:20px;">
-        <span id="k-ten-dot-0" style="width:8px;height:8px;border-radius:50%;background:var(--cc-rule);display:inline-block;"></span>
-        <span id="k-ten-dot-1" style="width:8px;height:8px;border-radius:50%;background:var(--cc-rule);display:inline-block;"></span>
-        <span id="k-ten-dot-2" style="width:8px;height:8px;border-radius:50%;background:var(--cc-rule);display:inline-block;"></span>
+      <!-- Hidden file input — shared, tracks which slot -->
+      <input type="file" id="k-ten-wiz-file" accept="image/*" capture="environment" style="display:none;"/>
+      <!-- Submit -->
+      <div style="padding:16px 20px;border-top:0.5px solid var(--cc-rule);flex-shrink:0;">
+        <button id="k-ten-wiz-submit-btn" class="cc-btn" style="width:100%;opacity:0.4;pointer-events:none;" onclick="_kTenWizSubmit()">↑ Submit proof</button>
       </div>
     </div>
 
@@ -208,26 +201,23 @@ let _kTenMobSending = false;
    Each step: take photo → preview → Next / Retake
    After step 2: Submit → upload all → post [submission]
    ───────────────────────────────────────────────────────── */
-const _kWizSteps = [
-  { type: 'trash',    emoji: '🗑️', label: 'Trash photo',    hint: 'Photo of trash bags removed and bin clean.' },
-  { type: 'geschirr', emoji: '🍽️', label: 'Geschirr photo', hint: 'Photo of clean dishes and sink area.' },
-  { type: 'overview', emoji: '🏠', label: 'Overview photo', hint: 'Full kitchen overview — stovetop, surfaces, floor.' },
+const _kWizSlots = [
+  { type: 'trash',    emoji: '🗑️', label: 'Trash',    hint: 'Bin empty & clean' },
+  { type: 'geschirr', emoji: '🍽️', label: 'Dishes',   hint: 'Dishes & sink clean' },
+  { type: 'overview', emoji: '🏠', label: 'Overview', hint: 'Stovetop, surfaces, floor' },
 ];
-let _kWizStep     = 0;
-let _kWizBlobs    = [null, null, null]; // staged compressed blobs
-let _kWizPreviews = [null, null, null]; // local object URLs for preview
+let _kWizBlobs    = [null, null, null];
+let _kWizPreviews = [null, null, null];
 let _kWizSubmitting = false;
+let _kWizActiveSlot = 0; // which slot the file input is for
 
 function _kTenWizOpen() {
-  _kWizStep       = 0;
   _kWizBlobs      = [null, null, null];
   _kWizPreviews.forEach(u => u && URL.revokeObjectURL(u));
   _kWizPreviews   = [null, null, null];
   _kWizSubmitting = false;
-  // Reset button state from any previous submit
-  const nextBtn = document.getElementById('k-ten-wiz-next-btn');
-  if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next →'; }
-  _kTenWizRender();
+  _kWizActiveSlot = 0;
+  _kTenWizRenderSlots();
   document.getElementById('k-ten-wizard').style.display = 'flex';
 }
 
@@ -235,77 +225,54 @@ function _kTenWizCancel() {
   document.getElementById('k-ten-wizard').style.display = 'none';
 }
 
-function _kTenWizRender() {
-  const step  = _kWizSteps[_kWizStep];
-  const hasPhoto = !!_kWizBlobs[_kWizStep];
-  const isLast   = _kWizStep === _kWizSteps.length - 1;
+function _kTenWizRenderSlots() {
+  const container = document.getElementById('k-ten-wiz-slots');
+  if (!container) return;
+  container.innerHTML = _kWizSlots.map((slot, i) => {
+    const hasPhoto = !!_kWizBlobs[i];
+    const preview  = _kWizPreviews[i];
+    return '<div onclick="_kTenWizTakeSlot(' + i + ')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;">'
+      + '<div style="width:100%;aspect-ratio:1;border-radius:var(--cc-r-md);overflow:hidden;border:' + (hasPhoto ? '1.5px solid var(--cc-gold)' : '1px dashed var(--cc-rule)') + ';background:var(--cc-surface);display:flex;align-items:center;justify-content:center;position:relative;">'
+      + (hasPhoto && preview
+          ? '<img src="' + preview + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="' + slot.label + '"/>'
+            + '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);padding:4px 0;text-align:center;font-size:9px;color:#fff;letter-spacing:0.06em;text-transform:uppercase;">↺ retake</div>'
+          : '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">'
+            + '<span style="font-size:28px;">' + slot.emoji + '</span>'
+            + '<span style="font-size:9px;font-weight:500;color:var(--cc-taupe);letter-spacing:0.06em;text-transform:uppercase;">tap to add</span>'
+            + '</div>')
+      + '</div>'
+      + '<span style="font-size:11px;font-weight:500;color:var(--cc-ink);">' + slot.label + '</span>'
+      + '<span style="font-size:10px;color:var(--cc-taupe);text-align:center;">' + slot.hint + '</span>'
+      + '</div>';
+  }).join('');
 
-  document.getElementById('k-ten-wiz-step').textContent  = 'Step ' + (_kWizStep + 1) + ' of ' + _kWizSteps.length;
-  document.getElementById('k-ten-wiz-label').textContent = step.emoji + '  ' + step.label;
-  document.getElementById('k-ten-wiz-hint').textContent  = step.hint;
-
-  // Preview
-  const prev = document.getElementById('k-ten-wiz-preview');
-  const img  = document.getElementById('k-ten-wiz-img');
-  if (hasPhoto && _kWizPreviews[_kWizStep]) {
-    img.src = _kWizPreviews[_kWizStep];
-    prev.style.display = '';
-  } else {
-    prev.style.display = 'none';
-    img.src = '';
+  // Submit button: enabled only when all 3 slots filled
+  const allFilled = _kWizBlobs.every(Boolean);
+  const btn = document.getElementById('k-ten-wiz-submit-btn');
+  if (btn) {
+    btn.style.opacity       = allFilled ? '1'    : '0.4';
+    btn.style.pointerEvents = allFilled ? 'auto' : 'none';
+    btn.style.background    = allFilled ? 'var(--cc-ink)' : '';
+    btn.style.color         = allFilled ? 'var(--cc-white)' : '';
+    btn.textContent         = _kWizSubmitting ? 'Uploading…' : '↑ Submit proof';
   }
-
-  // Take button
-  const takeBtn = document.getElementById('k-ten-wiz-take-btn');
-  takeBtn.textContent = hasPhoto ? '↺ Retake photo' : '📷 Take photo';
-  takeBtn.style.background = hasPhoto ? '' : '';
-
-  // Next / Submit button
-  const nextBtn = document.getElementById('k-ten-wiz-next-btn');
-  if (hasPhoto) {
-    nextBtn.style.display = '';
-    nextBtn.textContent   = isLast ? '↑ Submit proof' : 'Next →';
-    nextBtn.style.background = isLast ? 'var(--cc-ink)' : '';
-    nextBtn.style.color      = isLast ? 'var(--cc-white)' : '';
-  } else {
-    nextBtn.style.display = 'none';
-  }
-
-  // Progress dots
-  _kWizSteps.forEach((_, i) => {
-    const dot = document.getElementById('k-ten-dot-' + i);
-    if (!dot) return;
-    dot.style.background = i < _kWizStep
-      ? 'var(--cc-ink)'
-      : i === _kWizStep
-        ? (_kWizBlobs[i] ? 'var(--cc-gold)' : 'var(--cc-taupe)')
-        : 'var(--cc-rule)';
-  });
 }
 
-function _kTenWizTake() {
+function _kTenWizTakeSlot(slotIndex) {
+  if (_kWizSubmitting) return;
+  _kWizActiveSlot = slotIndex;
   const file = document.getElementById('k-ten-wiz-file');
   file.value = '';
   file.onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
     const blob     = await _kTenCompressImage(f);
     const localUrl = URL.createObjectURL(blob);
-    if (_kWizPreviews[_kWizStep]) URL.revokeObjectURL(_kWizPreviews[_kWizStep]);
-    _kWizBlobs[_kWizStep]    = blob;
-    _kWizPreviews[_kWizStep] = localUrl;
-    _kTenWizRender();
+    if (_kWizPreviews[_kWizActiveSlot]) URL.revokeObjectURL(_kWizPreviews[_kWizActiveSlot]);
+    _kWizBlobs[_kWizActiveSlot]    = blob;
+    _kWizPreviews[_kWizActiveSlot] = localUrl;
+    _kTenWizRenderSlots();
   };
   file.click();
-}
-
-async function _kTenWizNext() {
-  const isLast = _kWizStep === _kWizSteps.length - 1;
-  if (isLast) {
-    await _kTenWizSubmit();
-  } else {
-    _kWizStep++;
-    _kTenWizRender();
-  }
 }
 
 async function _kTenWizSubmit() {
@@ -315,21 +282,21 @@ async function _kTenWizSubmit() {
   const room = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
   _kWizSubmitting = true;
 
-  const nextBtn = document.getElementById('k-ten-wiz-next-btn');
-  if (nextBtn) { nextBtn.textContent = 'Uploading…'; nextBtn.disabled = true; }
+  const submitBtn = document.getElementById('k-ten-wiz-submit-btn');
+  if (submitBtn) { submitBtn.textContent = 'Uploading 1/3…'; submitBtn.style.pointerEvents = 'none'; }
 
   try {
     const idx      = kWeekIdx();
     const uploaded = [];
-    const total    = _kWizBlobs.filter(Boolean).length;
+    const total    = _kWizSlots.length;
     let   done     = 0;
 
-    for (let i = 0; i < _kWizSteps.length; i++) {
+    for (let i = 0; i < _kWizSlots.length; i++) {
       const blob = _kWizBlobs[i];
       if (!blob) continue;
-      const type = _kWizSteps[i].type;
+      const type = _kWizSlots[i].type;
       const path = 'week-' + idx + '-' + room + '-' + type + '-' + Date.now() + '.jpg';
-      if (nextBtn) nextBtn.textContent = 'Uploading ' + (done + 1) + '/' + total + '…';
+      if (submitBtn) submitBtn.textContent = 'Uploading ' + (done + 1) + '/' + total + '…';
 
       // Wrap upload in a 30s timeout so it never hangs indefinitely
       const uploadResult = await Promise.race([
@@ -339,8 +306,8 @@ async function _kTenWizSubmit() {
 
       if (uploadResult.error) {
         console.error('Upload error ' + type, uploadResult.error);
-        if (nextBtn) { nextBtn.textContent = '↑ Submit proof'; nextBtn.disabled = false; }
         _kWizSubmitting = false;
+        _kTenWizRenderSlots();
         alert('Photo ' + (done + 1) + ' failed to upload — please try again.');
         return;
       }
@@ -352,8 +319,8 @@ async function _kTenWizSubmit() {
 
     if (!uploaded.length) {
       alert('Upload failed — please try again.');
-      if (nextBtn) { nextBtn.textContent = '↑ Submit proof'; nextBtn.disabled = false; }
       _kWizSubmitting = false;
+      _kTenWizRenderSlots();
       return;
     }
 
@@ -390,8 +357,8 @@ async function _kTenWizSubmit() {
   } catch (err) {
     console.error('Proof submit error', err);
     alert('Error submitting — please try again.');
-    if (nextBtn) { nextBtn.textContent = '↑ Submit proof'; nextBtn.disabled = false; }
     _kWizSubmitting = false;
+    _kTenWizRenderSlots();
   }
 }
 
