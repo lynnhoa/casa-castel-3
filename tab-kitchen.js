@@ -792,8 +792,48 @@ function _kDismissNudgeBanner() {
 /* ── SEND HELPERS ───────────────────────────────────────── */
 async function kClearChat() {
   if (!_kWeekRow) return;
-  if (!confirm('Clear all messages in this chat? This cannot be undone.')) return;
+  if (!confirm('Clear all messages and delete proof photos? This cannot be undone.')) return;
+
+  // Collect all storage paths before deleting comments
+  const paths = [];
+
+  // A) kitchen_weeks.photos jsonb — first upload proof photos
+  if (_kWeekRow.photos && Array.isArray(_kWeekRow.photos)) {
+    _kWeekRow.photos.forEach(p => { if (p.path) paths.push(p.path); });
+  }
+
+  // B) kitchen_comments — [submission] and [photo] entries
+  const comments = await _kGetComments(_kWeekRow.id);
+  comments.forEach(c => {
+    if (!c.text) return;
+    if (c.text.startsWith('[submission] ')) {
+      try {
+        const data = JSON.parse(c.text.replace('[submission] ', ''));
+        (data.photos || []).forEach(p => { if (p.path) paths.push(p.path); });
+      } catch(e) {}
+    } else if (c.text.startsWith('[photo] ')) {
+      // Public URL — extract storage path after bucket name
+      const url = c.text.replace('[photo] ', '').trim();
+      const marker = 'kitchen-proofs/';
+      const idx = url.indexOf(marker);
+      if (idx !== -1) paths.push(decodeURIComponent(url.slice(idx + marker.length)));
+    }
+  });
+
+  // Delete storage files first (fire and forget — don't block on storage errors)
+  if (sbL && paths.length) {
+    sbL.storage.from('kitchen-proofs').remove(paths).catch(e => console.warn('Storage cleanup error', e));
+  }
+
+  // Clear photos column on kitchen_weeks row
+  if (sbL && _kWeekRow.photos) {
+    await sbL.from('kitchen_weeks').update({ photos: null }).eq('id', _kWeekRow.id);
+    _kWeekRow = { ..._kWeekRow, photos: null };
+  }
+
+  // Delete comments
   await _kDeleteComments(_kWeekRow.id);
+
   const mobile = window.innerWidth <= 700;
   if (mobile) await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   else        await _kRenderFeed('k-feed',     _kWeekRow, false);
