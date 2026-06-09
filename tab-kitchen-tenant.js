@@ -25,6 +25,7 @@ document.getElementById('tab-kitchen').innerHTML = `
     <!-- Week card -->
     <div class="k-mob-week">
       <div class="k-mob-week-top-row">
+        <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
         <div class="k-mob-week-corner-links">
           <button class="k-mob-week-corner-link" onclick="kitchenTenantOpenModal('history')">history</button>
         </div>
@@ -412,8 +413,33 @@ function _kTenRenderWeekCard() {
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
 
-
-
+  const chip = document.getElementById('k-mob-status-chip');
+  if (chip) {
+    if (!isAssigned) {
+      chip.className   = 'k-mob-status-chip not-your-turn';
+      chip.textContent = '— Not your turn';
+    } else {
+      // isVacant() reads appRooms[] in memory — no localStorage
+      const vacant  = isVacant(wi.room);
+      const status  = vacant ? 'skipped' : (row ? row.status : 'pending');
+      const isResub = status === 'submitted' && row && row.reupload_count > 0;
+      const chipMap = {
+        submitted: isResub ? 'resubmitted' : 'submitted',
+        approved:  'approved',
+        missed:    'missed',
+        flagged:   'flagged',
+        skipped:   'skipped',
+      };
+      chip.className   = 'k-mob-status-chip ' + (chipMap[status] || 'pending');
+      chip.textContent = {
+        submitted: isResub ? '↑↑ Re-submitted' : '↑ Submitted',
+        approved:  '✓ Approved',
+        missed:    '✗ Missed',
+        flagged:   '⚑ Redo',
+        skipped:   '— Skipped',
+      }[status] || 'Pending';
+    }
+  }
   const absNote = document.getElementById('k-mob-absent-note');
   if (absNote) {
     if (row && row.is_absent) { absNote.textContent = '📅 ' + wi.room + ' is absent — no proof required'; absNote.style.display = ''; }
@@ -699,7 +725,7 @@ function _kTenSubscribe(idx) {
     .on('postgres_changes', { event:'*', schema:'public', table:'lounge_data' }, async payload => {
       const t = payload.new?.type || payload.old?.type;
       const isDelete = payload.eventType === 'DELETE' || (!payload.new?.id && payload.old?.id);
-      if (t === 'kitchen_config') { await loadKitchenRoomsFromSupabase(); await _kTenRenderMobRotation(); }
+      if (t === 'kitchen_config' && payload.new?.body) { _applyKitchenConfig(payload.new.body); _kTenRenderWeekCard(); _kTenRenderActBtn(); await _kTenRenderMobRotation(); }
       if (t === 'kitchen_nudge' || isDelete) { await _kTenLoadNudgeBanner(); }
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'kitchen_absences' }, async () => {
@@ -718,7 +744,6 @@ function _kTenSubscribe(idx) {
 async function initKitchenMobile() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
   await loadKitchenRoomsFromSupabase();
-  localStorage.removeItem('cc_vacancies');
 
   _kTenRenderWeekCard();
   _kTenRenderActBtn();
@@ -862,10 +887,8 @@ function _kTenShowTabIfEligible() {
     document.getElementById('kitchenTab')?.style.removeProperty('display');
   }
 }
-// Run immediately with whatever is in localStorage (covers refresh / returning user)
-_kTenShowTabIfEligible();
-// Also run after loading rooms from Supabase — covers first login where
-// localStorage is empty and getKitchenRooms() would fall back to hardcoded list
+// Load kitchen config from Supabase into kitchenRooms[] memory, then show tab if eligible.
+// getKitchenRooms() now reads kitchenRooms[] — no localStorage fallback.
 (async function _kTenEnsureTabVisible() {
   await loadKitchenRoomsFromSupabase();
   _kTenShowTabIfEligible();

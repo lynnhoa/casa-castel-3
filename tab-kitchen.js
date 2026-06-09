@@ -37,6 +37,7 @@ document.getElementById('tab-kitchen').innerHTML = `
     <!-- Week card + action buttons -->
     <div class="k-mob-week">
       <div class="k-mob-week-top-row">
+        <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
         <div class="k-mob-week-corner-links">
           <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('history')">history</button>
         </div>
@@ -484,6 +485,29 @@ function _kRenderMobWeekCard(row) {
   const fmt = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : ' · ends today');
+
+  const chip = document.getElementById('k-mob-status-chip');
+  if (chip) {
+    // isVacant() reads appRooms[] in memory — no localStorage
+    const vacant  = isVacant(wi.room);
+    const status  = vacant ? 'skipped' : (row ? row.status : 'pending');
+    const isResub = status === 'submitted' && row && row.reupload_count > 0;
+    const chipMap = {
+      submitted: isResub ? 'resubmitted' : 'submitted',
+      approved:  'approved',
+      missed:    'missed',
+      flagged:   'flagged',
+      skipped:   'skipped',
+    };
+    chip.className   = 'k-mob-status-chip ' + (chipMap[status] || 'pending');
+    chip.textContent = {
+      submitted: isResub ? '↑↑ Re-submitted' : '↑ Submitted',
+      approved:  '✓ Approved',
+      missed:    '✗ Missed',
+      flagged:   '⚑ Redo',
+      skipped:   '— Skipped',
+    }[status] || 'Pending';
+  }
 }
 
 /* ── MOBILE ACTION BUTTONS ──────────────────────────────── */
@@ -894,7 +918,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePhotoMo
 /* ── MAIN INIT — MOBILE ─────────────────────────────────── */
 async function initKitchenMobile() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
-  localStorage.removeItem('cc_vacancies');
   // Step 1: instant skeleton (no DB yet)
   _kRenderMobWeekCard(_kWeekRow);
   _kRenderMobActions(_kWeekRow);
@@ -933,7 +956,6 @@ async function initKitchenMobile() {
 /* ── MAIN INIT — DESKTOP ────────────────────────────────── */
 async function initKitchen() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
-  localStorage.removeItem('cc_vacancies');
   await loadKitchenRoomsFromSupabase();
 
   const idx  = kWeekIdx(new Date());
@@ -1095,6 +1117,13 @@ function _kSubscribe(idx) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'lounge_data' }, async payload => {
       const t = payload.new?.type || payload.old?.type;
       const isDelete = payload.eventType === 'DELETE' || (!payload.new?.id && payload.old?.id);
+      // Kitchen config changed — update kitchenRooms[] in memory and re-render
+      if (t === 'kitchen_config' && payload.new?.body) {
+        _applyKitchenConfig(payload.new.body);
+        const mobile = window.innerWidth <= 700;
+        if (mobile) { _kRenderMobWeekCard(_kWeekRow); _kRenderMobActions(_kWeekRow); await _kRenderMobRotation(); }
+        else        { _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx))); }
+      }
       const isNudge = t === 'kitchen_nudge' || isDelete;
       if (isNudge) {
         const mobile = window.innerWidth <= 700;

@@ -107,24 +107,12 @@ async function resetRoomPassword(room) {
 }
 
 /* ── RENDER ──────────────────────────────────────────────── */
-function _getKitchenRooms() {
-  try {
-    const v = localStorage.getItem('cc_kitchen_rooms');
-    return v ? JSON.parse(v) : [...KITCHEN_ROOMS];
-  } catch { return [...KITCHEN_ROOMS]; }
-}
-
-function _setKitchenRooms(rooms) {
-  localStorage.setItem('cc_kitchen_rooms', JSON.stringify(rooms));
-}
-
 function toggleKitchenAccess(room) {
-  const rooms = _getKitchenRooms();
+  const rooms = [...getKitchenRooms()];
   const idx   = rooms.indexOf(room);
   if (idx === -1) rooms.push(room);
   else            rooms.splice(idx, 1);
-  _setKitchenRooms(rooms);
-  syncKitchenRoomsToSupabase(rooms); // sync to Supabase so tenants update in realtime
+  syncKitchenRoomsToSupabase(rooms); // updates kitchenRooms[] in memory + writes to Supabase
   loadTenants(); // re-render to update toggle state
 }
 
@@ -151,7 +139,7 @@ function loadTenants() {
       const vacant      = isVacant(r.name);
       const p           = S.get('room_profile_' + r.name, {});
       const email       = p.email || '';
-      const kitchenRooms= _getKitchenRooms();
+      const kitchenRooms= getKitchenRooms();
       const hasKitchen  = kitchenRooms.includes(r.name);
 
       return `
