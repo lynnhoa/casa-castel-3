@@ -348,33 +348,54 @@ async function loadHouseCleaning(room) {
     cwEl.innerHTML = '<p class="cc-note">Not started yet.</p>';
   } else {
     cwEl.innerHTML = `
-      <div class="hc-current-card${isDone ? ' hc-current-card--done' : ''}">
+      ${(() => {
+        const curState = _hcRotState({
+          isNow: true, isPast: false, isNext: false,
+          slotDone: wDone, room: curInfo.room,
+          weekStart: curInfo.start, absRows
+        });
+        const pillClass = curState === 'done'    ? 'k-pill--done'
+                        : curState === 'skipped' ? 'k-pill--skipped'
+                        : curState === 'absent'  ? 'k-pill--skipped'
+                        : 'k-pill--pending';
+        const dotClass  = curState === 'done'    ? 'k-dot--done'
+                        : curState === 'skipped' ? 'k-dot--skipped'
+                        : curState === 'absent'  ? 'k-dot--skipped'
+                        : 'k-dot--pending';
+        const pillLabel = curState === 'done'    ? 'Done'
+                        : curState === 'skipped' ? 'Skipped'
+                        : curState === 'absent'  ? 'Away'
+                        : 'Pending';
+        const bodyHtml  = curState === 'done'
+          ? \`<div class="hc-done-confirm" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+               <span class="k-pill k-pill--done" style="font-size:10px;padding:3px 8px;">
+                 <span class="k-dot k-dot--done"></span>
+                 Marked done by \${esc(wDone.room)}
+               </span>
+               <span class="hc-done-ts">\${fmtTs(wDone.ts)}</span>
+             </div>\`
+          : curState === 'skipped'
+            ? \`<p class="cc-note" style="margin-top:4px;">\${esc(curInfo.room)} is vacant this week — skipped.</p>\`
+            : curState === 'absent'
+              ? \`<p class="cc-note" style="margin-top:4px;">\${esc(curInfo.room)} is away this week.</p>\`
+              : isMyTurn
+                ? \`<div class="hc-your-turn-bar" style="margin:8px 0;padding:8px 12px;background:var(--cc-gold-lt);border:0.5px solid var(--cc-gold);border-radius:var(--cc-r-sm);font-size:12px;font-weight:500;color:#7A5A2A;">
+                     It's your turn this week, \${esc(room)} 🧹
+                   </div>
+                   <button class="cc-btn cc-btn--primary" id="hc-done-btn" style="margin-top:8px;">Mark as done ✓</button>\`
+                : \`<p class="cc-note" style="margin-top:4px;">\${esc(curInfo.room)} is responsible this week.</p>\`;
+        return \`<div class="hc-current-card\${curState === 'done' ? ' hc-current-card--done' : ''}">
         <div class="hc-current-top">
-          <div>
-            <p class="hc-current-kw">${esc(curInfo.room)}</p>
-          </div>
-          <span class="k-pill ${isDone ? 'k-pill--done' : 'k-pill--pending'}" style="font-size:10px;padding:3px 8px;">
-            <span class="k-dot ${isDone ? 'k-dot--done' : 'k-dot--pending'}"></span>
-            ${isDone ? 'Done' : 'Pending'}
+          <div><p class="hc-current-kw">\${esc(curInfo.room)}</p></div>
+          <span class="k-pill \${pillClass}" style="font-size:10px;padding:3px 8px;">
+            <span class="k-dot \${dotClass}"></span>
+            \${pillLabel}
           </span>
         </div>
-        <p class="hc-current-dates">${curInfo.dateRange} · ${curInfo.daysLeft} day${curInfo.daysLeft !== 1 ? 's' : ''} left</p>
-        ${isMyTurn && !isDone
-          ? `<div class="hc-your-turn-bar" style="margin:8px 0;padding:8px 12px;background:var(--cc-gold-lt);border:0.5px solid var(--cc-gold);border-radius:var(--cc-r-sm);font-size:12px;font-weight:500;color:#7A5A2A;">
-               It's your turn this week, ${esc(room)} 🧹
-             </div>
-             <button class="cc-btn cc-btn--primary" id="hc-done-btn" style="margin-top:8px;">Mark as done ✓</button>`
-          : isDone
-            ? `<div class="hc-done-confirm" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                 <span class="k-pill k-pill--done" style="font-size:10px;padding:3px 8px;">
-                   <span class="k-dot k-dot--done"></span>
-                   Marked done by ${esc(wDone.room)}
-                 </span>
-                 <span class="hc-done-ts">${fmtTs(wDone.ts)}</span>
-               </div>`
-            : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`
-        }
-      </div>
+        <p class="hc-current-dates">\${curInfo.dateRange} · \${curInfo.daysLeft} day\${curInfo.daysLeft !== 1 ? 's' : ''} left</p>
+        \${bodyHtml}
+      </div>\`;
+      })()}
 
       <!-- "Your next turn" callout — shown when it's not the tenant's turn this week -->
       ${nextTurnHtml}
