@@ -224,6 +224,9 @@ function _kTenWizOpen() {
   _kWizPreviews.forEach(u => u && URL.revokeObjectURL(u));
   _kWizPreviews   = [null, null, null];
   _kWizSubmitting = false;
+  // Reset button state from any previous submit
+  const nextBtn = document.getElementById('k-ten-wiz-next-btn');
+  if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next →'; }
   _kTenWizRender();
   document.getElementById('k-ten-wizard').style.display = 'flex';
 }
@@ -345,12 +348,15 @@ async function _kTenWizSubmit() {
     const isReupload = _kTenWeekRow.status === 'flagged';
     const patch = {
       status:       'submitted',
-      photos:       uploaded,
       submitted_at: new Date().toISOString(),
     };
     if (isReupload) {
+      // Re-upload: keep original photos column intact — new photos go in the comment only
       patch.reupload_count = (_kTenWeekRow.reupload_count || 0) + 1;
       patch.flagged        = false;
+    } else {
+      // First upload: write photos to the row
+      patch.photos = uploaded;
     }
     await sbL.from('kitchen_weeks').update(patch).eq('week_index', idx);
 
