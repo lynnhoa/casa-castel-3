@@ -1107,16 +1107,8 @@ function _kSubscribe(idx) {
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
-      // With REPLICA IDENTITY FULL all columns are present in payload.new.
-      // Filter to current week by week_index; fall back to id match.
-      // Only skip if we can positively identify this as a DIFFERENT week's row.
-      // If week_index is present and doesn't match → different week, skip.
-      // All other cases (no week_index, id matches, id absent) → process.
-      const wi = payload.new?.week_index;
-      const id = payload.new?.id;
-      if (wi !== undefined && wi !== idx) return;
-
-      // Always fetch fresh and render — no stale checks that could delay or block.
+      // No payload parsing — just fetch fresh and render.
+      // kitchen_weeks has one row per week; any UPDATE event means re-check current week.
       const fresh = await _kGetWeek(idx);
       if (!fresh) return;
       _kWeekRow = fresh;

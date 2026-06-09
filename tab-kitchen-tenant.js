@@ -321,21 +321,33 @@ async function _kTenWizSubmit() {
   try {
     const idx      = kWeekIdx();
     const uploaded = [];
+    const total    = _kWizBlobs.filter(Boolean).length;
+    let   done     = 0;
 
     for (let i = 0; i < _kWizSteps.length; i++) {
       const blob = _kWizBlobs[i];
       if (!blob) continue;
       const type = _kWizSteps[i].type;
       const path = 'week-' + idx + '-' + room + '-' + type + '-' + Date.now() + '.jpg';
+      if (nextBtn) nextBtn.textContent = 'Uploading ' + (done + 1) + '/' + total + '…';
 
-      const { error } = await sbL.storage
-        .from('kitchen-proofs')
-        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+      // Wrap upload in a 30s timeout so it never hangs indefinitely
+      const uploadResult = await Promise.race([
+        sbL.storage.from('kitchen-proofs').upload(path, blob, { upsert: true, contentType: 'image/jpeg' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 30000))
+      ]);
 
-      if (error) { console.error('Upload error ' + type, error); continue; }
+      if (uploadResult.error) {
+        console.error('Upload error ' + type, uploadResult.error);
+        if (nextBtn) { nextBtn.textContent = '↑ Submit proof'; nextBtn.disabled = false; }
+        _kWizSubmitting = false;
+        alert('Photo ' + (done + 1) + ' failed to upload — please try again.');
+        return;
+      }
 
       const { data } = sbL.storage.from('kitchen-proofs').getPublicUrl(path);
       uploaded.push({ type, path, url: data.publicUrl });
+      done++;
     }
 
     if (!uploaded.length) {
@@ -746,10 +758,6 @@ function _kTenSubscribe(idx) {
   _kTenChannel = sbL.channel('kitchen-tenant-rt')
     .on('postgres_changes', { event:'UPDATE', schema:'public', table:'kitchen_weeks' }, async payload => {
       if (!_kTenWeekRow) return;
-      const wi = payload.new?.week_index;
-      const id = payload.new?.id;
-      if (wi !== undefined && wi !== idx) return;
-
       const fresh = await _kTenGetWeek(idx);
       if (!fresh) return;
       _kTenWeekRow = fresh;
