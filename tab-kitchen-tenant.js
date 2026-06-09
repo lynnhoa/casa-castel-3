@@ -397,7 +397,6 @@ function _kTenRenderActBtnFromState(state, freshRow) {
 /* ── WEEK CARD ──────────────────────────────────────────── */
 async function _kTenRenderWeekCard() {
   const wi = _kTenWeekInfo(kWeekIdx()); if (!wi) return;
-  const row    = _kTenWeekRow;
   const myRoom = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
   const isAssigned = wi.room === myRoom;
 
@@ -407,26 +406,33 @@ async function _kTenRenderWeekCard() {
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
 
+  // Single fetch for chip + action button — only when it's the tenant's week
+  let state = null;
+  let freshRow = null;
+  if (isAssigned) {
+    const idx = kWeekIdx();
+    const [row, absRes] = await Promise.all([
+      _kTenGetWeek(idx),
+      sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
+    ]);
+    freshRow = row;
+    state = _kRotState({
+      isNow:       true,
+      isPast:      false,
+      dbStatus:    freshRow ? freshRow.status : null,
+      room:        wi.room,
+      weekStart:   wi.start,
+      absenceRows: absRes,
+    });
+  }
+
+  // Chip
   const chip = document.getElementById('k-mob-status-chip');
   if (chip) {
     if (!isAssigned) {
       chip.className   = 'k-mob-status-chip not-your-turn';
       chip.textContent = '— Not your turn';
     } else {
-      // Fetch fresh dbRow + absences — same sources as rotation strip
-      const tenIdx = kWeekIdx();
-      const [freshRow, absRes] = await Promise.all([
-        _kTenGetWeek(tenIdx),
-        sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
-      ]);
-      const state   = _kRotState({
-        isNow:       true,
-        isPast:      false,
-        dbStatus:    freshRow ? freshRow.status : null,
-        room:        wi.room,
-        weekStart:   wi.start,
-        absenceRows: absRes,
-      });
       const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
       const chipMap = {
         now:     'pending',
@@ -449,32 +455,19 @@ async function _kTenRenderWeekCard() {
     }
   }
 
-  // Action button — outside if(chip), covers all cases including chip=null
-  // When isAssigned: render from fresh state. When not assigned: clear the action area.
+  // Action button — same fetch, same state
   const actEl = document.getElementById('k-ten-act');
   if (actEl) {
     if (!isAssigned) {
       actEl.innerHTML = '';
     } else {
-      const tenIdx2 = kWeekIdx();
-      const [freshRow2, absRes2] = await Promise.all([
-        _kTenGetWeek(tenIdx2),
-        sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
-      ]);
-      const state2 = _kRotState({
-        isNow: true, isPast: false,
-        dbStatus:    freshRow2 ? freshRow2.status : null,
-        room:        wi.room,
-        weekStart:   wi.start,
-        absenceRows: absRes2,
-      });
-      _kTenRenderActBtnFromState(state2, freshRow2);
+      _kTenRenderActBtnFromState(state, freshRow);
     }
   }
 
   const absNote = document.getElementById('k-mob-absent-note');
   if (absNote) {
-    if (row && row.is_absent) { absNote.textContent = '📅 ' + wi.room + ' is absent — no proof required'; absNote.style.display = ''; }
+    if (freshRow && freshRow.is_absent) { absNote.textContent = '📅 ' + wi.room + ' is absent — no proof required'; absNote.style.display = ''; }
     else { absNote.style.display = 'none'; }
   }
 }
