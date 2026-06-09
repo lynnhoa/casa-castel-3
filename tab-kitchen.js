@@ -1107,17 +1107,14 @@ function _kSubscribe(idx) {
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
-      // Fetch fresh. If the row status matches payload.new.status we have the right data.
-      // If not (DB write not yet propagated), retry once after a short delay.
-      let fresh = await _kGetWeek(idx);
+      // Only re-render if the expected status differs from what we already have.
+      // This prevents the UPDATE handler from overwriting the INSERT handler's correct render.
       const expectedStatus = payload.new?.status;
-      if (fresh && expectedStatus && fresh.status !== expectedStatus) {
-        await new Promise(r => setTimeout(r, 800));
-        fresh = await _kGetWeek(idx);
-      }
+      if (expectedStatus && expectedStatus === _kWeekRow.status) return; // already correct, skip
+      const fresh = await _kGetWeek(idx);
       if (!fresh) return;
+      if (fresh.status === _kWeekRow.status) return; // fetch still stale, skip — INSERT handler has correct state
       _kWeekRow = fresh;
-
       const mobile = window.innerWidth <= 700;
       if (mobile) {
         await _kRenderMobWeekCard(_kWeekRow);
