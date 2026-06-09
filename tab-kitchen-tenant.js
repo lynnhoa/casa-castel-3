@@ -381,14 +381,20 @@ async function _kTenWizSubmit() {
 // Called from _kTenRenderWeekCard with state+freshRow already derived — no extra fetch.
 function _kTenRenderActBtnFromState(state, freshRow) {
   const el = document.getElementById('k-ten-act'); if (!el) return;
-  if (state === 'skipped' || state === 'absent') { el.innerHTML = ''; return; }
-  const dbStatus = freshRow ? freshRow.status : null;
-  if (dbStatus === 'pending') {
-    el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
-      <i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
-  } else if (dbStatus === 'flagged') {
-    el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
-      <i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
+  // state is the authoritative source — covers null row (no DB row yet = pending)
+  if (state === 'skipped' || state === 'absent' || state === 'done' || state === 'missed') {
+    el.innerHTML = ''; return;
+  }
+  if (state === 'now') {
+    const dbStatus = freshRow ? freshRow.status : null;
+    if (dbStatus === 'flagged') {
+      el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
+        <i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
+    } else {
+      // pending, null row, or any unrecognised status — show Proof
+      el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
+        <i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
+    }
   } else {
     el.innerHTML = '';
   }
