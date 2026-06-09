@@ -882,7 +882,7 @@ async function kMobApprove() {
     const patch = { status:'approved', flagged:false, approved_at:new Date().toISOString() };
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '✓ Approved by landlord.', false);
-    _kMobApplyPatch(patch);
+    await _kMobApplyPatch(patch);
     await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   } finally { _kActionBusy = false; }
 }
@@ -893,7 +893,7 @@ async function kMobFlag() {
     const patch = { flagged:true, status:'flagged' };
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '⚑ Flagged by landlord — please re-upload your photos.', true);
-    _kMobApplyPatch(patch);
+    await _kMobApplyPatch(patch);
     await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   } finally { _kActionBusy = false; }
 }
@@ -904,7 +904,7 @@ async function kMobUnapprove() {
     const patch = { status:'submitted', flagged:false, approved_at:null };
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '↩ Approval undone — week back under review.', false);
-    _kMobApplyPatch(patch);
+    await _kMobApplyPatch(patch);
     await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   } finally { _kActionBusy = false; }
 }
@@ -914,7 +914,7 @@ async function kMobUnflag() {
     const idx = kWeekIdx();
     const patch = { flagged:false, status:'submitted' };
     await _kUpdateWeek(idx, patch);
-    _kMobApplyPatch(patch);
+    await _kMobApplyPatch(patch);
     await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   } finally { _kActionBusy = false; }
 }
@@ -926,7 +926,7 @@ async function kMobReset() {
     const patch = { status:'missed', photos:null, photo_path:null, photo_url:null, flagged:false, closed_at:new Date().toISOString() };
     await _kDeleteComments(_kWeekRow.id);
     await _kUpdateWeek(idx, patch);
-    _kMobApplyPatch(patch);
+    await _kMobApplyPatch(patch);
     await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   } finally { _kActionBusy = false; }
 }
@@ -937,7 +937,7 @@ async function kMobReopen() {
     const idx = kWeekIdx();
     const patch = { status:'pending', flagged:false, closed_at:null };
     await _kUpdateWeek(idx, patch);
-    _kMobApplyPatch(patch);
+    await _kMobApplyPatch(patch);
     await _kRenderFeed('k-feed-mob', _kWeekRow, true);
   } finally { _kActionBusy = false; }
 }
@@ -1107,25 +1107,17 @@ function _kSubscribe(idx) {
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
-      // Match by week_index (present with REPLICA IDENTITY FULL) or by id (always present as PK).
-      // With replica identity DEFAULT only id is reliable; with FULL all columns are present.
-      const newWi  = payload.new?.week_index;
-      const newId  = payload.new?.id;
-      const matchIdx = newWi  !== undefined && newWi  === idx;
-      const matchId  = newId  !== undefined && newId  === _kWeekRow.id;
-      // If neither matches we can identify the row, skip — it's a different week.
-      // If week_index is absent (replica identity DEFAULT) but id matches, process.
-      // If both absent, process anyway — small table, safe to re-render.
-      if (newWi !== undefined && !matchIdx) return;
-      if (newId !== undefined && !matchId && newWi === undefined) return;
+      // With REPLICA IDENTITY FULL all columns are present in payload.new.
+      // Filter to current week by week_index; fall back to id match.
+      // Only skip if we can positively identify this as a DIFFERENT week's row.
+      // If week_index is present and doesn't match → different week, skip.
+      // All other cases (no week_index, id matches, id absent) → process.
+      const wi = payload.new?.week_index;
+      const id = payload.new?.id;
+      if (wi !== undefined && wi !== idx) return;
 
-      // Always fetch fresh — payload.new may be partial.
-      let fresh = await _kGetWeek(idx);
-      // Retry once if propagation is slow.
-      if (fresh && fresh.status === _kWeekRow.status) {
-        await new Promise(r => setTimeout(r, 800));
-        fresh = await _kGetWeek(idx);
-      }
+      // Always fetch fresh and render — no stale checks that could delay or block.
+      const fresh = await _kGetWeek(idx);
       if (!fresh) return;
       _kWeekRow = fresh;
 

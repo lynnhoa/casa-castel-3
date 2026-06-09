@@ -746,18 +746,11 @@ function _kTenSubscribe(idx) {
   _kTenChannel = sbL.channel('kitchen-tenant-rt')
     .on('postgres_changes', { event:'UPDATE', schema:'public', table:'kitchen_weeks' }, async payload => {
       if (!_kTenWeekRow) return;
-      const newWi = payload.new?.week_index;
-      const newId = payload.new?.id;
-      const matchIdx = newWi !== undefined && newWi === idx;
-      const matchId  = newId !== undefined && newId === _kTenWeekRow.id;
-      if (newWi !== undefined && !matchIdx) return;
-      if (newId !== undefined && !matchId && newWi === undefined) return;
+      const wi = payload.new?.week_index;
+      const id = payload.new?.id;
+      if (wi !== undefined && wi !== idx) return;
 
-      let fresh = await _kTenGetWeek(idx);
-      if (fresh && fresh.status === _kTenWeekRow.status) {
-        await new Promise(r => setTimeout(r, 800));
-        fresh = await _kTenGetWeek(idx);
-      }
+      const fresh = await _kTenGetWeek(idx);
       if (!fresh) return;
       _kTenWeekRow = fresh;
 
