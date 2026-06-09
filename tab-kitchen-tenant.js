@@ -16,6 +16,26 @@
 /* ── INJECT HTML ────────────────────────────────────────── */
 document.getElementById('tab-kitchen').innerHTML = `
 
+  <style>
+    /* Tenant kitchen: show k-mob-wrapper on desktop as normal scrollable column.
+       Overrides the global @media(min-width:701px){#k-mob-wrapper{display:none}} */
+    @media(min-width:701px){
+      #tab-kitchen #k-mob-wrapper {
+        display: flex !important;
+        flex-direction: column;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 32px 0 48px;
+        height: auto;
+        overflow: visible;
+      }
+      #tab-kitchen #k-mob-rot-strip { display: none; }
+      #tab-kitchen .k-mob-week { border-radius: var(--cc-r-lg); }
+      #tab-kitchen .k-mob-feed { max-height: 480px; }
+      #tab-kitchen #k-ten-nudge-banner { border-radius: var(--cc-r-md); margin-bottom: 8px; }
+    }
+  </style>
+
   <!-- ══ MOBILE WRAPPER ══ -->
   <div id="k-mob-wrapper">
 
