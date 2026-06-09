@@ -65,8 +65,12 @@ function currentMonthRoomIdx() {
 /* ── TENANT CONTACT ─────────────────────────────────────── */
 function tenantEmail(room) {
   try {
-    const profile = JSON.parse(localStorage.getItem('cc_room_' + room) || '{}');
-    return profile.email || '';
+    // Use Supabase-backed profile cache if available (loaded by tab-tenants.js)
+    if (typeof _getProfile === 'function') return _getProfile(room).email || '';
+    // Fallback: try both localStorage key variants
+    const a = JSON.parse(localStorage.getItem('cc_room_profile_' + room) || '{}');
+    const b = JSON.parse(localStorage.getItem('cc_room_' + room) || '{}');
+    return a.email || b.email || '';
   } catch { return ''; }
 }
 
