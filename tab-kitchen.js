@@ -447,6 +447,16 @@ function _kRenderLandlordButtons(row, isReupload) {
   const resetBtn    = document.getElementById('k-reset-btn');
   const badgeEl     = document.getElementById('k-week-label');
 
+  // Check vacancy from appRooms (Supabase) before reading row.status
+  const _wi = _kWeekInfo(kWeekIdx());
+  if (_wi && isVacant(_wi.room)) {
+    metaEl.textContent = 'Room is vacant this week.'; badgeEl.textContent = 'Skipped';
+    approveBtn.style.display = 'none'; unapproveBtn.style.display = 'none';
+    fBtn.style.display = 'none'; reminderBtn.style.display = 'none';
+    resetBtn.style.display = 'none';
+    return;
+  }
+
   approveBtn.style.display   = 'none';
   unapproveBtn.style.display = 'none';
   fBtn.classList.remove('flagged');
@@ -513,6 +523,8 @@ function _kRenderMobWeekCard(row) {
 /* ── MOBILE ACTION BUTTONS ──────────────────────────────── */
 function _kRenderMobActions(row) {
   const el = document.getElementById('k-mob-actions'); if (!el) return;
+  const wi = _kWeekInfo(kWeekIdx());
+  if (wi && isVacant(wi.room)) { el.innerHTML = ''; return; }
   const status = row ? row.status : 'pending';
   let items = [];
   if (status === 'submitted') {
@@ -1140,6 +1152,8 @@ function _kSubscribe(idx) {
         _kRenderMobActions(_kWeekRow);
         await _kRenderMobRotation();
       } else {
+        const ru = await _kDetectReupload(_kWeekRow);
+        _kRenderLandlordButtons(_kWeekRow, ru);
         _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
       }
     })

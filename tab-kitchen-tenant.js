@@ -387,6 +387,7 @@ function _kTenRenderActBtn() {
   const status = row ? row.status : 'pending';
 
   if (!wi || wi.room !== myRoom) { el.innerHTML = ''; return; }
+  if (isVacant(wi.room)) { el.innerHTML = ''; return; }
 
   if (status === 'pending') {
     el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
