@@ -25,7 +25,6 @@ document.getElementById('tab-kitchen').innerHTML = `
     <!-- Week card -->
     <div class="k-mob-week">
       <div class="k-mob-week-top-row">
-        <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
         <div class="k-mob-week-corner-links">
           <button class="k-mob-week-corner-link" onclick="kitchenTenantOpenModal('history')">history</button>
         </div>
@@ -34,7 +33,6 @@ document.getElementById('tab-kitchen').innerHTML = `
         <div class="k-mob-week-left">
           <span class="k-mob-week-room" id="k-mob-room-name">—</span>
           <span class="k-mob-week-dates-sm" id="k-mob-dates">—</span>
-          <span class="k-mob-your-turn-line" id="k-mob-your-turn-line" style="display:none;font-size:9px;color:#A0860E;line-height:1;margin-top:2px;"></span>
           <span class="k-mob-absent-note" id="k-mob-absent-note" style="display:none;"></span>
         </div>
         <!-- Upload proof button — shown only when it is tenant's turn -->
@@ -414,54 +412,7 @@ function _kTenRenderWeekCard() {
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
 
-  const chip = document.getElementById('k-mob-status-chip');
 
-  if (!isAssigned) {
-    chip.className   = 'k-mob-status-chip not-your-turn';
-    chip.textContent = '— Not your turn';
-    const yourTurnEl = document.getElementById('k-mob-your-turn-line');
-    if (yourTurnEl) {
-      const rooms   = _kTenGetRoomList();
-      const myIdx   = rooms.indexOf(myRoom);
-      if (myIdx !== -1) {
-        const curIdx    = kWeekIdx();
-        const cycleLen  = rooms.length;
-        const cyclePos  = ((curIdx % cycleLen) + cycleLen) % cycleLen;
-        const mySlotIdx = curIdx - cyclePos + myIdx;
-        const myNextWi  = _kTenWeekInfo(mySlotIdx < curIdx ? mySlotIdx + cycleLen : mySlotIdx);
-        if (myNextWi) {
-          yourTurnEl.textContent = 'Your turn · ' + fmt(myNextWi.start) + ' – ' + fmt(myNextWi.end);
-          yourTurnEl.style.display = '';
-        } else {
-          yourTurnEl.style.display = 'none';
-        }
-      } else {
-        yourTurnEl.style.display = 'none';
-      }
-    }
-  } else {
-    // Skipped derived live from rooms.vacant — not from stale DB row
-    const vacant = isVacant(wi.room);
-    const status = vacant ? 'skipped' : (row ? row.status : 'pending');
-    const isResub = status === 'submitted' && row && row.reupload_count > 0;
-    const chipMap = {
-      submitted: isResub ? 'resubmitted' : 'submitted',
-      approved:  'approved',
-      missed:    'missed',
-      flagged:   'flagged',
-      skipped:   'skipped',
-    };
-    chip.className   = 'k-mob-status-chip ' + (chipMap[status] || 'pending');
-    chip.textContent = {
-      submitted: isResub ? '↑↑ Re-submitted' : '↑ Submitted',
-      approved:  '✓ Approved',
-      missed:    '✗ Missed',
-      flagged:   '⚑ Redo',
-      skipped:   '— Skipped',
-    }[status] || 'Pending';
-    const yourTurnEl = document.getElementById('k-mob-your-turn-line');
-    if (yourTurnEl) yourTurnEl.style.display = 'none';
-  }
 
   const absNote = document.getElementById('k-mob-absent-note');
   if (absNote) {

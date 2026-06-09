@@ -37,7 +37,6 @@ document.getElementById('tab-kitchen').innerHTML = `
     <!-- Week card + action buttons -->
     <div class="k-mob-week">
       <div class="k-mob-week-top-row">
-        <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
         <div class="k-mob-week-corner-links">
           <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('history')">history</button>
         </div>
@@ -485,28 +484,6 @@ function _kRenderMobWeekCard(row) {
   const fmt = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : ' · ends today');
-  const chip   = document.getElementById('k-mob-status-chip');
-
-  // Skipped derived live from rooms.vacant — not from stale DB row
-  const vacant = isVacant(wi.room);
-  const status = vacant ? 'skipped' : (row ? row.status : 'pending');
-
-  const isResub = status === 'submitted' && row && row.reupload_count > 0;
-  const chipMap = {
-    submitted: isResub ? 'resubmitted' : 'submitted',
-    approved:  'approved',
-    missed:    'missed',
-    flagged:   'flagged',
-    skipped:   'skipped',
-  };
-  chip.className = 'k-mob-status-chip ' + (chipMap[status] || 'pending');
-  chip.textContent = {
-    submitted: isResub ? '↑↑ Re-submitted' : '↑ Submitted',
-    approved:  '✓ Approved',
-    missed:    '✗ Missed',
-    flagged:   '⚑ Redo',
-    skipped:   '— Skipped',
-  }[status] || 'Pending';
 }
 
 /* ── MOBILE ACTION BUTTONS ──────────────────────────────── */
