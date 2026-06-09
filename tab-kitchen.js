@@ -1134,20 +1134,29 @@ function _kSubscribe(idx) {
       if (!payload.new || !_kWeekRow) return;
       if (payload.new.week_id && payload.new.week_id !== _kWeekRow.id) return;
       const mobile = window.innerWidth <= 700;
-
-      // If this is a [submission] comment, re-fetch kitchen_weeks and re-render chip+buttons.
-      // This is a reliable fallback: the tenant always inserts a [submission] comment
-      // immediately after updating kitchen_weeks, and INSERT events fire consistently.
       const text = payload.new.text || '';
+
+      // [submission] comment = tenant just re-uploaded.
+      // Force _kWeekRow to submitted immediately — no DB fetch, no race condition.
+      // Parse the payload to get reupload_count increment and photo data.
       if (text.startsWith('[submission]')) {
-        const fresh = await _kGetWeek(idx);
-        if (fresh) {
-          _kWeekRow = fresh;
-          if (mobile) {
-            await _kRenderMobWeekCard(_kWeekRow);
-          } else {
-            await _kRenderLandlordButtons();
-          }
+        let isReupload = false;
+        try {
+          const data = JSON.parse(text.replace('[submission] ', ''));
+          isReupload = !!data.isReupload;
+        } catch(e) {}
+        // Force status to submitted on _kWeekRow right now
+        _kWeekRow = {
+          ..._kWeekRow,
+          status: 'submitted',
+          submitted_at: new Date().toISOString(),
+          flagged: false,
+          ...(isReupload ? { reupload_count: (_kWeekRow.reupload_count || 0) + 1 } : {}),
+        };
+        if (mobile) {
+          await _kRenderMobWeekCard(_kWeekRow);
+        } else {
+          await _kRenderLandlordButtons();
         }
       }
 
