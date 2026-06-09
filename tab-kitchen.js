@@ -1132,10 +1132,25 @@ function _kSubscribe(idx) {
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async payload => {
       if (!payload.new || !_kWeekRow) return;
-      // If week_id is present, filter to current week only.
-      // If absent (replica identity DEFAULT — partial payload), re-render anyway.
       if (payload.new.week_id && payload.new.week_id !== _kWeekRow.id) return;
       const mobile = window.innerWidth <= 700;
+
+      // If this is a [submission] comment, re-fetch kitchen_weeks and re-render chip+buttons.
+      // This is a reliable fallback: the tenant always inserts a [submission] comment
+      // immediately after updating kitchen_weeks, and INSERT events fire consistently.
+      const text = payload.new.text || '';
+      if (text.startsWith('[submission]')) {
+        const fresh = await _kGetWeek(idx);
+        if (fresh) {
+          _kWeekRow = fresh;
+          if (mobile) {
+            await _kRenderMobWeekCard(_kWeekRow);
+          } else {
+            await _kRenderLandlordButtons();
+          }
+        }
+      }
+
       await _kRenderFeed(mobile ? 'k-feed-mob' : 'k-feed', _kWeekRow, mobile);
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'kitchen_absences' }, async () => {
