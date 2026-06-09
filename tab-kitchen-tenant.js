@@ -364,8 +364,7 @@ async function _kTenWizSubmit() {
 
     // Update local state immediately from what we just wrote
     _kTenWeekRow = { ..._kTenWeekRow, ...patch };
-    _kTenRenderWeekCard();
-    _kTenRenderActBtn();
+    await _kTenRenderWeekCard();
     await _kTenRenderFeed();
     // No background re-fetch here — optimistic state is correct.
     // Realtime subscription will sync the full row when DB confirms the update.
@@ -379,24 +378,18 @@ async function _kTenWizSubmit() {
 }
 
 /* ── ACTION BUTTON (upload proof / re-upload) ───────────── */
-function _kTenRenderActBtn() {
-  const el     = document.getElementById('k-ten-act'); if (!el) return;
-  const wi     = _kTenWeekInfo(kWeekIdx());
-  const myRoom = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
-  const row    = _kTenWeekRow;
-  const status = row ? row.status : 'pending';
-
-  if (!wi || wi.room !== myRoom) { el.innerHTML = ''; return; }
-  if (isVacant(wi.room)) { el.innerHTML = ''; return; }
-
-  if (status === 'pending') {
+// Called from _kTenRenderWeekCard with state+freshRow already derived — no extra fetch.
+function _kTenRenderActBtnFromState(state, freshRow) {
+  const el = document.getElementById('k-ten-act'); if (!el) return;
+  if (state === 'skipped' || state === 'absent') { el.innerHTML = ''; return; }
+  const dbStatus = freshRow ? freshRow.status : null;
+  if (dbStatus === 'pending') {
     el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
       <i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
-  } else if (status === 'flagged') {
+  } else if (dbStatus === 'flagged') {
     el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
       <i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
   } else {
-    // submitted, approved, missed, skipped — no button
     el.innerHTML = '';
   }
 }
@@ -453,6 +446,8 @@ async function _kTenRenderWeekCard() {
         absent:  '— Away',
         skipped: '— Skipped',
       }[state] || 'Pending';
+      // Action button — same state, no extra fetch
+      if (isAssigned) _kTenRenderActBtnFromState(state, freshRow);
     }
   }
   const absNote = document.getElementById('k-mob-absent-note');
@@ -726,8 +721,7 @@ function _kTenSubscribe(idx) {
       if (!fresh) return;
       _kTenWeekRow = fresh;
 
-      _kTenRenderWeekCard();
-      _kTenRenderActBtn();
+      await _kTenRenderWeekCard();
       await _kTenRenderFeed();
       await _kTenRenderMobRotation();
     })
@@ -740,7 +734,7 @@ function _kTenSubscribe(idx) {
     .on('postgres_changes', { event:'*', schema:'public', table:'lounge_data' }, async payload => {
       const t = payload.new?.type || payload.old?.type;
       const isDelete = payload.eventType === 'DELETE' || (!payload.new?.id && payload.old?.id);
-      if (t === 'kitchen_config' && payload.new?.body) { _applyKitchenConfig(payload.new.body); _kTenRenderWeekCard(); _kTenRenderActBtn(); await _kTenRenderMobRotation(); }
+      if (t === 'kitchen_config' && payload.new?.body) { _applyKitchenConfig(payload.new.body); await _kTenRenderWeekCard(); await _kTenRenderMobRotation(); }
       if (t === 'kitchen_nudge' || isDelete) { await _kTenLoadNudgeBanner(); }
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'kitchen_absences' }, async () => {
@@ -748,8 +742,7 @@ function _kTenSubscribe(idx) {
     })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async () => {
       if (typeof loadRoomsData === 'function') await loadRoomsData();
-      _kTenRenderWeekCard();
-      _kTenRenderActBtn();
+      await _kTenRenderWeekCard();
       await _kTenRenderMobRotation();
     })
     .subscribe();
@@ -760,8 +753,7 @@ async function initKitchenMobile() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
   await loadKitchenRoomsFromSupabase();
 
-  _kTenRenderWeekCard();
-  _kTenRenderActBtn();
+  await _kTenRenderWeekCard();
 
   const idx  = kWeekIdx(new Date());
   const info = _kTenWeekInfo(Math.max(0, idx));
@@ -781,8 +773,7 @@ async function initKitchenMobile() {
   }
   _kTenWeekRow = weekRow;
 
-  _kTenRenderWeekCard();
-  _kTenRenderActBtn();
+  await _kTenRenderWeekCard();
   await _kTenRenderFeed();
   await _kTenLoadNudgeBanner();
   _kTenSubscribe(idx);
