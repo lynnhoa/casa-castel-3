@@ -1105,18 +1105,25 @@ async function initKitchen() {
 function _kSubscribe(idx) {
   if (_kChannel) { sbL.removeChannel(_kChannel); _kChannel = null; }
   _kChannel = sbL.channel('kitchen-landlord-rt')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks',
-        filter: 'week_index=eq.' + idx }, async payload => {
-      // Subscription is filtered to this week's index — every event that arrives is relevant.
-      // payload.new is partial (replica identity DEFAULT) — never render from it directly.
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
+      // Match by week_index (present with REPLICA IDENTITY FULL) or by id (always present as PK).
+      // With replica identity DEFAULT only id is reliable; with FULL all columns are present.
+      const newWi  = payload.new?.week_index;
+      const newId  = payload.new?.id;
+      const matchIdx = newWi  !== undefined && newWi  === idx;
+      const matchId  = newId  !== undefined && newId  === _kWeekRow.id;
+      // If neither matches we can identify the row, skip — it's a different week.
+      // If week_index is absent (replica identity DEFAULT) but id matches, process.
+      // If both absent, process anyway — small table, safe to re-render.
+      if (newWi !== undefined && !matchIdx) return;
+      if (newId !== undefined && !matchId && newWi === undefined) return;
 
-      // Fetch fresh — poll-on-event pattern.
+      // Always fetch fresh — payload.new may be partial.
       let fresh = await _kGetWeek(idx);
-
-      // Retry once if DB write hasn't propagated yet (fresh still matches old status).
+      // Retry once if propagation is slow.
       if (fresh && fresh.status === _kWeekRow.status) {
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 800));
         fresh = await _kGetWeek(idx);
       }
       if (!fresh) return;
