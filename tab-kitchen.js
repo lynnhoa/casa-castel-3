@@ -1107,9 +1107,14 @@ function _kSubscribe(idx) {
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
-      // No payload parsing — just fetch fresh and render.
-      // kitchen_weeks has one row per week; any UPDATE event means re-check current week.
-      const fresh = await _kGetWeek(idx);
+      // Fetch fresh. If the row status matches payload.new.status we have the right data.
+      // If not (DB write not yet propagated), retry once after a short delay.
+      let fresh = await _kGetWeek(idx);
+      const expectedStatus = payload.new?.status;
+      if (fresh && expectedStatus && fresh.status !== expectedStatus) {
+        await new Promise(r => setTimeout(r, 800));
+        fresh = await _kGetWeek(idx);
+      }
       if (!fresh) return;
       _kWeekRow = fresh;
 
