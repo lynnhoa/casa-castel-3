@@ -402,7 +402,7 @@ function _kTenRenderActBtn() {
 }
 
 /* ── WEEK CARD ──────────────────────────────────────────── */
-function _kTenRenderWeekCard() {
+async function _kTenRenderWeekCard() {
   const wi = _kTenWeekInfo(kWeekIdx()); if (!wi) return;
   const row    = _kTenWeekRow;
   const myRoom = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
@@ -420,25 +420,39 @@ function _kTenRenderWeekCard() {
       chip.className   = 'k-mob-status-chip not-your-turn';
       chip.textContent = '— Not your turn';
     } else {
-      // isVacant() reads appRooms[] in memory — no localStorage
-      const vacant  = isVacant(wi.room);
-      const status  = vacant ? 'skipped' : (row ? row.status : 'pending');
-      const isResub = status === 'submitted' && row && row.reupload_count > 0;
+      // Fetch fresh dbRow + absences — same sources as rotation strip
+      const tenIdx = kWeekIdx();
+      const [freshRow, absRes] = await Promise.all([
+        _kTenGetWeek(tenIdx),
+        sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
+      ]);
+      const state   = _kRotState({
+        isNow:       true,
+        isPast:      false,
+        dbStatus:    freshRow ? freshRow.status : null,
+        room:        wi.room,
+        weekStart:   wi.start,
+        absenceRows: absRes,
+      });
+      const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
       const chipMap = {
-        submitted: isResub ? 'resubmitted' : 'submitted',
-        approved:  'approved',
-        missed:    'missed',
-        flagged:   'flagged',
-        skipped:   'skipped',
+        now:     'pending',
+        done:    'approved',
+        missed:  'missed',
+        flagged: 'flagged',
+        absent:  'skipped',
+        skipped: 'skipped',
+        next:    'pending',
       };
-      chip.className   = 'k-mob-status-chip ' + (chipMap[status] || 'pending');
+      chip.className   = 'k-mob-status-chip ' + (chipMap[state] || 'pending');
       chip.textContent = {
-        submitted: isResub ? '↑↑ Re-submitted' : '↑ Submitted',
-        approved:  '✓ Approved',
-        missed:    '✗ Missed',
-        flagged:   '⚑ Redo',
-        skipped:   '— Skipped',
-      }[status] || 'Pending';
+        now:     isResub ? '↑↑ Re-submitted' : (freshRow && freshRow.status === 'submitted' ? '↑ Submitted' : 'Pending'),
+        done:    '✓ Approved',
+        missed:  '✗ Missed',
+        flagged: '⚑ Redo',
+        absent:  '— Away',
+        skipped: '— Skipped',
+      }[state] || 'Pending';
     }
   }
   const absNote = document.getElementById('k-mob-absent-note');
