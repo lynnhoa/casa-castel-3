@@ -368,12 +368,12 @@ async function _kTenWizSubmit() {
     document.getElementById('k-ten-wizard').style.display = 'none';
     _kWizSubmitting = false;
 
-    // Update local state immediately from what we just wrote
+    // Patch local state and render immediately from it — no re-fetch.
+    // Avoids the race where a fresh DB fetch returns the old row before the write propagates.
+    // Realtime subscription fires ~100–800ms later and does the authoritative re-sync.
     _kTenWeekRow = { ..._kTenWeekRow, ...patch };
-    await _kTenRenderWeekCard();
+    await _kTenRenderWeekCard(_kTenWeekRow);
     await _kTenRenderFeed();
-    // No background re-fetch here — optimistic state is correct.
-    // Realtime subscription will sync the full row when DB confirms the update.
 
   } catch (err) {
     console.error('Proof submit error', err);
@@ -407,7 +407,7 @@ function _kTenRenderActBtnFromState(state, freshRow) {
 }
 
 /* ── WEEK CARD ──────────────────────────────────────────── */
-async function _kTenRenderWeekCard() {
+async function _kTenRenderWeekCard(overrideRow) {
   const wi = _kTenWeekInfo(kWeekIdx()); if (!wi) return;
   const myRoom = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
   const isAssigned = wi.room === myRoom;
@@ -418,15 +418,24 @@ async function _kTenRenderWeekCard() {
   document.getElementById('k-mob-dates').textContent =
     fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
 
-  // Single fetch for chip + action button — only when it's the tenant's week
+  // If caller passes overrideRow (e.g. after optimistic patch), use it directly — no DB fetch.
+  // Otherwise fetch fresh from Supabase as normal.
   let state = null;
   let freshRow = null;
   if (isAssigned) {
     const idx = kWeekIdx();
-    const [row, absRes] = await Promise.all([
-      _kTenGetWeek(idx),
-      sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
-    ]);
+    let row, absRes;
+    if (overrideRow) {
+      [row, absRes] = await Promise.all([
+        Promise.resolve(overrideRow),
+        sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
+      ]);
+    } else {
+      [row, absRes] = await Promise.all([
+        _kTenGetWeek(idx),
+        sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
+      ]);
+    }
     freshRow = row;
     state = _kRotState({
       isNow:       true,
@@ -455,7 +464,7 @@ async function _kTenRenderWeekCard() {
         skipped: 'skipped',
         next:    'pending',
       };
-      chip.className   = 'k-mob-status-chip ' + (chipMap[state] || 'pending');
+      chip.className   = 'k-mob-status-chip ' + (isResub ? 'resubmitted' : (chipMap[state] || 'pending'));
       chip.textContent = {
         now:     isResub ? '↑↑ Re-submitted' : (freshRow && freshRow.status === 'submitted' ? '↑ Submitted' : 'Pending'),
         done:    '✓ Approved',
