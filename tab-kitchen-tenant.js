@@ -744,17 +744,14 @@ async function _kTenSendPhoto(file, feedId) {
 function _kTenSubscribe(idx) {
   if (_kTenChannel) { sbL.removeChannel(_kTenChannel); _kTenChannel = null; }
   _kTenChannel = sbL.channel('kitchen-tenant-rt')
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'kitchen_weeks' }, async payload => {
-      if (!payload.new || !_kTenWeekRow) return;
-      const matchById    = payload.new.id && payload.new.id === _kTenWeekRow.id;
-      const matchByIndex = payload.new.week_index !== undefined && payload.new.week_index === idx;
-      if (!matchById && !matchByIndex) return;
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'kitchen_weeks',
+        filter: 'week_index=eq.' + idx }, async payload => {
+      // Filtered to this week — every event is relevant. payload.new is partial, never render from it.
+      if (!_kTenWeekRow) return;
 
-      // Poll-on-event: always fetch fresh — payload.new may be partial
       let fresh = await _kTenGetWeek(idx);
 
-      // Retry if stale
-      if (fresh && fresh.status === _kTenWeekRow.status && payload.new.status && payload.new.status !== _kTenWeekRow.status) {
+      if (fresh && fresh.status === _kTenWeekRow.status) {
         await new Promise(r => setTimeout(r, 600));
         fresh = await _kTenGetWeek(idx);
       }

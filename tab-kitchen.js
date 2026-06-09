@@ -1105,21 +1105,17 @@ async function initKitchen() {
 function _kSubscribe(idx) {
   if (_kChannel) { sbL.removeChannel(_kChannel); _kChannel = null; }
   _kChannel = sbL.channel('kitchen-landlord-rt')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
-      // Guard: only handle updates to the current week row
-      if (!payload.new || !_kWeekRow) return;
-      // Use payload.new.id if available; otherwise match by week_index
-      const matchById    = payload.new.id && payload.new.id === _kWeekRow.id;
-      const matchByIndex = payload.new.week_index !== undefined && payload.new.week_index === idx;
-      if (!matchById && !matchByIndex) return;
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks',
+        filter: 'week_index=eq.' + idx }, async payload => {
+      // Subscription is filtered to this week's index — every event that arrives is relevant.
+      // payload.new is partial (replica identity DEFAULT) — never render from it directly.
+      if (!_kWeekRow) return;
 
-      // Poll-on-event: use payload.new as a trigger, fetch fresh row as source of truth.
-      // payload.new may be partial (replica identity DEFAULT) so never render from it directly.
+      // Fetch fresh — poll-on-event pattern.
       let fresh = await _kGetWeek(idx);
 
-      // If stale (status unchanged from what we already have and we know it changed),
-      // retry once after a short delay to let DB commit propagate.
-      if (fresh && fresh.status === _kWeekRow.status && payload.new.status && payload.new.status !== _kWeekRow.status) {
+      // Retry once if DB write hasn't propagated yet (fresh still matches old status).
+      if (fresh && fresh.status === _kWeekRow.status) {
         await new Promise(r => setTimeout(r, 600));
         fresh = await _kGetWeek(idx);
       }
