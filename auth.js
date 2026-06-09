@@ -89,8 +89,14 @@ async function doTenantLogin() {
     }
   } catch(e) { /* fall through */ }
 
-  // Fall back to hardcoded room password
+  // Fall back to hardcoded room password (existing rooms)
   if (!valid && ROOM_PASSWORDS[room] && pass === ROOM_PASSWORDS[room]) valid = true;
+
+  // Final fallback: default formula roomname2026 (new rooms added via rooms tab)
+  if (!valid) {
+    const defaultPw = room.toLowerCase().replace(/\s+/g, '') + '2026';
+    if (pass === defaultPw) valid = true;
+  }
 
   if (valid) {
     localStorage.setItem('cc_role', 'tenant');
