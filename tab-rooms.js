@@ -1113,6 +1113,13 @@ async function _toggleKitchenRoom(roomName, btn) {
   if (typeof toggleKitchenAccess === 'function') {
     toggleKitchenAccess(roomName);
   }
+  // Also persist kitchen_enabled on the rooms row so new rooms
+  // and the tenant tab visibility check can read it directly.
+  const nowEnabled = typeof getKitchenRooms === 'function' && getKitchenRooms().includes(roomName);
+  const roomObj = appRooms.find(r => r.name === roomName);
+  if (roomObj) roomObj.kitchen_enabled = nowEnabled;
+  if (sbL) sbL.from('rooms').update({ kitchen_enabled: nowEnabled }).eq('name', roomName);
+
   // Re-render just this card to reflect new badge + button state
   const card = document.querySelector(`.rc[data-room="${CSS.escape(roomName)}"]`);
   const room = appRooms.find(r => r.name === roomName);
@@ -1234,6 +1241,13 @@ document.getElementById('roomAddBtn')?.addEventListener('click', () => {
 
     const result = await saveRoom(data);
     if (!result.ok) { alert('Save failed: ' + result.error); return; }
+    // Write default password hash so tenant can log in immediately
+    if (sbL && name) {
+      const defaultPw = name.toLowerCase().replace(/\s+/g, '') + '2026';
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(defaultPw));
+      const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+      await sbL.from('lounge_data').insert({ type: 'password', room: name, body: hash });
+    }
     card.remove();
     _renderRoomsList();
     _initSortable();

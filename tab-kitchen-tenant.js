@@ -897,7 +897,12 @@ async function _kTenDismissNudgeBanner() {
 function _kTenShowTabIfEligible() {
   const room = (typeof currentRoom !== 'undefined' ? currentRoom : null)
              || localStorage.getItem('cc_room');
-  if (room && getKitchenRooms().includes(room)) {
+  if (!room) return;
+  // Show kitchen tab if room is in kitchen_config (lounge_data) OR has kitchen_enabled in rooms table
+  const inKitchenConfig = getKitchenRooms().includes(room);
+  const inRoomsTable    = typeof appRooms !== 'undefined'
+    && !!appRooms.find(r => r.name === room)?.kitchen_enabled;
+  if (inKitchenConfig || inRoomsTable) {
     document.getElementById('kitchenTab')?.style.removeProperty('display');
   }
 }

@@ -105,11 +105,37 @@ async function doTenantLogin() {
   }
 }
 
+async function _populateTenantRoomDropdown() {
+  const sel = document.getElementById('tenantRoom');
+  if (!sel || !sbL) return;
+  try {
+    const { data } = await sbL.from('rooms')
+      .select('name, sort_order')
+      .eq('active', true)
+      .order('sort_order', { ascending: true });
+    if (!data) return;
+    // Remove any existing options except the placeholder
+    while (sel.options.length > 1) sel.remove(1);
+    data.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.name;
+      opt.textContent = r.name;
+      sel.appendChild(opt);
+    });
+    // Restore saved room if session exists
+    const saved = localStorage.getItem('cc_room');
+    if (saved) sel.value = saved;
+  } catch(e) { /* leave placeholder if DB unavailable */ }
+}
+
 function initTenantLogin() {
   document.getElementById('tenantLoginBtn')
     ?.addEventListener('click', doTenantLogin);
   document.getElementById('tenantPass')
     ?.addEventListener('keydown', e => { if (e.key === 'Enter') doTenantLogin(); });
+
+  // Populate room dropdown from DB (replaces hardcoded options)
+  _populateTenantRoomDropdown();
 
   // Preview mode (landlord previewing as tenant)
   const previewRoom = new URLSearchParams(window.location.search).get('preview');

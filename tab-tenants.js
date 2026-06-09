@@ -102,17 +102,34 @@ async function resetRoomPassword(room) {
   if (!sbL) { alert('No database connection.'); return; }
   if (!confirm('Reset password for ' + room + '? The tenant will need to use the default password to log in again.')) return;
   await sbL.from('lounge_data').delete().eq('type','password').eq('room', room);
+  // Re-insert default password hash so tenant can always log back in
+  const defaultPw = room.toLowerCase().replace(/\s+/g, '') + '2026';
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(defaultPw));
+  const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  await sbL.from('lounge_data').insert({ type: 'password', room, body: hash });
   const btn = document.querySelector('.tenants-reset-btn[data-room="' + room + '"]');
   if (btn) { const orig = btn.textContent; btn.textContent = 'Reset ✓'; setTimeout(() => btn.textContent = orig, 1500); }
 }
 
 /* ── RENDER ──────────────────────────────────────────────── */
+function _getKitchenRooms() {
+  try {
+    const v = localStorage.getItem('cc_kitchen_rooms');
+    return v ? JSON.parse(v) : [...KITCHEN_ROOMS];
+  } catch { return [...KITCHEN_ROOMS]; }
+}
+
+function _setKitchenRooms(rooms) {
+  localStorage.setItem('cc_kitchen_rooms', JSON.stringify(rooms));
+}
+
 function toggleKitchenAccess(room) {
-  const rooms = [...getKitchenRooms()];
+  const rooms = _getKitchenRooms();
   const idx   = rooms.indexOf(room);
   if (idx === -1) rooms.push(room);
   else            rooms.splice(idx, 1);
-  syncKitchenRoomsToSupabase(rooms); // updates kitchenRooms[] in memory + writes to Supabase
+  _setKitchenRooms(rooms);
+  syncKitchenRoomsToSupabase(rooms); // sync to Supabase so tenants update in realtime
   loadTenants(); // re-render to update toggle state
 }
 
@@ -139,7 +156,7 @@ function loadTenants() {
       const vacant      = isVacant(r.name);
       const p           = S.get('room_profile_' + r.name, {});
       const email       = p.email || '';
-      const kitchenRooms= getKitchenRooms();
+      const kitchenRooms= _getKitchenRooms();
       const hasKitchen  = kitchenRooms.includes(r.name);
 
       return `
