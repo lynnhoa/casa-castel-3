@@ -568,7 +568,7 @@ function _kRenderWeekCard(weekRow, absData) {
   let items = [];
   if (state === 'skipped' || state === 'absent') {
     // no buttons
-  } else if (dbStatus === 'submitted') {
+  } else if (isResub || dbStatus === 'submitted') {
     items.push(`<button class="k-mob-wact green" onclick="kApprove()" aria-label="Approve"><i class="ti ti-circle-check"></i><span>Approve</span></button>`);
     items.push(`<button class="k-mob-wact red"   onclick="kFlag()"    aria-label="Flag"><i class="ti ti-flag"></i><span>Flag</span></button>`);
   } else if (dbStatus === 'approved') {
