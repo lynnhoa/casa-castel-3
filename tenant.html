@@ -143,8 +143,10 @@
       // Hash and store in lounge_data (matches v1 approach)
       const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p1));
       const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-      const { error } = await sbL.from('lounge_data').insert({ type:'password', room: currentRoom, body: hash });
+      const { error } = await sbL.from('lounge_data').delete().eq('type', 'password').eq('room', currentRoom);
       if (error) { err.textContent = 'Failed to save. Please try again.'; err.classList.add('visible'); return; }
+      const { error: insErr } = await sbL.from('lounge_data').insert({ type:'password', room: currentRoom, body: hash });
+      if (insErr) { err.textContent = 'Failed to save. Please try again.'; err.classList.add('visible'); return; }
       closeModal('changePwModal');
       document.getElementById('newPw1').value = '';
       document.getElementById('newPw2').value = '';

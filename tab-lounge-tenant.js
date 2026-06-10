@@ -239,6 +239,15 @@ function subscribeLounge(room) {
 
 /* ── EVENT WIRING (called after showApp sets currentRoom) ── */
 function initLoungeTab(room) {
+  if (initLoungeTab._wired) {
+    // Already wired — just reload data without re-attaching event listeners
+    loadAnnouncements();
+    loadNotice();
+    loadLounge(room);
+    return;
+  }
+  initLoungeTab._wired = true;
+
   // Mobile wiring
   document.getElementById('lounge-send')
     ?.addEventListener('click', () => sendLounge(room, 'lounge-input'));
@@ -261,12 +270,15 @@ function initLoungeTab(room) {
   loadAnnouncements();
   loadNotice();
   loadLounge(room);
+  initLoungeTab._justInited = true;
   subscribeLounge(room);
 }
 
 /* ── loadLoungeAll alias — called by switchTab on tab switch ── */
 function loadLoungeAll() {
   const room = (typeof currentRoom !== 'undefined' && currentRoom) ? currentRoom : null;
+  // initLoungeTab already loaded everything on first login — skip to avoid double load
+  if (initLoungeTab._justInited) { initLoungeTab._justInited = false; return; }
   loadAnnouncements();
   loadNotice();
   if (room) loadLounge(room);
