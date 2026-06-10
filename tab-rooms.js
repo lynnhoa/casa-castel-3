@@ -338,6 +338,33 @@ document.getElementById('tab-rooms').innerHTML = `
   .rc-doc-row:active { background:var(--cc-surface); }
 }
 
+/* ── CONTRACT FOOTER BUTTONS: Option D ── */
+/* Override rm-btn--ghost and rm-btn--pdf for contract footer only */
+.rm-btn--cancel {
+  flex-shrink:0; height:48px; padding:0 16px;
+  background:none; border:none; color:var(--cc-stone);
+  font-size:13px; font-weight:400; letter-spacing:0; text-transform:none;
+  cursor:pointer; font-family:inherit; -webkit-tap-highlight-color:transparent;
+}
+.rm-btn--cancel:active { opacity:.6; }
+/* Override pdf button — larger, sentence case, rounded */
+#contractFooter .rm-btn--pdf,
+#contractFooter .rm-btn--pdf-disabled {
+  flex:1; height:48px; border-radius:var(--cc-r-md);
+  font-size:13px; font-weight:500; letter-spacing:0; text-transform:none;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+#contractFooter .rm-btn--pdf { background:var(--cc-ink); color:var(--cc-white); border:none; }
+#contractFooter .rm-btn--pdf:active { opacity:.85; }
+#contractFooter .rm-btn--pdf-disabled { background:var(--cc-surface); color:var(--cc-stone); border:var(--cc-border); cursor:not-allowed; }
+/* Footer layout with safe area */
+.rm-sheet__footer {
+  padding:12px 16px !important;
+  padding-bottom:max(16px,env(safe-area-inset-bottom,16px)) !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
 /* ── SHEET / OVERLAY ── */
 .rm-overlay {
   display:none; position:fixed; inset:0; z-index:400;
@@ -375,7 +402,7 @@ document.getElementById('tab-rooms').innerHTML = `
   color:var(--cc-taupe); font-size:13px; flex-shrink:0;
 }
 .rm-sheet__body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 20px; }
-.rm-sheet__footer { padding:14px 20px; border-top:var(--cc-border); flex-shrink:0; display:flex; gap:8px; }
+.rm-sheet__footer { padding:12px 16px; padding-bottom:max(16px,env(safe-area-inset-bottom,16px)); border-top:var(--cc-border); flex-shrink:0; display:flex; align-items:center; gap:10px; }
 
 /* Contract modal body elements */
 .rm-prefilled {
@@ -1509,8 +1536,8 @@ function _openContract(type, roomId) {
     subLbl.textContent   = `${room.flaeche_m2 ? room.flaeche_m2 + ' m²' : ''} · ${room.floor || ''} · ${room.room_type || ''}`;
     body.innerHTML       = _contractBodyKurzzeit(room);
     footer.innerHTML     = `
-      <button class="rm-btn rm-btn--ghost" id="contractCancelBtn">${t('rooms_cancel')}</button>
-      <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> PDF</button>`;
+      <button class="rm-btn rm-btn--cancel" id="contractCancelBtn">Cancel</button>
+      <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> Generate PDF</button>`;
     document.getElementById('contractPdfBtn').addEventListener('click', async () => {
       const room2 = getRoomById(_contractRoomId); if (!room2) return;
       const mieterName = document.getElementById('cm-name')?.value.trim();
@@ -1550,8 +1577,8 @@ function _openContract(type, roomId) {
     subLbl.textContent   = `${room.flaeche_m2 ? room.flaeche_m2 + ' m²' : ''} · ${room.floor || ''}`;
     body.innerHTML       = _contractBodyComingSoon('Mietvertrag');
     footer.innerHTML     = `
-      <button class="rm-btn rm-btn--ghost" id="contractCancelBtn">${t('rooms_cancel')}</button>
-      <button class="rm-btn rm-btn--pdf-disabled" disabled title="Template in progress"><i class="ti ti-printer"></i> PDF</button>`;
+      <button class="rm-btn rm-btn--cancel" id="contractCancelBtn">Cancel</button>
+      <button class="rm-btn rm-btn--pdf-disabled" disabled title="Template in progress"><i class="ti ti-printer"></i> Generate PDF</button>`;
 
   } else if (type === 'ueberg') {
     const isEinzug = document.getElementById('eu-' + roomId)?.querySelector('.active')?.textContent?.trim() === 'Einzug';
@@ -1560,8 +1587,8 @@ function _openContract(type, roomId) {
     subLbl.textContent   = (room.flaeche_m2 ? room.flaeche_m2 + ' m²' : '') + (room.floor ? ' · ' + room.floor : '');
     body.innerHTML       = _contractBodyUeberg(room, isEinzug);
     footer.innerHTML     = `
-      <button class="rm-btn rm-btn--ghost" id="contractCancelBtn">${t('rooms_cancel')}</button>
-      <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> PDF</button>`;
+      <button class="rm-btn rm-btn--cancel" id="contractCancelBtn">Cancel</button>
+      <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> Generate PDF</button>`;
     document.getElementById('contractPdfBtn').addEventListener('click', async () => {
       // Validate required fields first
       const mieterName2 = document.getElementById('ub-mieter-name')?.value.trim();
