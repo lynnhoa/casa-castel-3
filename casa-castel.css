@@ -260,8 +260,8 @@ img { display: block; max-width: 100%; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--cc-sp-16) var(--cc-sp-20) var(--cc-sp-12);
-  padding-top: calc(var(--cc-sp-16) + env(safe-area-inset-top, 0px));
+  padding: var(--cc-sp-20) var(--cc-sp-20) var(--cc-sp-16);
+  padding-top: calc(var(--cc-sp-20) + env(safe-area-inset-top, 0px));
 }
 
 .cc-nav__logo {
