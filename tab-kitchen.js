@@ -540,7 +540,7 @@ function _kRenderWeekCard(weekRow, absData) {
     absenceRows: absData,
   });
   const dbStatus = weekRow ? weekRow.status : null;
-  const isResub  = state === 'now' && weekRow && weekRow.reupload_count > 0;
+  const isResub  = state === 'now' && weekRow && weekRow.reupload_count > 0 && weekRow.status !== 'flagged';
 
   // Chip
   const chipCls = isResub              ? 'resubmitted'

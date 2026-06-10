@@ -527,7 +527,7 @@ async function _kTenRenderWeekCard(overrideRow) {
       _setChip(chip,    'k-mob-status-chip not-your-turn', '— Not your turn');
       _setChip(dskChip, 'k-mob-status-chip not-your-turn', '— Not your turn');
     } else {
-      const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
+      const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0 && freshRow.status !== 'flagged';
       const chipMap = {
         now:     'pending',
         done:    'approved',
@@ -901,7 +901,7 @@ function _kTenSubscribe(idx) {
       // Delay 350ms so the read path reflects the committed write before we fetch
       setTimeout(async () => {
         if (!_kTenWeekRow) return;
-        const fresh = await _kTenGetWeek(idx);
+        const fresh = await _kTenGetWeek(kWeekIdx());
         if (!fresh) return;
         _kTenWeekRow = fresh;
         await _kTenRenderWeekCard();
