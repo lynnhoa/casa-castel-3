@@ -76,16 +76,21 @@ document.getElementById('tab-rooms').innerHTML = `
   <!-- ══ PDF PREVIEW OVERLAY ══ -->
   <div id="pdfPreviewOverlay" style="display:none;position:fixed;inset:0;z-index:600;background:var(--cc-surface);flex-direction:column;overflow:hidden;">
     <!-- Sticky header bar -->
-    <div id="pdfPreviewHdr" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(14px,env(safe-area-inset-top,14px)) 12px 12px;background:var(--cc-white);border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;position:sticky;top:0;z-index:10;">
-      <button id="pdfPreviewClose" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:0.5px solid var(--cc-rule);border-radius:50%;cursor:pointer;color:var(--cc-stone);font-size:16px;flex-shrink:0;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:border-color .15s;">✕</button>
+    <div id="pdfPreviewHdr" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(14px,env(safe-area-inset-top,14px)) 12px 12px;background:var(--cc-white);border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;z-index:10;">
+      <button id="pdfPreviewClose" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:0.5px solid var(--cc-rule);border-radius:50%;cursor:pointer;color:var(--cc-stone);font-size:16px;flex-shrink:0;font-family:inherit;-webkit-tap-highlight-color:transparent;">✕</button>
       <span id="pdfPreviewTitle" style="flex:1;text-align:center;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--cc-taupe);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
-      <button id="pdfPreviewSaveBtn" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 16px;background:var(--cc-ink);color:var(--cc-white);border:none;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;font-family:inherit;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:opacity .15s;">
-        <i class="ti ti-printer" style="font-size:14px;"></i> PDF
-      </button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <button id="pdfZoomOut" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:0.5px solid var(--cc-rule);border-radius:8px;cursor:pointer;color:var(--cc-charcoal);font-size:15px;font-family:inherit;font-weight:300;">−</button>
+        <span id="pdfZoomLabel" style="font-size:11px;font-weight:500;color:var(--cc-taupe);min-width:38px;text-align:center;">100%</span>
+        <button id="pdfZoomIn" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:0.5px solid var(--cc-rule);border-radius:8px;cursor:pointer;color:var(--cc-charcoal);font-size:15px;font-family:inherit;font-weight:300;">+</button>
+        <button id="pdfPreviewSaveBtn" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 16px;background:var(--cc-ink);color:var(--cc-white);border:none;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;margin-left:4px;">
+          <i class="ti ti-printer" style="font-size:14px;"></i> PDF
+        </button>
+      </div>
     </div>
     <!-- Scrollable preview body -->
-    <div id="pdfPreviewBody" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px;display:flex;flex-direction:column;align-items:center;">
-      <div id="pdfPreviewDoc" style="width:100%;max-width:794px;background:var(--cc-white);border-radius:6px;border:0.5px solid var(--cc-rule);overflow:hidden;"></div>
+    <div id="pdfPreviewBody" style="flex:1;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:24px 16px 40px;display:flex;flex-direction:column;align-items:center;background:var(--cc-surface);">
+      <div id="pdfPreviewDoc" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;"></div>
     </div>
   </div>
 
@@ -1524,43 +1529,79 @@ function _openPdfPreview(title, saveFn) {
   if (!overlay) return;
 
   // Build preview from hidden render container
-  // Container holds a full HTML doc — extract <style> + .pdf-page elements
   const renderSrc = document.getElementById('_pdfRenderContainer');
   doc.innerHTML = '';
+  let _previewStyle = null;
+  let _previewPages = [];
+
   if (renderSrc) {
-    // Extract and inject styles
     const styleEl = renderSrc.querySelector('style');
     if (styleEl) {
-      const s = document.createElement('style');
-      s.textContent = styleEl.textContent;
-      doc.appendChild(s);
+      _previewStyle = document.createElement('style');
+      _previewStyle.textContent = styleEl.textContent;
+      doc.appendChild(_previewStyle);
     }
-    // Extract and inject each page with a gap between them
-    const pages = renderSrc.querySelectorAll('.pdf-page');
-    pages.forEach((pg, i) => {
+    renderSrc.querySelectorAll('.pdf-page').forEach(pg => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.10);border-radius:2px;overflow:hidden;';
       const clone = pg.cloneNode(true);
       clone.style.display = 'block';
-      clone.style.marginBottom = i < pages.length - 1 ? '12px' : '0';
-      doc.appendChild(clone);
+      wrapper.appendChild(clone);
+      doc.appendChild(wrapper);
+      _previewPages.push({ wrapper, clone });
     });
   } else {
     doc.innerHTML = '<p style="padding:24px;color:var(--cc-stone);font-size:12px;text-align:center;">Generating preview…</p>';
   }
 
-  // Scale each page to fit screen width
-  const scaleDoc = () => {
-    const available = Math.min(window.innerWidth - 32, 840);
-    const scale     = Math.min(1, available / 794);
-    doc.querySelectorAll('.pdf-page').forEach(pg => {
-      pg.style.transform       = `scale(${scale})`;
-      pg.style.transformOrigin = 'top left';
-      pg.style.width           = '794px';
-      pg.style.marginBottom    = (pg.nextElementSibling ? (pg.offsetHeight * scale - pg.offsetHeight + 12) : 0) + 'px';
+  // Zoom state
+  let _zoom = null; // null = auto-fit
+  const PAGE_W = 794;
+
+  const applyZoom = (zoom) => {
+    const bodyW   = document.getElementById('pdfPreviewBody').clientWidth - 32;
+    const autoFit = Math.min(1, bodyW / PAGE_W);
+    const scale   = zoom !== null ? zoom : autoFit;
+    const label   = document.getElementById('pdfZoomLabel');
+    if (label) label.textContent = Math.round(scale * 100) + '%';
+    _previewPages.forEach(({ wrapper, clone }) => {
+      clone.style.transform       = `scale(${scale})`;
+      clone.style.transformOrigin = 'top left';
+      clone.style.width           = PAGE_W + 'px';
+      // wrapper must be sized to the scaled height so scroll works
+      const scaledH = 1122.52 * scale; // A4 height in px
+      wrapper.style.width  = Math.ceil(PAGE_W * scale) + 'px';
+      wrapper.style.height = Math.ceil(scaledH) + 'px';
     });
-    doc.style.width = (794 * scale) + 'px';
+    doc.style.width = Math.ceil(PAGE_W * scale) + 'px';
   };
-  setTimeout(scaleDoc, 60);
-  window.addEventListener('resize', scaleDoc, { once: true });
+
+  setTimeout(() => applyZoom(null), 60);
+
+  // Zoom buttons
+  const zoomIn  = document.getElementById('pdfZoomIn');
+  const zoomOut = document.getElementById('pdfZoomOut');
+  if (zoomIn) {
+    const freshIn = zoomIn.cloneNode(true); zoomIn.parentNode.replaceChild(freshIn, zoomIn);
+    freshIn.addEventListener('click', () => {
+      const bodyW   = document.getElementById('pdfPreviewBody').clientWidth - 32;
+      const autoFit = Math.min(1, bodyW / PAGE_W);
+      const cur = _zoom !== null ? _zoom : autoFit;
+      _zoom = Math.min(2, Math.round((cur + 0.1) * 10) / 10);
+      applyZoom(_zoom);
+    });
+  }
+  if (zoomOut) {
+    const freshOut = zoomOut.cloneNode(true); zoomOut.parentNode.replaceChild(freshOut, zoomOut);
+    freshOut.addEventListener('click', () => {
+      const bodyW   = document.getElementById('pdfPreviewBody').clientWidth - 32;
+      const autoFit = Math.min(1, bodyW / PAGE_W);
+      const cur = _zoom !== null ? _zoom : autoFit;
+      _zoom = Math.max(0.3, Math.round((cur - 0.1) * 10) / 10);
+      applyZoom(_zoom);
+    });
+  }
+  window.addEventListener('resize', () => { if (_zoom === null) applyZoom(null); }, { once: true });
 
   titleEl.innerHTML = `<span style="color:var(--cc-stone);margin-right:4px;">Vorschau ·</span>${title}`;
   overlay.style.display = 'flex';
