@@ -246,6 +246,7 @@ let _noticeColor = 'yellow';
 let _loungeSub   = null;
 
 /* ── ANNOUNCEMENTS ──────────────────────────────────────── */
+let _lastRenderedAnnId = null;
 async function loadAnnouncements() {
   const el = document.getElementById('ann-list');
   if (!sbL) { el.innerHTML = '<p class="cc-note" style="padding:4px 0;">Connect Supabase.</p>'; return; }
@@ -255,6 +256,8 @@ async function loadAnnouncements() {
 }
 
 function _renderAnn(data) {
+  if (data && data.id && data.id === _lastRenderedAnnId) return;
+  if (data && data.id) _lastRenderedAnnId = data.id;
   const emptyHtml = '<p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p>';
   const annHtml = !data ? emptyHtml : `<div class="ann-card${data.pinned ? ' ann-card--pinned' : ''}">
     <div class="ann-top">
@@ -301,6 +304,7 @@ async function _populateAnnModal() {
 
 async function _postAnn(titleId, bodyId, pinId, closeAfter) {
   if (!sbL) return;
+  _lastRenderedAnnId = null;
   const title  = document.getElementById(titleId).value.trim();
   const body   = document.getElementById(bodyId).value.trim();
   if (!body) return;
@@ -317,6 +321,7 @@ async function _postAnn(titleId, bodyId, pinId, closeAfter) {
 
 async function deleteAnn(id) {
   if (!sbL) return;
+  _lastRenderedAnnId = null;
   await sbL.from('lounge_data').delete().eq('id', id);
   loadAnnouncements();
 }
