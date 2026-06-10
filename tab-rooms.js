@@ -1148,6 +1148,16 @@ function _bindAllCards() {
 function _toggleCard(card) {
   if (card.classList.contains('rc--editing')) return;
   card.classList.toggle('rc--expanded');
+  // When expanding: scroll card top into view just below the sticky nav
+  if (card.classList.contains('rc--expanded')) {
+    requestAnimationFrame(() => {
+      const cardTop  = card.getBoundingClientRect().top + window.scrollY;
+      const navH     = document.querySelector('.cc-nav')?.offsetHeight || 56;
+      const headerH  = document.querySelector('.cc-header')?.offsetHeight || 52;
+      const offset   = navH + headerH + 8; // 8px breathing room
+      window.scrollTo({ top: cardTop - offset, behavior: 'smooth' });
+    });
+  }
 }
 
 function _enterEdit(card) {
