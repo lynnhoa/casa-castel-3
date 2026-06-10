@@ -109,135 +109,152 @@ document.getElementById('tab-rooms').innerHTML = `
 .sortable-chosen { box-shadow:0 8px 32px rgba(30,27,24,.16)!important; z-index:10; position:relative; }
 
 /* ── ROOM CARD ── */
+/* ── ROOM CARD ── */
 .rc {
   background:var(--cc-white); border:var(--cc-border); border-radius:var(--cc-r-lg);
   overflow:hidden; transition:box-shadow .2s;
 }
-.rc.rc--expanded { box-shadow:0 4px 20px rgba(30,27,24,.08); }
+.rc.rc--expanded { box-shadow:0 4px 24px rgba(30,27,24,.10); }
 .rc.rc--editing  { box-shadow:0 4px 24px rgba(30,27,24,.10); border-color:var(--cc-stone); }
 
-/* Card header */
+/* Header */
 .rc-hdr {
-  display:flex; align-items:center; gap:10px;
-  padding:14px 16px 14px 10px; cursor:pointer; user-select:none;
+  display:flex; align-items:flex-start; gap:10px;
+  padding:16px 16px 14px 12px; cursor:pointer; user-select:none;
 }
 .rc-drag {
   display:flex; align-items:center; justify-content:center;
-  width:26px; height:26px; color:var(--cc-stone); font-size:16px;
-  cursor:grab; flex-shrink:0; opacity:.45; transition:opacity .15s; touch-action:none;
+  width:26px; height:26px; color:var(--cc-stone); font-size:15px;
+  cursor:grab; flex-shrink:0; opacity:.4; transition:opacity .15s;
+  touch-action:none; margin-top:4px;
 }
 .rc-drag:hover { opacity:.9; }
 .rc--editing .rc-drag { opacity:0; pointer-events:none; }
 .rc-hdr__info { flex:1; min-width:0; }
+
+/* Name row: serif name + status badge inline */
+.rc-hdr__namerow { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
 .rc-hdr__name {
-  font-family:'Cormorant Garamond',Georgia,serif; font-size:20px; font-weight:400;
+  font-family:'Cormorant Garamond',Georgia,serif; font-size:22px; font-weight:400;
   color:var(--cc-ink); line-height:1.1;
 }
 .rc-hdr__name--inactive { color:var(--cc-stone); }
-.rc-hdr__meta { font-size:11px; color:var(--cc-taupe); margin-top:2px; }
-.rc-hdr__badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:5px; }
-.rc-badge {
-  font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;
-  padding:2px 7px; border-radius:var(--cc-r-sm); white-space:nowrap;
+.rc-hdr__meta { font-size:11px; color:var(--cc-taupe); margin-top:3px; }
+
+/* Status badge — inline with name */
+.rc-status-badge {
+  font-size:9px; font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+  padding:3px 9px; border-radius:var(--cc-r-pill); flex-shrink:0; white-space:nowrap;
 }
-.rc-badge--type   { background:var(--cc-surface); color:var(--cc-taupe); border:.5px solid var(--cc-rule); }
-.rc-badge--vacant { background:#F5F0EB; color:#8C6A3A; border:.5px solid #D4A87A; }
-.rc-badge--occupied { background:#EAF3DE; color:#27500A; border:.5px solid #9AC87A; }
-.rc-badge--kitchen { background:#E6F1FB; color:#0C447C; border:.5px solid #85B7EB; }
-.rc-chevron { color:var(--cc-stone); font-size:18px; flex-shrink:0; transition:transform .22s cubic-bezier(.32,.72,0,1); }
+.rc-status--occupied { background:#EAF3DE; color:#27500A; border:.5px solid #9AC87A; }
+.rc-status--vacant   { background:#F5F0EB; color:#8C6A3A; border:.5px solid #D4A87A; }
+
+/* Tag row below meta */
+.rc-hdr__tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:7px; }
+.rc-tag {
+  font-size:9px; font-weight:500; letter-spacing:.06em; text-transform:uppercase;
+  padding:2px 8px; border-radius:var(--cc-r-sm); white-space:nowrap;
+}
+.rc-tag--type    { background:var(--cc-surface); color:var(--cc-taupe); border:.5px solid var(--cc-rule); }
+.rc-tag--kitchen { background:#E6F1FB; color:#0C447C; border:.5px solid #85B7EB; }
+.rc-chevron { color:var(--cc-stone); font-size:18px; flex-shrink:0; margin-top:4px; transition:transform .22s cubic-bezier(.32,.72,0,1); }
 .rc--expanded .rc-chevron, .rc--editing .rc-chevron { transform:rotate(90deg); }
 
-/* Expanded read body */
+/* Read body */
 .rc-read { display:none; border-top:var(--cc-border); }
 .rc--expanded:not(.rc--editing) .rc-read { display:block; }
 
-.rc-section { padding:12px 16px; border-bottom:var(--cc-border); }
+/* Action strip — one row, two buttons */
+.rc-actions {
+  display:flex; gap:8px; padding:10px 14px;
+  background:var(--cc-surface); border-bottom:var(--cc-border);
+}
+.rc-act {
+  flex:1; height:36px; display:flex; align-items:center; justify-content:center; gap:5px;
+  border-radius:var(--cc-r-sm); font-size:10px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
+  font-family:inherit; transition:opacity .15s; -webkit-tap-highlight-color:transparent;
+}
+.rc-act:active { opacity:.75; }
+.rc-act--mark-vacant   { background:#F5F0EB; color:#8C6A3A; border:.5px solid #D4A87A; }
+.rc-act--mark-occupied { background:#EAF3DE; color:#27500A; border:.5px solid #9AC87A; }
+.rc-act--kitchen-on    { background:#E6F1FB; color:#0C447C; border:.5px solid #85B7EB; }
+.rc-act--kitchen-off   { background:var(--cc-surface); color:var(--cc-stone); border:.5px solid var(--cc-rule); }
+
+/* Sections — no internal row dividers */
+.rc-section { padding:13px 16px; border-bottom:var(--cc-border); }
 .rc-section:last-of-type { border-bottom:none; }
 .rc-stitle {
-  font-size:9px; font-weight:500; letter-spacing:.11em; text-transform:uppercase;
+  font-size:9px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
   color:var(--cc-stone); margin-bottom:8px;
 }
 .rc-rows { display:flex; flex-direction:column; }
-.rc-row { display:flex; gap:10px; padding:5px 0; border-bottom:.5px solid var(--cc-rule); align-items:baseline; }
-.rc-row:last-child { border-bottom:none; }
-.rc-row__k { font-size:11px; color:var(--cc-stone); min-width:90px; flex-shrink:0; }
-.rc-row__v { font-size:13px; color:var(--cc-charcoal); flex:1; }
-
-/* Vacant toggle row */
-.rc-vacant-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 16px; border-bottom:var(--cc-border);
-}
-.rc-vacant-row__label { font-size:11px; color:var(--cc-taupe); }
-.rc-vacant-btn {
-  font-size:10px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;
-  padding:5px 12px; border-radius:var(--cc-r-pill); cursor:pointer; font-family:inherit;
-  transition:all .15s;
-  background:var(--cc-ink); color:var(--cc-white); border:.5px solid var(--cc-ink);
-}
-.rc-vacant-btn--vacant {
-  background:var(--cc-ink); color:var(--cc-white); border:.5px solid var(--cc-ink);
-}
-.rc-vacant-btn--occupied {
-  background:var(--cc-ink); color:var(--cc-white); border:.5px solid var(--cc-ink);
-}
+.rc-row { display:flex; gap:10px; padding:3px 0; align-items:baseline; }
+.rc-row__k { font-size:11px; color:var(--cc-taupe); min-width:90px; flex-shrink:0; }
+.rc-row__v { font-size:12px; color:var(--cc-charcoal); flex:1; }
 
 /* Inventar row */
 .rc-inv-row {
   display:flex; align-items:center; justify-content:space-between;
-  padding:10px 16px; border-bottom:var(--cc-border);
+  padding:11px 16px; border-bottom:var(--cc-border);
 }
 .rc-inv-count { font-size:13px; font-weight:500; color:var(--cc-charcoal); }
-.rc-inv-label { font-size:11px; color:var(--cc-taupe); }
+.rc-inv-label { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--cc-stone); margin-bottom:2px; }
 .rc-inv-btn {
   font-size:10px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;
-  color:var(--cc-gold); background:none; border:none; padding:4px 0;
-  display:flex; align-items:center; gap:4px;
+  color:var(--cc-taupe); background:none; border:.5px solid var(--cc-rule);
+  border-radius:var(--cc-r-sm); padding:5px 12px; cursor:pointer; font-family:inherit;
 }
 
-/* Contract action buttons */
-.rc-contracts { padding:12px 16px; border-bottom:var(--cc-border); }
+/* Contracts — document rows */
+.rc-contracts { padding:13px 16px; }
 .rc-contracts-title {
-  font-size:9px; font-weight:500; letter-spacing:.11em; text-transform:uppercase;
-  color:var(--cc-stone); margin-bottom:8px;
+  font-size:9px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--cc-stone); margin-bottom:9px;
 }
-.rc-contract-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
-.rc-cbtn {
-  flex:1; min-width:0; padding:9px 10px; min-height:38px;
-  background:var(--cc-surface); border:var(--cc-border); border-radius:var(--cc-r-sm);
-  font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--cc-charcoal); text-align:center; transition:background .15s; white-space:nowrap;
+.rc-doc-row {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:var(--cc-r-md);
+  border:.5px solid var(--cc-rule); background:var(--cc-white);
+  margin-bottom:7px; cursor:pointer; transition:background .12s;
+  -webkit-tap-highlight-color:transparent;
 }
-.rc-cbtn:hover { background:var(--cc-rule); }
-.rc-cbtn--primary { background:var(--cc-ink); color:var(--cc-white); border-color:var(--cc-ink); }
-.rc-cbtn--primary:hover { opacity:.88; }
-.rc-ueberg-row { display:flex; align-items:center; gap:8px; }
-.rc-cbtn--ueberg { flex:1; text-align:center; }
-.rc-toggle-eu {
-  display:flex; border:var(--cc-border); border-radius:var(--cc-r-pill);
-  overflow:hidden; flex-shrink:0; background:var(--cc-surface);
+.rc-doc-row:last-child { margin-bottom:0; }
+.rc-doc-row:active { background:var(--cc-surface); }
+.rc-doc-icon { font-size:18px; flex-shrink:0; opacity:.75; }
+.rc-doc-body { flex:1; min-width:0; }
+.rc-doc-name { font-size:12px; font-weight:500; color:var(--cc-ink); }
+.rc-doc-desc { font-size:10px; color:var(--cc-taupe); margin-top:1px; }
+.rc-doc-arrow { font-size:16px; color:var(--cc-stone); flex-shrink:0; }
+.rc-doc-toggle {
+  display:flex; border:.5px solid var(--cc-rule);
+  border-radius:var(--cc-r-sm); overflow:hidden; flex-shrink:0;
 }
-.rc-toggle-eu button {
-  padding:6px 10px; font-size:9px; font-weight:500; letter-spacing:.07em;
-  text-transform:uppercase; border:none; background:transparent; color:var(--cc-stone);
-  transition:background .15s,color .15s; white-space:nowrap;
+.rc-doc-toggle button {
+  font-size:9px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  padding:5px 9px; background:var(--cc-white); color:var(--cc-stone);
+  border:none; cursor:pointer; font-family:inherit;
+  transition:background .15s,color .15s;
 }
-.rc-toggle-eu button.active { background:var(--cc-ink); color:var(--cc-white); }
+.rc-doc-toggle button.active { background:var(--cc-ink); color:var(--cc-white); }
 
-/* Edit row */
-.rc-edit-row { display:flex; align-items:center; justify-content:flex-end; padding:12px 16px; }
+/* Card footer — edit button */
+.rc-card-footer {
+  display:flex; align-items:center; justify-content:flex-end;
+  padding:10px 14px; border-top:var(--cc-border); background:var(--cc-surface);
+}
 .rc-edit-open-btn {
-  padding:8px 16px; min-height:34px; background:transparent; border:var(--cc-border);
-  border-radius:var(--cc-r-sm); font-size:10px; font-weight:500; letter-spacing:.07em;
-  text-transform:uppercase; color:var(--cc-charcoal); transition:border-color .15s;
   display:flex; align-items:center; gap:5px;
+  padding:7px 14px; min-height:32px; background:transparent; border:.5px solid var(--cc-rule);
+  border-radius:var(--cc-r-sm); font-size:10px; font-weight:500; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--cc-taupe); transition:border-color .15s;
+  font-family:inherit; cursor:pointer;
 }
 .rc-edit-open-btn:hover { border-color:var(--cc-stone); }
 
 /* Edit body */
 .rc-edit { display:none; border-top:2px solid var(--cc-gold); background:var(--cc-white); }
 .rc--editing .rc-edit { display:block; }
-
 .rc-edit-section { padding:14px 16px; border-bottom:var(--cc-border); }
 .rc-edit-section:last-of-type { border-bottom:none; }
 .rc-edit-stitle {
@@ -258,7 +275,6 @@ document.getElementById('tab-rooms').innerHTML = `
 }
 .rc-input:focus { border-color:var(--cc-charcoal); }
 .rc-input::placeholder { color:var(--cc-stone); }
-
 .rc-chips { display:flex; flex-wrap:wrap; gap:6px; }
 .rc-chip {
   padding:5px 10px; border-radius:var(--cc-r-pill); font-size:10px; font-weight:500;
@@ -267,7 +283,6 @@ document.getElementById('tab-rooms').innerHTML = `
 }
 .rc-chip.on { background:var(--cc-ink); color:var(--cc-white); border-color:var(--cc-ink); }
 .rc-chip--orphan { opacity:.45; border-style:dashed; }
-
 .rc-pricing-toggle {
   display:flex; border:var(--cc-border); border-radius:var(--cc-r-pill);
   overflow:hidden; background:var(--cc-surface); width:fit-content; margin-bottom:10px;
@@ -278,11 +293,9 @@ document.getElementById('tab-rooms').innerHTML = `
   transition:background .15s,color .15s;
 }
 .rc-pricing-toggle button.active { background:var(--cc-ink); color:var(--cc-white); }
-
 .rc-stepper { display:flex; align-items:center; border:var(--cc-border); border-radius:var(--cc-r-sm); overflow:hidden; width:fit-content; }
 .rc-stepper button { width:32px; height:32px; background:var(--cc-surface); border:none; font-size:16px; color:var(--cc-charcoal); display:flex; align-items:center; justify-content:center; }
 .rc-stepper__v { min-width:36px; text-align:center; font-size:13px; padding:0 4px; color:var(--cc-charcoal); }
-
 .rc-toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .rc-toggle-row:last-child { margin-bottom:0; }
 .rc-tlabel { font-size:13px; color:var(--cc-charcoal); }
@@ -292,37 +305,21 @@ document.getElementById('tab-rooms').innerHTML = `
 .cc-sw__t::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:white; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,.15); }
 .cc-sw input:checked+.cc-sw__t { background:var(--cc-ink); }
 .cc-sw input:checked+.cc-sw__t::after { transform:translateX(16px); }
-
-/* Edit footer */
 .rc-edit-footer { padding:14px 16px; border-top:var(--cc-border); }
 .rc-save-row { display:flex; gap:8px; margin-bottom:10px; }
 
-/* ── BUTTONS (shared) ── */
-.rm-btn {
-  display:inline-flex; align-items:center; justify-content:center; gap:6px;
-  min-height:40px; border-radius:var(--cc-r-sm); font-family:inherit;
-  font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
-  cursor:pointer; transition:opacity .15s;
+/* Desktop: cards cap at reasonable width so they don't stretch on large screens */
+@media(min-width:701px) {
+  .rp-list { max-width:860px; margin:0 auto; }
+  .rc-hdr { padding:18px 18px 16px 14px; }
+  .rc-actions { padding:10px 16px; }
+  .rc-doc-row:hover { background:var(--cc-surface); }
 }
-.rm-btn--primary { flex:1; background:var(--cc-ink); color:var(--cc-white); border:none; }
-.rm-btn--primary:active { opacity:.85; }
-.rm-btn--primary:disabled { opacity:.45; cursor:not-allowed; }
-.rm-btn--ghost { padding:0 16px; background:var(--cc-bg); color:var(--cc-taupe); border:var(--cc-border); }
-.rm-btn--ghost:hover { border-color:var(--cc-stone); }
-.rm-btn--danger { padding:0 16px; background:#C4705A; color:white; border:none; }
-.rm-btn--danger:hover { opacity:.88; }
-.rm-btn--delete {
-  width:100%; min-height:36px; background:transparent; border:.5px solid #EAC4BB;
-  color:#C4705A; font-size:10px;
-}
-.rm-btn--delete:hover { background:#FBF0EE; }
-.rm-btn--pdf {
-  flex:1; background:var(--cc-ink); color:var(--cc-white); border:none;
-  display:flex; align-items:center; justify-content:center; gap:6px;
-}
-.rm-btn--pdf-disabled {
-  flex:1; background:var(--cc-surface); color:var(--cc-stone); border:var(--cc-border);
-  cursor:not-allowed;
+
+/* iPad touch — action buttons larger tap target */
+@media(hover:none) {
+  .rc-act { height:40px; font-size:11px; }
+  .rc-doc-row:active { background:var(--cc-surface); }
 }
 
 /* ── SHEET / OVERLAY ── */
@@ -824,36 +821,43 @@ function _roomCardHTML(r) {
 
   return `
   <div class="rc" data-id="${r.id}" data-room="${esc(r.name)}">
+    <!-- ── HEADER ── -->
     <div class="rc-hdr" onclick="if(!event.target.closest('.rc-drag'))_toggleCard(this.closest('.rc'))">
       <i class="ti ti-grip-vertical rc-drag"></i>
       <div class="rc-hdr__info">
-        <div class="rc-hdr__name ">${esc(r.name)}</div>
+        <div class="rc-hdr__namerow">
+          <span class="rc-hdr__name">${esc(r.name)}</span>
+          <span class="rc-status-badge ${vacant ? 'rc-status--vacant' : 'rc-status--occupied'}">
+            ${vacant ? t('rooms_vacant') : t('rooms_occupied')}
+          </span>
+        </div>
         <div class="rc-hdr__meta">${r.flaeche_m2 ? r.flaeche_m2 + ' m²' : ''}${r.floor ? ' · ' + esc(r.floor) : ''}</div>
-        <div class="rc-hdr__badges">${badgeType}${badgeVac}${badgeKitchen}</div>
+        <div class="rc-hdr__tags">
+          ${r.room_type ? `<span class="rc-tag rc-tag--type">${esc(r.room_type)}</span>` : ''}
+          ${hasKitchen ? `<span class="rc-tag rc-tag--kitchen">Kitchen ✓</span>` : ''}
+        </div>
       </div>
       <i class="ti ti-chevron-right rc-chevron"></i>
     </div>
 
-    <!-- READ MODE -->
+    <!-- ── READ MODE ── -->
     <div class="rc-read">
-      <!-- Vacant toggle -->
-      <div class="rc-vacant-row">
-        <span class="rc-vacant-row__label">${t('rooms_occupied')}</span>
-        <button class="rc-vacant-btn ${vacant ? 'rc-vacant-btn--vacant' : 'rc-vacant-btn--occupied'}"
+
+      <!-- Action strip: vacant + kitchen in one row -->
+      <div class="rc-actions">
+        <button class="rc-act ${vacant ? 'rc-act--mark-occupied' : 'rc-act--mark-vacant'}"
           data-vacantbtn="${r.id}"
           onclick="_toggleVacant('${r.id}',this)">
           ${vacant ? t('rooms_mark_occupied') : t('rooms_mark_vacant')}
         </button>
-      </div>
-      <div class="rc-vacant-row">
-        <span class="rc-vacant-row__label">Kitchen</span>
-        <button class="rc-vacant-btn rc-vacant-btn--occupied"
+        <button class="rc-act ${hasKitchen ? 'rc-act--kitchen-on' : 'rc-act--kitchen-off'}"
           data-kitchenbtn="${esc(r.name)}"
           onclick="_toggleKitchenRoom('${esc(r.name)}',this)">
-          ${hasKitchen ? 'Disable' : 'Enable'}
+          ${hasKitchen ? 'Kitchen: On' : 'Kitchen: Off'}
         </button>
       </div>
-      <!-- Mietobjekt -->
+
+      <!-- Mietobjekt — no row dividers -->
       <div class="rc-section">
         <div class="rc-stitle">Mietobjekt</div>
         <div class="rc-rows">
@@ -862,15 +866,16 @@ function _roomCardHTML(r) {
           <div class="rc-row"><span class="rc-row__k">Shared spaces</span><span class="rc-row__v">${esc(gemStr)}</span></div>
         </div>
       </div>
-      <!-- Miete -->
+
+      <!-- Miete — no row dividers, Kaution removed -->
       <div class="rc-section">
         <div class="rc-stitle">Miete</div>
         <div class="rc-rows">
           ${rentRead || '<div class="rc-row"><span class="rc-row__v" style="color:var(--cc-stone);font-style:italic;">Not set</span></div>'}
-          <div class="rc-row"><span class="rc-row__k">Kaution</span><span class="rc-row__v">1× ≤3M · 3× >3M (Kurzzeit) · 3× Standard</span></div>
         </div>
       </div>
-      <!-- Schlüssel -->
+
+      <!-- Schlüssel — no row dividers -->
       <div class="rc-section">
         <div class="rc-stitle">Schlüssel</div>
         <div class="rc-rows">
@@ -879,6 +884,7 @@ function _roomCardHTML(r) {
           ${r.briefkastenschluessel ? `<div class="rc-row"><span class="rc-row__k">Briefkasten</span><span class="rc-row__v">×${r.briefkastenschluessel}</span></div>` : ''}
         </div>
       </div>
+
       <!-- Inventar -->
       <div class="rc-inv-row">
         <div>
@@ -889,25 +895,48 @@ function _roomCardHTML(r) {
           <i class="ti ti-list"></i> Edit
         </button>
       </div>
-      <!-- Contracts -->
+
+      <!-- Contracts — document rows -->
       <div class="rc-contracts">
-        <div class="rc-contracts-title" data-i18n="rooms_contracts">Contracts</div>
-        <div class="rc-contract-btns">
-          <button class="rc-cbtn rc-cbtn--primary" onclick="_openContract('kurzzeit','${r.id}')">Kurzzeitmiete</button>
-          <button class="rc-cbtn" onclick="_openContract('mietvertrag','${r.id}')">Mietvertrag</button>
+        <div class="rc-contracts-title">Contracts</div>
+
+        <div class="rc-doc-row" onclick="_openContract('kurzzeit','${r.id}')">
+          <span class="rc-doc-icon">📄</span>
+          <div class="rc-doc-body">
+            <div class="rc-doc-name">Kurzzeitmiete</div>
+            <div class="rc-doc-desc">Kurzzeitmietvertrag generieren</div>
+          </div>
+          <i class="ti ti-chevron-right rc-doc-arrow"></i>
         </div>
-        <div class="rc-ueberg-row">
-          <button class="rc-cbtn rc-cbtn--ueberg" onclick="_openContract('ueberg','${r.id}')">Übergabeprotokoll</button>
-          <div class="rc-toggle-eu" id="eu-${r.id}">
+
+        <div class="rc-doc-row" onclick="_openContract('mietvertrag','${r.id}')">
+          <span class="rc-doc-icon">📄</span>
+          <div class="rc-doc-body">
+            <div class="rc-doc-name">Mietvertrag</div>
+            <div class="rc-doc-desc">Standardmietvertrag generieren</div>
+          </div>
+          <i class="ti ti-chevron-right rc-doc-arrow"></i>
+        </div>
+
+        <div class="rc-doc-row" onclick="_openContract('ueberg','${r.id}')">
+          <span class="rc-doc-icon">📋</span>
+          <div class="rc-doc-body">
+            <div class="rc-doc-name">Übergabeprotokoll</div>
+            <div class="rc-doc-desc">Protokoll für Einzug oder Auszug</div>
+          </div>
+          <div class="rc-doc-toggle" id="eu-${r.id}" onclick="event.stopPropagation()">
             <button class="active" onclick="_setEU('${r.id}',0,this)">Einzug</button>
             <button onclick="_setEU('${r.id}',1,this)">Auszug</button>
           </div>
+          <i class="ti ti-chevron-right rc-doc-arrow"></i>
         </div>
+
       </div>
-      <!-- Edit button -->
-      <div class="rc-edit-row">
+
+      <!-- Card footer: edit button -->
+      <div class="rc-card-footer">
         <button class="rc-edit-open-btn" onclick="_enterEdit(this.closest('.rc'))">
-          <i class="ti ti-pencil"></i> <span data-i18n="rooms_edit">Edit room</span>
+          <i class="ti ti-pencil"></i> Edit room details
         </button>
       </div>
     </div>
