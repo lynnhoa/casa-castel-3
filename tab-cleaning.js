@@ -303,7 +303,7 @@ async function loadHouseCleaning() {
   let absRows   = [];
   if (sbL) {
     const [doneRes, absRes] = await Promise.all([
-      sbL.from('lounge_data').select('room,body').eq('type','hc_done'),
+      sbL.from('lounge_data').select('room,body,created_at').eq('type','hc_done').order('created_at',{ascending:true}),
       sbL.from('kitchen_absences').select('room,from_date,to_date')
     ]);
     if (doneRes.data) doneRes.data.forEach(row => {
@@ -383,7 +383,8 @@ async function loadHouseCleaning() {
   _hcSubscribe();
 
   /* ── Rerender when rooms tab changes (new room, sort_order, vacant) ── */
-  if (typeof onRoomsChange === 'function') {
+  if (typeof onRoomsChange === 'function' && !loadHouseCleaning._roomsWired) {
+    loadHouseCleaning._roomsWired = true;
     onRoomsChange(() => loadHouseCleaning());
   }
 }
@@ -421,11 +422,10 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, rot) {
      Walk forward from cyclePos+1, skipping any slot that would be
      absent or skipped (vacant), until we find one that is actionable. */
   let trueNextI = -1;
-  for (let offset = 1; offset < rot.length; offset++) {
-    const candidateI    = cyclePos + offset;
-    if (candidateI >= rot.length) break;
+  for (let offset = 1; offset <= rot.length; offset++) {
+    const candidateI    = (cyclePos + offset) % rot.length;
+    const candidateSlot = cycleStart + cyclePos + offset;
     const candidateRoom = rot[candidateI];
-    const candidateSlot = cycleStart + candidateI;
     const candidateWs   = new Date(HC_W1_START.getTime() + candidateSlot * 7 * 24 * 60 * 60 * 1000);
     const candidateWe   = new Date(candidateWs.getTime() + 6 * 24 * 60 * 60 * 1000);
     const cwStart = candidateWs.toISOString().slice(0, 10);
@@ -464,7 +464,7 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, rot) {
                   : state === 'absent'  ? 'rot-line-absent'
                   : state === 'missed'  ? 'rot-line-missed'
                   : 'rot-line-faded';
-    const botLine = state === 'done' && i < cyclePos - 1 ? 'rot-line-done' : 'rot-line-faded';
+    const botLine = state === 'done' && i < cyclePos ? 'rot-line-done' : 'rot-line-faded';
 
     const badge = {
       done:     '<span class="rot-badge rot-badge--done">Done</span>',

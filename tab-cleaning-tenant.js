@@ -202,8 +202,9 @@ async function absDeleteAbsence(id) {
   if (!sbL) return;
   await sbL.from('kitchen_absences').delete().eq('id', id);
   _absPopulateList();
-  // Notify both tabs to re-render rotation
-  if (typeof loadHouseCleaning === 'function') loadHouseCleaning();
+  // Notify both tabs to re-render rotation — pass room so tenant view stays correct
+  const _absRoom = (typeof currentRoom !== 'undefined' && currentRoom) ? currentRoom : undefined;
+  if (typeof loadHouseCleaning === 'function') loadHouseCleaning(_absRoom);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -300,7 +301,7 @@ async function loadHouseCleaning(room) {
   let absRows   = [];
   if (sbL) {
     const [doneRes, absRes] = await Promise.all([
-      sbL.from('lounge_data').select('room,body').eq('type','hc_done'),
+      sbL.from('lounge_data').select('room,body,created_at').eq('type','hc_done').order('created_at',{ascending:true}),
       sbL.from('kitchen_absences').select('room,from_date,to_date')
     ]);
     if (doneRes.data) doneRes.data.forEach(row => {
@@ -332,8 +333,8 @@ async function loadHouseCleaning(room) {
   /* ── "Your next turn" lookahead ── */
   let nextTurnHtml = '';
   if (!isMyTurn && curInfo) {
-    // Find the next slot in the cycle belonging to this room
-    for (let offset = 1; offset <= rot.length; offset++) {
+    // Find the next slot belonging to this room — search up to 2 full cycles ahead
+    for (let offset = 1; offset <= rot.length * 2; offset++) {
       const futureIdx  = curIdx + offset;
       const futureInfo = _hcWeekInfo(futureIdx);
       if (futureInfo && futureInfo.room === room) {
@@ -463,11 +464,10 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, myRoom, rot
   const fmtD  = dt => pad(dt.getDate()) + '.' + pad(dt.getMonth() + 1) + '.' + dt.getFullYear();
 
   let trueNextI = -1;
-  for (let offset = 1; offset < rot.length; offset++) {
-    const candidateI    = cyclePos + offset;
-    if (candidateI >= rot.length) break;
+  for (let offset = 1; offset <= rot.length; offset++) {
+    const candidateI    = (cyclePos + offset) % rot.length;
+    const candidateSlot = cycleStart + cyclePos + offset;
     const candidateRoom = rot[candidateI];
-    const candidateSlot = cycleStart + candidateI;
     const candidateWs   = new Date(HC_W1_START.getTime() + candidateSlot * 7 * 24 * 60 * 60 * 1000);
     const candidateWe   = new Date(candidateWs.getTime() + 6 * 24 * 60 * 60 * 1000);
     const cwStart = candidateWs.toISOString().slice(0, 10);
@@ -506,7 +506,7 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, myRoom, rot
                   : state === 'absent'  ? 'rot-line-absent'
                   : state === 'missed'  ? 'rot-line-missed'
                   : 'rot-line-faded';
-    const botLine = state === 'done' && i < cyclePos - 1 ? 'rot-line-done' : 'rot-line-faded';
+    const botLine = state === 'done' && i < cyclePos ? 'rot-line-done' : 'rot-line-faded';
 
     const badge = {
       done:     '<span class="rot-badge rot-badge--done">Done</span>',
