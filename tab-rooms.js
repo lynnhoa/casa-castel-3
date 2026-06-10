@@ -30,6 +30,18 @@ document.getElementById('tab-rooms').innerHTML = `
       </button>
     </div>
 
+    <!-- Summary bar -->
+    <div class="rp-summary" id="roomsSummary" style="display:none;">
+      <div>
+        <div class="rp-summary__label">Gesamtmiete / Monat</div>
+        <div class="rp-summary__breakdown" id="roomsSummaryBreakdown"></div>
+      </div>
+      <div>
+        <div class="rp-summary__total" id="roomsSummaryTotal"></div>
+        <div class="rp-summary__sub">inkl. Nebenkosten</div>
+      </div>
+    </div>
+
     <!-- Card list -->
     <div class="rp-list" id="roomsList"></div>
 
@@ -178,6 +190,19 @@ document.getElementById('tab-rooms').innerHTML = `
 }
 .rc-tag--type    { background:var(--cc-surface); color:var(--cc-taupe); border:.5px solid var(--cc-rule); }
 .rc-tag--kitchen { background:#E6F1FB; color:#0C447C; border:.5px solid #85B7EB; }
+.rc-hdr__rent { display:flex; align-items:center; justify-content:space-between; margin-top:9px; padding-top:8px; border-top:0.5px solid var(--cc-rule); }
+.rc-hdr__rent-left { display:flex; align-items:center; gap:6px; }
+.rc-rent-badge { font-size:9px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; padding:2px 8px; border-radius:var(--cc-r-pill); white-space:nowrap; }
+.rc-rent-badge--mietvertrag { background:#EFF6FF; color:#1E40AF; border:.5px solid #93C5FD; }
+.rc-rent-badge--kurzzeit    { background:#FFF7ED; color:#92400E; border:.5px solid #F6C177; }
+.rc-rent-badge--none        { background:var(--cc-surface); color:var(--cc-stone); border:.5px solid var(--cc-rule); }
+.rc-rent-amount { font-size:14px; font-weight:500; color:var(--cc-charcoal); letter-spacing:-.01em; }
+.rc-rent-detail { font-size:10px; font-weight:300; color:var(--cc-stone); }
+.rp-summary { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; margin-bottom:4px; background:var(--cc-white); border:var(--cc-border); border-radius:var(--cc-r-lg); }
+.rp-summary__label { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--cc-taupe); margin-bottom:2px; }
+.rp-summary__breakdown { font-size:11px; font-weight:300; color:var(--cc-stone); }
+.rp-summary__total { font-family:'Cormorant Garamond',Georgia,serif; font-size:22px; font-weight:400; color:var(--cc-ink); line-height:1; text-align:right; }
+.rp-summary__sub { font-size:10px; font-weight:300; color:var(--cc-stone); text-align:right; }
 .rc-chevron { color:var(--cc-stone); font-size:18px; flex-shrink:0; margin-top:4px; transition:transform .22s cubic-bezier(.32,.72,0,1); }
 .rc--expanded .rc-chevron, .rc--editing .rc-chevron { transform:rotate(90deg); }
 
@@ -844,6 +869,29 @@ async function loadRooms() {
 
 
 /* ── RENDER LIST ─────────────────────────────────────────── */
+function _updateRoomsSummary(rooms) {
+  const bar = document.getElementById('roomsSummary');
+  const bd  = document.getElementById('roomsSummaryBreakdown');
+  const tot = document.getElementById('roomsSummaryTotal');
+  if (!bar || !bd || !tot) return;
+  if (!rooms || !rooms.length) { bar.style.display = 'none'; return; }
+  let kalt = 0, nk = 0, occupied = 0;
+  rooms.forEach(r => {
+    if (r.vacant) return;
+    occupied++;
+    if (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) {
+      kalt += Number(r.kaltmiete)||0; nk += Number(r.nk_pauschale)||0;
+    } else if (r.mietvertrag_miete) {
+      kalt += Number(r.mietvertrag_miete)||0;
+    } else if (r.monatl_miete) {
+      kalt += Number(r.monatl_miete)||0;
+    }
+  });
+  bar.style.display = 'flex';
+  bd.textContent  = occupied + ' / ' + rooms.length + ' belegt · ' + fmtEUR(kalt) + ' kalt' + (nk ? ' + ' + fmtEUR(nk) + ' NK' : '');
+  tot.textContent = fmtEUR(kalt + nk);
+}
+
 function _renderRoomsList() {
   const list = document.getElementById('roomsList');
   if (!list) return;
@@ -852,15 +900,31 @@ function _renderRoomsList() {
 
   if (!rooms.length) {
     list.innerHTML = `<p style="font-size:13px;color:var(--cc-stone);font-style:italic;padding:20px 0;">No rooms yet. Add your first room.</p>`;
+    _updateRoomsSummary([]);
     return;
   }
 
   list.innerHTML = rooms.map(r => _roomCardHTML(r)).join('');
+  _updateRoomsSummary(rooms);
   _bindAllCards();
 }
 
 
 /* ── CARD HTML ───────────────────────────────────────────── */
+function _rentRowHTML(r) {
+  if (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) {
+    const tot = (Number(r.kaltmiete)||0)+(Number(r.nk_pauschale)||0);
+    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--mietvertrag">Mietvertrag</span><span class="rc-rent-detail">${fmtEUR(r.kaltmiete)} kalt + ${fmtEUR(r.nk_pauschale||0)} NK</span></div><span class="rc-rent-amount">${fmtEUR(tot)}</span></div>`;
+  }
+  if (r.mietvertrag_miete) {
+    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--mietvertrag">Mietvertrag</span><span class="rc-rent-detail">pauschal inkl. NK</span></div><span class="rc-rent-amount">${fmtEUR(r.mietvertrag_miete)}</span></div>`;
+  }
+  if (r.monatl_miete) {
+    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--kurzzeit">Kurzzeit</span><span class="rc-rent-detail">pauschal inkl. NK</span></div><span class="rc-rent-amount">${fmtEUR(r.monatl_miete)}</span></div>`;
+  }
+  return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--none">Nicht gesetzt</span></div><span class="rc-rent-detail" style="font-style:italic;">—</span></div>`;
+}
+
 function _roomCardHTML(r) {
   const vacant   = r.vacant;
   const badgeVac = vacant
@@ -927,6 +991,7 @@ function _roomCardHTML(r) {
           ${r.room_type ? `<span class="rc-tag rc-tag--type">${esc(r.room_type)}</span>` : ''}
           ${hasKitchen ? `<span class="rc-tag rc-tag--kitchen">Kitchen ✓</span>` : ''}
         </div>
+        ${_rentRowHTML(r)}
       </div>
       <i class="ti ti-chevron-right rc-chevron"></i>
     </div>
