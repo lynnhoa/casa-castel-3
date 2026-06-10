@@ -198,6 +198,11 @@ document.getElementById('tab-rooms').innerHTML = `
 .rc-rent-badge--none        { background:var(--cc-surface); color:var(--cc-stone); border:.5px solid var(--cc-rule); }
 .rc-rent-amount { font-size:14px; font-weight:500; color:var(--cc-charcoal); letter-spacing:-.01em; }
 .rc-rent-detail { font-size:10px; font-weight:300; color:var(--cc-stone); }
+.rc-price-toggle { display:flex; align-items:center; background:var(--cc-surface); border-radius:var(--cc-r-pill); padding:2px; border:.5px solid var(--cc-rule); flex-shrink:0; }
+.rc-price-toggle__opt { font-size:9px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:var(--cc-r-pill); border:none; background:none; cursor:pointer; color:var(--cc-stone); font-family:inherit; transition:all .15s; white-space:nowrap; }
+.rc-price-toggle__opt.active--mietvertrag { background:#EFF6FF; color:#1E40AF; }
+.rc-price-toggle__opt.active--kurzzeit    { background:#FFF7ED; color:#92400E; }
+.rc-hdr__rent-info { display:flex; align-items:baseline; gap:6px; margin-left:8px; min-width:0; }
 .rp-summary { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; margin-bottom:4px; background:var(--cc-white); border:var(--cc-border); border-radius:var(--cc-r-lg); }
 .rp-summary__label { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--cc-taupe); margin-bottom:2px; }
 .rp-summary__breakdown { font-size:11px; font-weight:300; color:var(--cc-stone); }
@@ -879,13 +884,12 @@ function _updateRoomsSummary(rooms) {
   rooms.forEach(r => {
     if (r.vacant) return;
     occupied++;
-    if (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) {
-      kalt += Number(r.kaltmiete)||0; nk += Number(r.nk_pauschale)||0;
-    } else if (r.mietvertrag_miete) {
-      kalt += Number(r.mietvertrag_miete)||0;
-    } else if (r.monatl_miete) {
-      kalt += Number(r.monatl_miete)||0;
-    }
+    const type = _getActiveType(r);
+    if (!type) return;
+    const info = _getRentInfo(r, type);
+    if (!info) return;
+    kalt += info.kalt;
+    nk   += info.nk;
   });
   bar.style.display = 'flex';
   bd.textContent  = occupied + ' / ' + rooms.length + ' belegt · ' + fmtEUR(kalt) + ' kalt' + (nk ? ' + ' + fmtEUR(nk) + ' NK' : '');
@@ -911,18 +915,103 @@ function _renderRoomsList() {
 
 
 /* ── CARD HTML ───────────────────────────────────────────── */
+function _getRentInfo(r, type) {
+  // Returns {kalt, nk, total, detail} for a given type
+  if (type === 'mietvertrag') {
+    if (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) {
+      const kalt = Number(r.kaltmiete)||0, nk = Number(r.nk_pauschale)||0;
+      return { kalt, nk, total: kalt+nk, detail: fmtEUR(kalt)+' kalt + '+fmtEUR(nk)+' NK' };
+    }
+    if (r.mietvertrag_miete) {
+      const tot = Number(r.mietvertrag_miete)||0;
+      return { kalt: tot-50, nk: 50, total: tot, detail: 'pauschal inkl. NK' };
+    }
+  }
+  if (type === 'kurzzeit' && r.monatl_miete) {
+    const tot = Number(r.monatl_miete)||0;
+    return { kalt: tot-50, nk: 50, total: tot, detail: 'pauschal inkl. NK' };
+  }
+  return null;
+}
+
+function _getActiveType(r) {
+  // Which type is saved as active on this room (persisted in localStorage)
+  const saved = localStorage.getItem('cc_price_type_' + r.id);
+  if (saved) return saved;
+  // Default: mietvertrag if available, else kurzzeit
+  const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || r.mietvertrag_miete;
+  const hasKz = r.monatl_miete;
+  if (hasMv) return 'mietvertrag';
+  if (hasKz) return 'kurzzeit';
+  return null;
+}
+
+function _toggleRentType(btn) {
+  const toggle = btn.closest('.rc-price-toggle');
+  const card   = btn.closest('.rc');
+  const type   = btn.dataset.type;
+  const rid    = card.dataset.id;
+
+  // Persist choice
+  localStorage.setItem('cc_price_type_' + rid, type);
+
+  // Update toggle active state
+  toggle.querySelectorAll('.rc-price-toggle__opt').forEach(b => {
+    b.className = 'rc-price-toggle__opt' + (b.dataset.type === type ? ' active--'+type : '');
+  });
+
+  // Find the room object
+  const r = appRooms.find(x => x.id === rid);
+  if (!r) return;
+  const info = _getRentInfo(r, type);
+  if (info) {
+    const amountEl = card.querySelector('.rc-rent-amount');
+    const detailEl = card.querySelector('.rc-rent-detail');
+    if (amountEl) amountEl.textContent = fmtEUR(info.total);
+    if (detailEl) detailEl.textContent = info.detail;
+  }
+
+  _updateRoomsSummary(appRooms);
+}
+
 function _rentRowHTML(r) {
-  if (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) {
-    const tot = (Number(r.kaltmiete)||0)+(Number(r.nk_pauschale)||0);
-    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--mietvertrag">Mietvertrag</span><span class="rc-rent-detail">${fmtEUR(r.kaltmiete)} kalt + ${fmtEUR(r.nk_pauschale||0)} NK</span></div><span class="rc-rent-amount">${fmtEUR(tot)}</span></div>`;
+  const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || r.mietvertrag_miete;
+  const hasKz = !!r.monatl_miete;
+  const hasBoth = hasMv && hasKz;
+  const activeType = _getActiveType(r);
+  const info = activeType ? _getRentInfo(r, activeType) : null;
+
+  if (!hasMv && !hasKz) {
+    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--none">Nicht gesetzt</span></div><span class="rc-rent-detail" style="font-style:italic;">—</span></div>`;
   }
-  if (r.mietvertrag_miete) {
-    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--mietvertrag">Mietvertrag</span><span class="rc-rent-detail">pauschal inkl. NK</span></div><span class="rc-rent-amount">${fmtEUR(r.mietvertrag_miete)}</span></div>`;
+
+  const amountHTML = info ? `<span class="rc-rent-amount">${fmtEUR(info.total)}</span>` : '';
+  const detailHTML = info ? `<span class="rc-rent-detail">${info.detail}</span>` : '';
+
+  if (hasBoth) {
+    const mvActive = activeType === 'mietvertrag' ? ' active--mietvertrag' : '';
+    const kzActive = activeType === 'kurzzeit'    ? ' active--kurzzeit'    : '';
+    return `<div class="rc-hdr__rent">
+      <div class="rc-hdr__rent-left">
+        <div class="rc-price-toggle">
+          <button class="rc-price-toggle__opt${mvActive}" data-type="mietvertrag" onclick="event.stopPropagation();_toggleRentType(this)">Mietvertrag</button>
+          <button class="rc-price-toggle__opt${kzActive}"  data-type="kurzzeit"    onclick="event.stopPropagation();_toggleRentType(this)">Kurzzeit</button>
+        </div>
+        <div class="rc-hdr__rent-info">${detailHTML}</div>
+      </div>
+      ${amountHTML}
+    </div>`;
   }
-  if (r.monatl_miete) {
-    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--kurzzeit">Kurzzeit</span><span class="rc-rent-detail">pauschal inkl. NK</span></div><span class="rc-rent-amount">${fmtEUR(r.monatl_miete)}</span></div>`;
-  }
-  return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--none">Nicht gesetzt</span></div><span class="rc-rent-detail" style="font-style:italic;">—</span></div>`;
+
+  const badgeClass = activeType === 'mietvertrag' ? 'rc-rent-badge--mietvertrag' : 'rc-rent-badge--kurzzeit';
+  const badgeLabel = activeType === 'mietvertrag' ? 'Mietvertrag' : 'Kurzzeit';
+  return `<div class="rc-hdr__rent">
+    <div class="rc-hdr__rent-left">
+      <span class="rc-rent-badge ${badgeClass}">${badgeLabel}</span>
+      <div class="rc-hdr__rent-info">${detailHTML}</div>
+    </div>
+    ${amountHTML}
+  </div>`;
 }
 
 function _roomCardHTML(r) {
