@@ -237,33 +237,18 @@ const HC_ROTATION = ['Copenhagen','Paris','Los Angeles','New York','London','Osl
 const HC_W1_START = new Date('2026-01-05T00:00:00');
 
 
-function _hcGetRoomList(curIdx) {
-  // Get the full active room list from appRooms in sort_order
-  const fullList = (typeof appRooms !== 'undefined' && appRooms.length > 0)
-    ? [...appRooms].filter(r => r.active).sort((a,b) => (a.sort_order||0)-(b.sort_order||0)).map(r => r.name)
-    : HC_ROTATION;
-
-  // If no new rooms were added, return as-is
-  if (fullList.length <= HC_ROTATION.length) return fullList;
-
-  // New rooms exist. Check if we are still within a cycle that started
-  // with the original room count. If so, exclude new rooms until next cycle.
-  const idx = (curIdx !== undefined) ? curIdx : _hcWeekIndex(new Date());
-  if (idx < 0) return HC_ROTATION;
-
-  const origLen    = HC_ROTATION.length;
-  const cyclePos   = ((idx % origLen) + origLen) % origLen;
-  const cycleStart = idx - cyclePos;
-  const cycleEnd   = cycleStart + origLen - 1;
-
-  if (idx <= cycleEnd) {
-    // Still in original cycle — only return rooms that were in HC_ROTATION
-    return fullList.filter(name => HC_ROTATION.includes(name));
+function _hcGetRoomList() {
+  // Always use appRooms as source of truth — same logic as kitchen.
+  // New rooms appear at their sort_order position immediately, no holdback.
+  if (typeof appRooms !== 'undefined' && appRooms.length > 0) {
+    return [...appRooms]
+      .filter(r => r.active)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map(r => r.name);
   }
-
-  // New cycle started — return full list (Berlin joins here)
-  return fullList;
+  return HC_ROTATION;
 }
+
 
 
 function _hcWeekIndex(d) {
@@ -274,7 +259,7 @@ function _hcWeekIndex(d) {
 
 function _hcWeekInfo(idx) {
   if (idx < 0) return null;
-  const rot   = _hcGetRoomList(idx);
+  const rot   = _hcGetRoomList();
   const room  = rot[idx % rot.length];
   const pad   = n => String(n).padStart(2, '0');
   const fmtD  = dt => pad(dt.getDate()) + '.' + pad(dt.getMonth() + 1) + '.' + dt.getFullYear();
@@ -304,7 +289,7 @@ function _hcTenSubscribe(room) {
 async function loadHouseCleaning(room) {
 
   const curIdx    = _hcWeekIndex(new Date());
-  const rot       = _hcGetRoomList(curIdx);
+  const rot       = _hcGetRoomList();
   const curInfo   = _hcWeekInfo(curIdx);
   const cyclePos  = ((curIdx % rot.length) + rot.length) % rot.length;
   const cycleStart= curIdx - cyclePos;
