@@ -2527,7 +2527,7 @@ function _renderKurzzeitHTML(d) {
     /* NOTE */
     .note {
       font-family: 'Lato', sans-serif;
-      font-size: 8.5px;
+      font-size: 10.5px;
       font-weight: 300;
       color: #6a6560;
       margin-top: 10px;
@@ -3555,10 +3555,10 @@ function _renderMietvertragHTML(d) {
     .kv-gap { height:10px; }
     .total-box { background:#f0e8d8; border-radius:3px; padding:9px 10px; display:flex; justify-content:space-between; align-items:center; margin-top:10px; margin-bottom:24px; }
     .total-box__label, .total-box__value { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:700; color:#8a6535; line-height:1; }
-    .note { font-family:'Lato',sans-serif; font-size:8.5px; font-weight:300; color:#6a6560; margin-top:10px; line-height:1.55; }
+    .note { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#6a6560; margin-top:10px; line-height:1.55; }
     .nk-intro { font-family:'Lato',sans-serif; font-size:11px; font-weight:300; color:#3a3530; line-height:1.55; margin-top:7px; margin-bottom:10px; }
     .nk-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:24px; }
-    .nk-item { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#3a3530; padding:2.5px 0; border-bottom:0.4px solid #ece7e0; line-height:1.4; }
+    .nk-item { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#3a3530; padding:2.5px 0; line-height:1.4; }
     .nk-item--full { grid-column:1/-1; border-bottom:none; }
     .clause { margin-top:8px; }
     .clause--first { margin-top:52px; }
@@ -3630,9 +3630,8 @@ function _renderMietvertragHTML(d) {
     ${sec('Mietzeit',false,false)}
     ${kv('Mietbeginn',d.mietbeginn||'—')}
     ${d.befristet
-      ? kv('Befristung','Befristet bis '+d.mietende)
-      : kv('Befristung','Unbefristet')
-        + kv('Kündigung','3\u00a0Monate (Mieter) / gestaffelt (Vermieter) \u00b7 \u00a7\u00a0573c BGB \u00b7 Schriftform')
+      ? ''
+      : kv('Kündigung','3\u00a0Monate (Mieter) / gestaffelt (Vermieter) \u00b7 \u00a7\u00a0573c BGB \u00b7 Schriftform')
         + kv('\u00a7\u00a0545 BGB','Keine stillschweigende Verlängerung')
     }
     ${sec('Miete &amp; Bankverbindung',true,false)}
@@ -3643,7 +3642,7 @@ function _renderMietvertragHTML(d) {
     }
     <div class="total-box"><span class="total-box__label">Gesamtmiete monatlich:</span><span class="total-box__value">${eur(d.gesamtmiete)}</span></div>
     ${kv('Fälligkeit','Spätestens 3.\u00a0Werktag des Monats (\u00a7\u00a0556b BGB)')}
-    ${kv('Kaution',eur(d.kaution)+'\u2002(fällig bei Mietbeginn \u00b7 Treuhandkonto, \u00a7\u00a0551 BGB)')}
+    ${kv('Kaution',eur(d.kaution)+'\u2002(fällig binnen 5 Tagen nach Vertragsunterschrift, \u00a7\u00a0551 BGB)')}
     <div class="kv-gap"></div>
     ${kv('Kontoinhaber',d.kontoinhaber)}${kv('IBAN',d.iban)}${kv('BIC',d.bic)}
     <p class="note">Alle Zahlungen per Überweisung. Verwendungszweck: Casa Castel \u2013 ${d.zimmerName} \u2013 Miete Monat Jahr / Kaution.</p>
@@ -3670,7 +3669,7 @@ function _renderMietvertragHTML(d) {
     ${cl('4','Schlüsselübergabe',
       `Der Mieter erhält bei Einzug ${d.hausstuerschluessel}\u00a0Haustürschlüssel und ${d.zimmerschluessel}\u00a0Zimmerschlüssel. Weitere Schlüssel bedürfen der vorherigen Zustimmung (Textform). Bei Verlust trägt der Mieter die vollständigen Kosten des Schlossaustauschs. Alle Schlüssel sind bei Auszug zurückzugeben.`)}
     ${cl('5','Kaution',
-      `Der Mieter leistet bei Mietbeginn eine Kaution von ${eur(d.kaution)}. Der Vermieter legt diese getrennt von seinem Vermögen auf einem Treuhandkonto an (\u00a7\u00a0551 BGB). Rückzahlung nach Prüfung des Zustands.`)}
+      `Der Mieter überweist die Kaution von ${eur(d.kaution)} binnen 5 Tagen nach Unterzeichnung dieses Vertrages auf das oben genannte Konto. Der Vermieter legt die Barkaution getrennt von seinem Vermögen auf einem Treuhandkonto an (\u00a7\u00a0551 BGB). Rückzahlung nach Prüfung des Zustands bei Auszug.`)}
     ${cl('6','Schönheitsreparaturen &amp; Kleinreparaturen',
       'Schönheitsreparaturen je nach Abnutzungsgrad auf Kosten des Mieters. Kleinreparaturen an häufig zugänglichen Gegenständen bis 150\u00a0\u20ac pro Maßnahme, max. 8\u202f% der Jahres-Nettokaltmiete p.\u202fa.')}
     ${cl('7','Tierhaltung',
