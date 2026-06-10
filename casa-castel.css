@@ -1350,6 +1350,17 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
 
 .k-desktop-right .k-feed-compose {
   flex-shrink: 0;
+  background: var(--cc-white);
+  border-top: 0.5px solid var(--cc-rule);
+  padding: 10px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* Override global max-height so feed flex-fills the right column */
+.k-desktop-right .k-feed-inner {
+  max-height: none;
 }
 
 .k-dsk-nudge-banner {
