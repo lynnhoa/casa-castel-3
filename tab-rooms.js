@@ -753,6 +753,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 0,
   },
@@ -764,6 +765,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 1,
   },
@@ -775,6 +777,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 2,
   },
@@ -786,6 +789,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 3,
   },
@@ -797,6 +801,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 4,
   },
@@ -808,6 +813,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 5,
   },
@@ -819,6 +825,7 @@ const _DEFAULT_ROOMS = [
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     inventar: [], sort_order: 6,
   },
@@ -935,34 +942,40 @@ function _getRentInfo(r, type) {
 }
 
 function _getActiveType(r) {
-  // Which type is saved as active on this room (persisted in localStorage)
-  const saved = localStorage.getItem('cc_price_type_' + r.id);
-  if (saved) return saved;
+  // Persisted in Supabase rooms.active_price_type
+  if (r.active_price_type) return r.active_price_type;
   // Default: mietvertrag if available, else kurzzeit
-  const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || r.mietvertrag_miete;
+  const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || !!r.mietvertrag_miete;
   const hasKz = r.monatl_miete;
   if (hasMv) return 'mietvertrag';
   if (hasKz) return 'kurzzeit';
   return null;
 }
 
-function _toggleRentType(btn) {
+async function _toggleRentType(btn) {
   const toggle = btn.closest('.rc-price-toggle');
   const card   = btn.closest('.rc');
   const type   = btn.dataset.type;
   const rid    = card.dataset.id;
 
-  // Persist choice
-  localStorage.setItem('cc_price_type_' + rid, type);
-
-  // Update toggle active state
+  // Update toggle active state immediately (optimistic)
   toggle.querySelectorAll('.rc-price-toggle__opt').forEach(b => {
     b.className = 'rc-price-toggle__opt' + (b.dataset.type === type ? ' active--'+type : '');
   });
 
-  // Find the room object
+  // Update in-memory room object
   const r = appRooms.find(x => x.id === rid);
   if (!r) return;
+  r.active_price_type = type;
+
+  // Persist to Supabase
+  if (sbL) {
+    sbL.from('rooms').update({ active_price_type: type }).eq('id', rid).then(({ error }) => {
+      if (error) console.warn('[rooms] active_price_type save error:', error.message);
+    });
+  }
+
+  // Update amount + detail in card
   const info = _getRentInfo(r, type);
   if (info) {
     const amountEl = card.querySelector('.rc-rent-amount');
@@ -1497,6 +1510,7 @@ document.getElementById('roomAddBtn')?.addEventListener('click', () => {
     badezimmer: [], gemeinschaftsraeume: [],
     monatl_miete: null, mietvertrag_pricing: 'pauschal',
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
+    active_price_type: null,
     kaution_override: false, kaution_default: null,
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
     inventar: [], sort_order: appRooms.length,
