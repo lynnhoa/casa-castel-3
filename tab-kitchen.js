@@ -695,13 +695,11 @@ async function _kRenderMobRotation() {
 /* ── DESKTOP ROTATION TIMELINE ──────────────────────────── */
 async function _kRenderDesktopRotation(currentIdx, currentInfo) {
   const el = document.getElementById('k-rotation'); if (!el) return;
-  // Use _kGetRoomList() — same as mobile — respects appRooms sort_order + kitchen_enabled
   const rooms = _kGetRoomList();
   if (!rooms.length) { el.innerHTML = '<p class="cc-note">No kitchen rooms configured.</p>'; return; }
-  const idx   = Math.max(0, currentIdx);
-  const pad   = n => String(n).padStart(2, '0');
-  const fmt   = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
-  // Use same cycle calculation as mobile strip
+  const idx        = Math.max(0, currentIdx);
+  const pad        = n => String(n).padStart(2, '0');
+  const fmt        = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
   const cyclePos   = ((idx % rooms.length) + rooms.length) % rooms.length;
   const cycleStart = idx - cyclePos;
 
@@ -710,50 +708,48 @@ async function _kRenderDesktopRotation(currentIdx, currentInfo) {
     sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
   ]);
 
-
-  // Find the one true next room — first future slot that isn't absent or skipped
   let trueNextI = -1;
   for (let offset = 1; offset < rooms.length; offset++) {
-    const ni = cyclePos + offset;
+    const ni     = cyclePos + offset;
     if (ni >= rooms.length) break;
-    const nRoom = rooms[ni];
+    const nRoom  = rooms[ni];
     const nStart = new Date(K_START.getTime() + (cycleStart + ni) * 7 * 24 * 60 * 60 * 1000);
     const nEnd   = new Date(nStart.getTime() + 6 * 24 * 60 * 60 * 1000);
-    const nWs = nStart.toISOString().slice(0,10);
-    const nWe = nEnd.toISOString().slice(0,10);
-    const nAbsent  = absData.some(a => a.room === nRoom && a.from_date <= nWe && a.to_date >= nWs);
-    const nSkipped = isVacant(nRoom);
-    if (!nAbsent && !nSkipped) { trueNextI = ni; break; }
+    const nWs    = nStart.toISOString().slice(0, 10);
+    const nWe    = nEnd.toISOString().slice(0, 10);
+    if (!absData.some(a => a.room === nRoom && a.from_date <= nWe && a.to_date >= nWs) && !isVacant(nRoom)) {
+      trueNextI = ni; break;
+    }
   }
+
   el.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
-    const slotIdx  = cycleStart + i;
-    const start    = new Date(K_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
-    const end      = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
-    const dateStr  = fmt(start) + ' – ' + fmt(end);
-    const isNow    = i === cyclePos;
-    const isPast   = i < cyclePos;
-    const dbRow    = dbRows[i];
-    const state    = _kRotState({
-      isNow, isPast,
+    const slotIdx = cycleStart + i;
+    const start   = new Date(K_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
+    const end     = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const dateStr = fmt(start) + ' – ' + fmt(end);
+    const dbRow   = dbRows[i];
+    const state   = _kRotState({
+      isNow:       i === cyclePos,
+      isPast:      i < cyclePos,
       isNext:      i === trueNextI,
       dbStatus:    dbRow ? dbRow.status : null,
       room,
       weekStart:   start,
       absenceRows: absData,
     });
-    const rowClass = 'rot-tl-row'
-      + (state === 'now'    ? ' rot-tl-row--now'
-       : state === 'missed' ? ' rot-tl-row--missed'
-       : state === 'skipped'? ' rot-tl-row--skipped'
-       : state === 'absent' ? ' rot-tl-row--absent'
-       : state === 'next'   ? ' rot-tl-row--next' : '');
     const dotClass = { done:'rot-dot--done', now:'rot-dot--now', missed:'rot-dot--missed', skipped:'rot-dot--skipped', absent:'rot-dot--absent' }[state] || 'rot-dot--next';
     const topLine  = state === 'done' || state === 'now' ? 'rot-line-done'
                    : state === 'skipped' ? 'rot-line-skipped'
                    : state === 'absent'  ? 'rot-line-absent'
                    : state === 'missed'  ? 'rot-line-missed' : 'rot-line-faded';
     const botLine  = state === 'done' && slotIdx < idx - 1 ? 'rot-line-done' : 'rot-line-faded';
-    const badge    = {
+    const rowClass = 'rot-tl-row'
+      + (state === 'now'     ? ' rot-tl-row--now'
+       : state === 'missed'  ? ' rot-tl-row--missed'
+       : state === 'skipped' ? ' rot-tl-row--skipped'
+       : state === 'absent'  ? ' rot-tl-row--absent'
+       : state === 'next'    ? ' rot-tl-row--next' : '');
+    const badge = {
       done:     '<span class="rot-badge rot-badge--done">Done</span>',
       now:      '<span class="rot-badge rot-badge--now">Now</span>',
       next:     '<span class="rot-badge rot-badge--next">Next</span>',

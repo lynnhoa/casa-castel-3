@@ -673,15 +673,9 @@ async function _kTenRenderDskHistory() {
   const idx = kWeekIdx();
   const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', idx).order('week_index', { ascending: false }).limit(4);
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note" style="font-size:10px;">No history yet.</p>'; return; }
-  const base = 'font-size:9px;padding:1px 7px;border-radius:10px;font-weight:500;white-space:nowrap;border:0.5px solid;';
-  const pill = s => {
-    if (s === 'approved') return `<span style="${base}background:#EDF5E8;color:#3A6A1A;border-color:#9AC87A;">✓ Done</span>`;
-    if (s === 'missed')   return `<span style="${base}background:#FEF2F2;color:#991B1B;border-color:#FCA5A5;">✗ Missed</span>`;
-    return `<span style="${base}background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">—</span>`;
-  };
   el.innerHTML = data.map(w => {
     const wi = kWeekInfo(w.week_index); const dateStr = wi ? wi.dateRange : '—';
-    return `<div class="k-dsk-hist-row"><div><div class="k-dsk-hist-room">${esc(w.room)}</div><div class="k-dsk-hist-date">${dateStr}</div></div>${pill(w.status)}</div>`;
+    return `<div class="k-dsk-hist-row"><div><div class="k-dsk-hist-room">${esc(w.room)}</div><div class="k-dsk-hist-date">${dateStr}</div></div>${kHistPill(w.status, 'sm')}</div>`;
   }).join('');
 }
 
