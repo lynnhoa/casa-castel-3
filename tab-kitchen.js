@@ -139,7 +139,7 @@ document.getElementById('tab-kitchen').innerHTML = `
           </div>
           <textarea class="issue-note-input" id="k-issue-note" placeholder="Optional note… e.g. bio bin is full" rows="2" style="margin-bottom:8px;"></textarea>
           <div class="issue-actions">
-            <button class="issue-post-btn" id="k-post-btn">Send anonymous nudge</button>
+            <button class="issue-post-btn" id="k-post-btn">Send nudge</button>
             <a class="btn-email" id="k-email-btn" href="#">✉ Email</a>
           </div>
         </div>
