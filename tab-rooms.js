@@ -199,7 +199,7 @@ document.getElementById('tab-rooms').innerHTML = `
 .rc-rent-badge--none        { background:var(--cc-surface); color:var(--cc-stone); border:.5px solid var(--cc-rule); }
 .rc-rent-amount { font-size:14px; font-weight:500; color:var(--cc-charcoal); letter-spacing:-.01em; flex-shrink:0; white-space:nowrap; align-self:center; }
 .rc-rent-detail { font-size:10px; font-weight:300; color:var(--cc-stone); }
-.rc-price-toggle { display:flex; align-items:center; background:var(--cc-surface); border-radius:var(--cc-r-pill); padding:2px; border:.5px solid var(--cc-rule); flex-shrink:0; }
+.rc-price-toggle { display:flex; align-items:center; background:var(--cc-surface); border-radius:var(--cc-r-pill); padding:2px; border:.5px solid var(--cc-rule); flex-shrink:0; width:fit-content; align-self:flex-start; }
 .rc-price-toggle__opt { font-size:9px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:var(--cc-r-pill); border:none; background:none; cursor:pointer; color:var(--cc-stone); font-family:inherit; transition:all .15s; white-space:nowrap; }
 .rc-price-toggle__opt.active--mietvertrag { background:#EFF6FF; color:#1E40AF; }
 .rc-price-toggle__opt.active--kurzzeit    { background:#FFF7ED; color:#92400E; }
