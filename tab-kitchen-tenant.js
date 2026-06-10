@@ -1128,3 +1128,4 @@ function _kTenShowTabIfEligible() {
 
 /* ── NAV ALIAS ──────────────────────────────────────────── */
 var initKitchenMobExtend = initKitchenMobile;
+var initKitchen          = initKitchenMobile; // layout.js calls initKitchen on desktop
