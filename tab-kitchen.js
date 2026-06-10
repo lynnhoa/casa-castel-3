@@ -1121,19 +1121,14 @@ function _kSubscribe(idx) {
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
-      const expectedStatus = payload.new?.status;
-      const expectedResub  = payload.new?.reupload_count;
-      if (expectedStatus && expectedStatus === _kWeekRow.status &&
-          expectedResub  === _kWeekRow.reupload_count) return;
       const fresh = await _kGetWeek(idx);
       if (!fresh) return;
-      if (fresh.status === _kWeekRow.status &&
-          fresh.reupload_count === _kWeekRow.reupload_count) return;
+      // Always update and re-render — don't skip based on status comparison
       _kWeekRow = fresh;
       await _kRenderMobWeekCard(_kWeekRow);
       const mobile = window.innerWidth <= 700;
       if (mobile) {
-        await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+        await _kRenderFeed('k-feed-mob', _kWeekRow, true);
         _kRenderMobRotation();
       } else {
         await _kRenderFeed('k-feed', _kWeekRow, false);
@@ -1143,7 +1138,9 @@ function _kSubscribe(idx) {
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async payload => {
       if (!payload.new || !_kWeekRow) return;
-      if (payload.new.week_id && payload.new.week_id !== _kWeekRow.id) return;
+      // Filter: only handle comments for the current week
+      // Use week_id if available, otherwise let all through (safer)
+      if (payload.new.week_id && _kWeekRow.id && payload.new.week_id !== _kWeekRow.id) return;
       const mobile = window.innerWidth <= 700;
       const text = payload.new.text || '';
       if (text.startsWith('[submission]')) {
