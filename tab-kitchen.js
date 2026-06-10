@@ -1125,21 +1125,21 @@ function _kSubscribe(idx) {
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
       if (!_kWeekRow) return;
-      // Only re-render if the expected status differs from what we already have.
-      // This prevents the UPDATE handler from overwriting the INSERT handler's correct render.
       const expectedStatus = payload.new?.status;
-      if (expectedStatus && expectedStatus === _kWeekRow.status) return; // already correct, skip
+      const expectedResub  = payload.new?.reupload_count;
+      if (expectedStatus && expectedStatus === _kWeekRow.status &&
+          expectedResub  === _kWeekRow.reupload_count) return;
       const fresh = await _kGetWeek(idx);
       if (!fresh) return;
-      if (fresh.status === _kWeekRow.status) return; // fetch still stale, skip — INSERT handler has correct state
+      if (fresh.status === _kWeekRow.status &&
+          fresh.reupload_count === _kWeekRow.reupload_count) return;
       _kWeekRow = fresh;
+      await _kRenderMobWeekCard(_kWeekRow);
       const mobile = window.innerWidth <= 700;
       if (mobile) {
-        await _kRenderMobWeekCard(_kWeekRow);
         await _kRenderFeed('k-feed-mob', _kWeekRow, true);
         _kRenderMobRotation();
       } else {
-        await _kRenderMobWeekCard();
         await _kRenderFeed('k-feed', _kWeekRow, false);
         _kRenderDesktopHistory(idx);
         _kRenderDesktopRotation(idx, kWeekInfo(Math.max(0, idx)));
@@ -1150,17 +1150,12 @@ function _kSubscribe(idx) {
       if (payload.new.week_id && payload.new.week_id !== _kWeekRow.id) return;
       const mobile = window.innerWidth <= 700;
       const text = payload.new.text || '';
-
-      // [submission] comment = tenant just re-uploaded.
-      // Force _kWeekRow to submitted immediately — no DB fetch, no race condition.
-      // Parse the payload to get reupload_count increment and photo data.
       if (text.startsWith('[submission]')) {
         let isReupload = false;
         try {
           const data = JSON.parse(text.replace('[submission] ', ''));
           isReupload = !!data.isReupload;
         } catch(e) {}
-        // Force status to submitted on _kWeekRow right now
         _kWeekRow = {
           ..._kWeekRow,
           status: 'submitted',
@@ -1168,51 +1163,38 @@ function _kSubscribe(idx) {
           flagged: false,
           ...(isReupload ? { reupload_count: (_kWeekRow.reupload_count || 0) + 1 } : {}),
         };
-        if (mobile) {
-          await _kRenderMobWeekCard(_kWeekRow);
-        } else {
-          await _kRenderMobWeekCard(_kWeekRow);
-        }
+        await _kRenderMobWeekCard(_kWeekRow);
       }
-
       await _kRenderFeed(mobile ? 'k-feed-mob' : 'k-feed', _kWeekRow, mobile);
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'kitchen_absences' }, async () => {
       const mobile = window.innerWidth <= 700;
       if (mobile) { _kRenderMobRotation(); }
-      else        { const idx = kWeekIdx(); _kRenderDesktopRotation(idx, kWeekInfo(Math.max(0, idx))); }
+      else        { const i = kWeekIdx(); _kRenderDesktopRotation(i, kWeekInfo(Math.max(0, i))); }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'lounge_data' }, async payload => {
       const t = payload.new?.type || payload.old?.type;
       const isDelete = payload.eventType === 'DELETE' || (!payload.new?.id && payload.old?.id);
-      // Kitchen config changed — update kitchenRooms[] in memory and re-render
       if (t === 'kitchen_config' && payload.new?.body) {
         _applyKitchenConfig(payload.new.body);
+        await _kRenderMobWeekCard(_kWeekRow);
         const mobile = window.innerWidth <= 700;
-        if (mobile) { await _kRenderMobWeekCard(_kWeekRow); await _kRenderMobRotation(); }
+        if (mobile) { await _kRenderMobRotation(); }
         else        { _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx))); }
       }
       const isNudge = t === 'kitchen_nudge' || isDelete;
       if (isNudge) {
         _kLoadNudgeBanner();
         const mobile = window.innerWidth <= 700;
-        if (!mobile) {
-          _kRenderNudgeLog();
-          _kRefreshNudgeNotice();
-        }
+        if (!mobile) { _kRenderNudgeLog(); _kRefreshNudgeNotice(); }
       }
     })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async payload => {
-      // Vacancy change — refresh appRooms and re-render week card + strip
       if (typeof loadRoomsData === 'function') await loadRoomsData();
+      await _kRenderMobWeekCard(_kWeekRow);
       const mobile = window.innerWidth <= 700;
-      if (mobile) {
-        await _kRenderMobWeekCard(_kWeekRow);
-        await _kRenderMobRotation();
-      } else {
-        await _kRenderMobWeekCard();
-        _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
-      }
+      if (mobile) { await _kRenderMobRotation(); }
+      else        { _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx))); }
     })
     .subscribe();
 }
