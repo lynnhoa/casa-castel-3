@@ -60,9 +60,13 @@
       <nav class="cc-nav">
         <a class="cc-nav__logo" href="#">Casa Castel</a>
         <div class="nav-actions">
-          <button class="nav-preview-btn" id="previewBtn">Preview tenant</button>
+          <button class="cc-nav__icon" id="previewBtn" aria-label="Preview tenant" title="Preview tenant">
+            <i class="ti ti-eye"></i>
+          </button>
           <div class="nav-profile" id="navProfile">
-            <button class="nav-role-pill" onclick="toggleProfileMenu()" aria-haspopup="true">Management</button>
+            <button class="cc-nav__icon" onclick="toggleProfileMenu()" aria-haspopup="true" aria-label="Management menu" title="Management">
+              <i class="ti ti-user"></i>
+            </button>
             <div class="nav-profile-menu" id="navProfileMenu">
               <button class="nav-profile-menu-item" id="profileBtn" data-i18n="nav_profile">Profile</button>
               <button class="nav-profile-menu-item" id="logoutBtn">Log out</button>
