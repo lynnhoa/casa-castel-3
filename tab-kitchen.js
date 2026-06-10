@@ -436,6 +436,15 @@ function _kBuildFeedHtml(comments, weekRow, forMobile) {
   }).join('');
 }
 
+/* ── RENDER BOTH FEEDS (mobile + desktop) — single call, always in sync ── */
+// All action handlers and realtime events call this instead of branching on
+// window.innerWidth. Both feed containers are always updated so desktop and
+// mobile views stay in sync regardless of which breakpoint the user is on.
+async function _kRenderBothFeeds(weekRow) {
+  await _kRenderFeed('k-feed-mob', weekRow, true);
+  await _kRenderFeed('k-feed',     weekRow, false);
+}
+
 async function _kRenderFeed(feedId, weekRow, forMobile) {
   const el = document.getElementById(feedId); if (!el) return;
   if (!weekRow) { el.innerHTML = '<p class="cc-note" style="padding:8px 0;">No data.</p>'; return; }
@@ -845,9 +854,7 @@ async function kClearChat() {
   // Delete comments
   await _kDeleteComments(_kWeekRow.id);
 
-  const mobile = window.innerWidth <= 700;
-  if (mobile) await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
-  else        await _kRenderFeed('k-feed',     _kWeekRow, false);
+  await _kRenderBothFeeds(_kWeekRow);
 }
 
 async function _kSendDesktopMsg() {
@@ -855,7 +862,7 @@ async function _kSendDesktopMsg() {
   const text  = input.value.trim(); if (!text || !_kWeekRow) return;
   input.value = '';
   await _kAddComment(_kWeekRow.id, 'Casa Castel', text, false);
-  await _kRenderFeed('k-feed', _kWeekRow, false);
+  await _kRenderBothFeeds(_kWeekRow);
 }
 
 async function _kMobSendMsg() {
@@ -912,8 +919,7 @@ async function _kSendPhoto(file, feedId) {
   if (error) { console.error('Upload error', error); alert('Upload failed.'); return; }
   const { data } = sbL.storage.from('kitchen-proofs').getPublicUrl(path);
   await _kAddComment(_kWeekRow.id, 'Casa Castel', '[photo] ' + data.publicUrl, false);
-  await _kRenderFeed('k-feed',     _kWeekRow, false);
-  await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+  await _kRenderBothFeeds(_kWeekRow);
 }
 
 /* ── MOBILE ACTION HANDLERS ─────────────────────────────── */
@@ -923,8 +929,8 @@ async function _kMobApplyPatch(patch) {
   _kWeekRow = { ..._kWeekRow, ...patch };
   // Pass patched row directly — no re-fetch race. Realtime fires later for authoritative sync.
   await _kRenderMobWeekCard(_kWeekRow);
-  if (window.innerWidth <= 700) _kRenderMobRotation();
-  else _kRenderDesktopRotation(kWeekIdx(), kWeekInfo(Math.max(0, kWeekIdx())));
+  _kRenderMobRotation();
+  _kRenderDesktopRotation(kWeekIdx(), kWeekInfo(Math.max(0, kWeekIdx())));
 }
 
 async function kMobApprove() {
@@ -935,7 +941,7 @@ async function kMobApprove() {
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '✓ Approved by landlord.', false);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+    await _kRenderBothFeeds(_kWeekRow);
   } finally { _kActionBusy = false; }
 }
 async function kMobFlag() {
@@ -946,7 +952,7 @@ async function kMobFlag() {
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '⚑ Flagged by landlord — please re-upload your photos.', true);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+    await _kRenderBothFeeds(_kWeekRow);
   } finally { _kActionBusy = false; }
 }
 async function kMobUnapprove() {
@@ -957,7 +963,7 @@ async function kMobUnapprove() {
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '↩ Approval undone — week back under review.', false);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+    await _kRenderBothFeeds(_kWeekRow);
   } finally { _kActionBusy = false; }
 }
 async function kMobUnflag() {
@@ -967,7 +973,7 @@ async function kMobUnflag() {
     const patch = { flagged:false, status:'submitted' };
     await _kUpdateWeek(idx, patch);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+    await _kRenderBothFeeds(_kWeekRow);
   } finally { _kActionBusy = false; }
 }
 async function kMobReset() {
@@ -979,7 +985,7 @@ async function kMobReset() {
     await _kDeleteComments(_kWeekRow.id);
     await _kUpdateWeek(idx, patch);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+    await _kRenderBothFeeds(_kWeekRow);
   } finally { _kActionBusy = false; }
 }
 async function kMobReopen() {
@@ -990,7 +996,7 @@ async function kMobReopen() {
     const patch = { status:'pending', flagged:false, closed_at:null };
     await _kUpdateWeek(idx, patch);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+    await _kRenderBothFeeds(_kWeekRow);
   } finally { _kActionBusy = false; }
 }
 function kMobReminder() {
@@ -1013,91 +1019,78 @@ function closePhotoModal() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePhotoModal(); });
 
-/* ── MAIN INIT — MOBILE ─────────────────────────────────── */
+/* ── MAIN INIT ───────────────────────────────────────────────
+   Single unified init used by BOTH mobile (layout.js calls
+   initKitchenMobile) and desktop (layout.js calls initKitchen).
+   initKitchen is aliased below. Desktop-only extras (rotation
+   timeline, history sidebar, nudge log, msg-send wiring) run
+   after the shared boot sequence regardless of breakpoint, so
+   the desktop view is always fully in sync.
+   ─────────────────────────────────────────────────────────── */
 async function initKitchenMobile() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
-  // Step 1: instant skeleton (no DB yet)
-  await _kRenderMobWeekCard(_kWeekRow);
 
   const idx  = kWeekIdx(new Date());
   const info = _kWeekInfo(Math.max(0, idx));
 
+  // Step 1: instant skeleton (no DB yet)
+  await _kRenderMobWeekCard(_kWeekRow);
+
   // Load kitchen room config from Supabase
   await loadKitchenRoomsFromSupabase();
-  // Re-render room buttons now that kitchenRooms is loaded
   _kRefreshNudgeRoomButtons();
 
-  // Step 2: fetch weekRow + rotation in parallel
+  if (!sbL) {
+    const noDb = '<p class="cc-note">Connect Supabase to see proof feed.</p>';
+    const mf = document.getElementById('k-feed-mob'); if (mf) mf.innerHTML = noDb;
+    const df = document.getElementById('k-feed');     if (df) df.innerHTML = noDb;
+    return;
+  }
+  if (idx < 0) { _kRenderMobRotation(); _kRenderDesktopRotation(0, info); return; }
+
+  _kAutoReset(idx);
+
+  // Step 2: fetch weekRow + both rotation strips in parallel
   const [, weekRowFresh] = await Promise.all([
-    _kRenderMobRotation(),
+    Promise.all([_kRenderMobRotation(), _kRenderDesktopRotation(idx, info)]),
     _kGetWeek(idx)
   ]);
 
   let weekRow = weekRowFresh;
   if (!weekRow) {
-    const { data } = await sbL.from('kitchen_weeks').insert({ week_index: idx, room: info.room, status: 'pending' }).select().single();
+    const { data } = await sbL.from('kitchen_weeks')
+      .insert({ week_index: idx, room: info.room, status: 'pending' })
+      .select().single();
     weekRow = data || (await _kGetWeek(idx));
   }
   _kWeekRow = weekRow;
+
+  // Step 3: render week card (chip + action buttons) with authoritative row
   await _kRenderMobWeekCard(_kWeekRow);
 
-  // Step 3: feed
-  await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
+  // Step 4: both feeds + desktop sidebar extras
+  await Promise.all([
+    _kRenderBothFeeds(_kWeekRow),
+    _kRenderDesktopHistory(idx),
+  ]);
+  _kRenderNudgeLog();
+  await Promise.all([_kLoadNudgeBanner(), _kRefreshNudgeNotice()]);
 
-  // Step 4: nudge banner
-  await _kLoadNudgeBanner();
+  // Step 5: wire desktop compose (mobile compose wired at file bottom via IIFE)
+  _kWireDesktopCompose();
 
-  // Step 5: realtime
+  // Step 6: realtime subscription
   _kSubscribe(idx);
 }
 
-/* ── MAIN INIT — DESKTOP ────────────────────────────────── */
-/* Identical flow to initKitchenMobile + desktop-only extras  */
-async function initKitchen() {
-  if (typeof loadRoomsData === 'function') await loadRoomsData();
+/* Mobile init is same function — layout.js calls one or the other */
+var initKitchen = initKitchenMobile;
 
-  const idx  = kWeekIdx(new Date());
-  const info = _kWeekInfo(Math.max(0, idx));
-
-  await loadKitchenRoomsFromSupabase();
-  _kRefreshNudgeRoomButtons();
-
-  // Step 1: instant skeleton
-  await _kRenderMobWeekCard(_kWeekRow);
-
-  if (!sbL) {
-    document.getElementById('k-feed').innerHTML = '<p class="cc-note">Connect Supabase to see proof feed.</p>';
-    return;
-  }
-  if (idx < 0) { _kRenderDesktopRotation(0, info); return; }
-
-  _kAutoReset(idx);
-
-  // Step 2: fetch weekRow + rotation in parallel
-  const [, weekRowRaw] = await Promise.all([
-    _kRenderDesktopRotation(idx, info),
-    _kGetWeek(idx)
-  ]);
-
-  let weekRow = weekRowRaw;
-  if (!weekRow) {
-    const { data, error } = await sbL.from('kitchen_weeks').insert({ week_index: idx, room: info.room, status: 'pending' }).select().single();
-    weekRow = error ? (await _kGetWeek(idx)) : data;
-  }
-  _kWeekRow = weekRow;
-
-  // Step 3: render card with fresh row — identical to mobile
-  await _kRenderMobWeekCard(_kWeekRow);
-
-  // Step 4: feed + desktop extras
-  await Promise.all([
-    _kRenderFeed('k-feed', _kWeekRow, false),
-    _kRenderDesktopHistory(idx)
-  ]);
-  _kRenderNudgeLog();
-  await _kRefreshNudgeNotice();
-
-  // Step 5: wire message send
+/* ── DESKTOP COMPOSE WIRING ─────────────────────────────── */
+// Called from initKitchenMobile so it always runs (mobile compose
+// is wired once via IIFE at bottom; desktop needs re-wiring after
+// the elements are injected because replaceChild clears old listeners).
+function _kWireDesktopCompose() {
   const rewire = (id, fn) => {
     const old = document.getElementById(id); if (!old) return;
     const fresh = old.cloneNode(true); old.parentNode.replaceChild(fresh, old);
@@ -1109,9 +1102,6 @@ async function initKitchen() {
     const fi = kMsgInput.cloneNode(true); kMsgInput.parentNode.replaceChild(fi, kMsgInput);
     fi.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _kSendDesktopMsg(); } });
   }
-
-  // Step 6: realtime — same as mobile
-  _kSubscribe(idx);
 }
 
 
@@ -1126,22 +1116,15 @@ function _kSubscribe(idx) {
       // Always update and re-render — don't skip based on status comparison
       _kWeekRow = fresh;
       await _kRenderMobWeekCard(_kWeekRow);
-      const mobile = window.innerWidth <= 700;
-      if (mobile) {
-        await _kRenderFeed('k-feed-mob', _kWeekRow, true);
-        _kRenderMobRotation();
-      } else {
-        await _kRenderFeed('k-feed', _kWeekRow, false);
-        _kRenderDesktopHistory(idx);
-        _kRenderDesktopRotation(idx, kWeekInfo(Math.max(0, idx)));
-      }
+      await _kRenderBothFeeds(_kWeekRow);
+      _kRenderMobRotation();
+      _kRenderDesktopHistory(idx);
+      _kRenderDesktopRotation(idx, kWeekInfo(Math.max(0, idx)));
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async payload => {
       if (!payload.new || !_kWeekRow) return;
       // Filter: only handle comments for the current week
-      // Use week_id if available, otherwise let all through (safer)
       if (payload.new.week_id && _kWeekRow.id && payload.new.week_id !== _kWeekRow.id) return;
-      const mobile = window.innerWidth <= 700;
       const text = payload.new.text || '';
       if (text.startsWith('[submission]')) {
         let isReupload = false;
@@ -1158,12 +1141,12 @@ function _kSubscribe(idx) {
         };
         await _kRenderMobWeekCard(_kWeekRow);
       }
-      await _kRenderFeed(mobile ? 'k-feed-mob' : 'k-feed', _kWeekRow, mobile);
+      await _kRenderBothFeeds(_kWeekRow);
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'kitchen_absences' }, async () => {
-      const mobile = window.innerWidth <= 700;
-      if (mobile) { _kRenderMobRotation(); }
-      else        { const i = kWeekIdx(); _kRenderDesktopRotation(i, kWeekInfo(Math.max(0, i))); }
+      const i = kWeekIdx();
+      _kRenderMobRotation();
+      _kRenderDesktopRotation(i, kWeekInfo(Math.max(0, i)));
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'lounge_data' }, async payload => {
       const t = payload.new?.type || payload.old?.type;
@@ -1171,23 +1154,20 @@ function _kSubscribe(idx) {
       if (t === 'kitchen_config' && payload.new?.body) {
         _applyKitchenConfig(payload.new.body);
         await _kRenderMobWeekCard(_kWeekRow);
-        const mobile = window.innerWidth <= 700;
-        if (mobile) { await _kRenderMobRotation(); }
-        else        { _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx))); }
+        _kRenderMobRotation();
+        _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
       }
-      const isNudge = t === 'kitchen_nudge' || isDelete;
-      if (isNudge) {
+      if (t === 'kitchen_nudge' || isDelete) {
         _kLoadNudgeBanner();
-        const mobile = window.innerWidth <= 700;
-        if (!mobile) { _kRenderNudgeLog(); _kRefreshNudgeNotice(); }
+        _kRenderNudgeLog();
+        _kRefreshNudgeNotice();
       }
     })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async payload => {
       if (typeof loadRoomsData === 'function') await loadRoomsData();
       await _kRenderMobWeekCard(_kWeekRow);
-      const mobile = window.innerWidth <= 700;
-      if (mobile) { await _kRenderMobRotation(); }
-      else        { _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx))); }
+      _kRenderMobRotation();
+      _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
     })
     .subscribe();
 }
