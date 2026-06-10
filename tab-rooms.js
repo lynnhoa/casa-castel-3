@@ -1114,12 +1114,16 @@ async function _toggleVacant(roomId, btn) {
 
 async function _toggleKitchenRoom(roomName, btn) {
   btn.disabled = true;
-  if (typeof toggleKitchenAccess === 'function') {
-    toggleKitchenAccess(roomName);
-  }
-  // Also persist kitchen_enabled on the rooms row so new rooms
-  // and the tenant tab visibility check can read it directly.
-  const nowEnabled = typeof getKitchenRooms === 'function' && getKitchenRooms().includes(roomName);
+
+  // Toggle kitchenRooms[] in memory and sync to Supabase lounge_data (realtime to tenants)
+  const rooms = typeof getKitchenRooms === 'function' ? getKitchenRooms() : [];
+  const idx   = rooms.indexOf(roomName);
+  if (idx === -1) rooms.push(roomName);
+  else            rooms.splice(idx, 1);
+  if (typeof syncKitchenRoomsToSupabase === 'function') syncKitchenRoomsToSupabase(rooms);
+
+  // Also persist kitchen_enabled on the rooms row (persistent source of truth)
+  const nowEnabled = rooms.includes(roomName);
   const roomObj = appRooms.find(r => r.name === roomName);
   if (roomObj) roomObj.kitchen_enabled = nowEnabled;
   if (sbL) sbL.from('rooms').update({ kitchen_enabled: nowEnabled }).eq('name', roomName);
@@ -1129,11 +1133,12 @@ async function _toggleKitchenRoom(roomName, btn) {
   const room = appRooms.find(r => r.name === roomName);
   if (card && room) {
     const wasExpanded = card.classList.contains('rc--expanded');
-    card.outerHTML = _roomCardHTML(room);
-    if (wasExpanded) {
-      const newCard = document.querySelector(`.rc[data-room="${CSS.escape(roomName)}"]`);
-      newCard?.classList.add('rc--expanded');
-    }
+    const newDiv = document.createElement('div');
+    newDiv.innerHTML = _roomCardHTML(room);
+    const newCard = newDiv.firstElementChild;
+    card.parentNode.insertBefore(newCard, card);
+    card.remove();
+    if (wasExpanded) newCard.classList.add('rc--expanded');
     _bindAllCards();
     _initSortable();
   } else {
