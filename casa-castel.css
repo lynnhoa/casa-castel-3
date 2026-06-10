@@ -1765,3 +1765,8 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
     opacity: 0.6;
   }
 }
+
+/* ── Kitchen tab: desktop hidden (iPad/PWA only) ──────── */
+@media(min-width:701px){
+  .cc-tab[data-tab="kitchen"]{ display:none!important; }
+}
