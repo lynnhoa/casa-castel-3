@@ -117,7 +117,10 @@ document.getElementById('tab-kitchen').innerHTML = `
       </div>
 
       <div class="k-dsk-section">
-        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">History</span></div>
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">History</span>
+          <button class="k-dsk-section-link" onclick="kitchenOpenModal('history')">see all</button>
+        </div>
         <div id="k-history"></div>
       </div>
 
@@ -770,12 +773,19 @@ function _kHistPill(status) {
 }
 async function _kRenderDesktopHistory(currentIdx) {
   const el = document.getElementById('k-history'); if (!sbL) { el.innerHTML = '<p class="cc-note">Connect Supabase.</p>'; return; }
-  const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', currentIdx).order('week_index', { ascending: false }).limit(12);
+  const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', currentIdx).order('week_index', { ascending: false }).limit(4);
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note">Past weeks will appear here.</p>'; return; }
+  const base = 'font-size:9px;padding:1px 7px;border-radius:10px;font-weight:500;white-space:nowrap;border:0.5px solid;';
+  const pill = s => {
+    if (s === 'approved' || s === 'submitted') return `<span style="${base}background:#EDF5E8;color:#3A6A1A;border-color:#9AC87A;">✓ Done</span>`;
+    if (s === 'missed')  return `<span style="${base}background:#FEF2F2;color:#991B1B;border-color:#FCA5A5;">✗ Missed</span>`;
+    if (s === 'skipped') return `<span style="${base}background:#F5F3FF;color:#5B21B6;border-color:#C4B5FD;">Skipped</span>`;
+    if (s === 'absent')  return `<span style="${base}background:#F5EEE8;color:#8C5A30;border-color:#D4A87A;">Away</span>`;
+    return `<span style="${base}background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">—</span>`;
+  };
   el.innerHTML = data.map(w => {
     const wi = kWeekInfo(w.week_index); const dateStr = wi ? wi.dateRange : '—';
-    const comments = w.comment_count ? ` · ${w.comment_count} comment${w.comment_count !== 1 ? 's' : ''}` : '';
-    return `<div class="k-hist-item"><div class="k-hist-hdr"><div><p class="k-hist-room">${esc(w.room)}</p><p class="k-hist-date">${dateStr}${comments}</p></div>${_kHistPill(w.status)}</div></div>`;
+    return `<div class="k-dsk-hist-row"><div><div class="k-dsk-hist-room">${esc(w.room)}</div><div class="k-dsk-hist-date">${dateStr}</div></div>${pill(w.status)}</div>`;
   }).join('');
 }
 
