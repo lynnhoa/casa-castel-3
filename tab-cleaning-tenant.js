@@ -363,30 +363,24 @@ async function loadHouseCleaning(room) {
     cwEl.innerHTML = `
       <div class="hc-current-card${isDone ? ' hc-current-card--done' : ''}">
         <div class="hc-current-top">
-          <div>
-            <p class="hc-current-kw">${esc(curInfo.room)}</p>
-          </div>
-          <span class="k-pill ${isDone ? 'k-pill--done' : isCurrentRoomAbsent ? 'k-pill--skipped' : 'k-pill--pending'}" style="font-size:10px;padding:3px 8px;">
-            <span class="k-dot ${isDone ? 'k-dot--done' : isCurrentRoomAbsent ? 'k-dot--skipped' : 'k-dot--pending'}"></span>
-            ${isDone ? 'Done' : isCurrentRoomAbsent ? '— Away' : 'Pending'}
+          <span class="k-mob-status-chip ${isDone ? 'approved' : isCurrentRoomAbsent ? 'skipped' : isMyTurn ? 'pending' : 'not-your-turn'}">
+            ${isDone ? '✓ Done' : isCurrentRoomAbsent ? '— Away' : isMyTurn ? 'Your turn' : '— Not your turn'}
           </span>
         </div>
-        <p class="hc-current-dates">${curInfo.dateRange} · ${curInfo.daysLeft} day${curInfo.daysLeft !== 1 ? 's' : ''} left</p>
-        ${isMyTurn && !isDone
-          ? `<div class="hc-your-turn-bar" style="margin:8px 0;padding:8px 12px;background:var(--cc-gold-lt);border:0.5px solid var(--cc-gold);border-radius:var(--cc-r-sm);font-size:12px;font-weight:500;color:#7A5A2A;">
-               It's your turn this week, ${esc(room)} 🧹
-             </div>
-             <button class="cc-btn cc-btn--primary" id="hc-done-btn" style="margin-top:8px;">Mark as done ✓</button>`
-          : isDone
-            ? `<div class="hc-done-confirm" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                 <span class="k-pill k-pill--done" style="font-size:10px;padding:3px 8px;">
-                   <span class="k-dot k-dot--done"></span>
-                   Marked done by ${esc(wDone.room)}
-                 </span>
-                 <span class="hc-done-ts">${fmtTs(wDone.ts)}</span>
-               </div>`
-            : isCurrentRoomAbsent ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is away this week.</p>` : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`
-        }
+        <div class="k-mob-week-body" style="margin-top:8px;">
+          <div class="k-mob-week-left">
+            <span class="k-mob-week-room">${esc(curInfo.room)}</span>
+            <span class="k-mob-week-dates-sm">${curInfo.dateRange} · ${curInfo.daysLeft} day${curInfo.daysLeft !== 1 ? 's' : ''} left</span>
+          </div>
+          ${isMyTurn && !isDone
+            ? `<button class="k-mob-wact blue" id="hc-done-btn" aria-label="Mark as done">
+                 <i class="ti ti-check"></i><span>Done</span>
+               </button>`
+            : isDone
+              ? `<div style="font-size:10px;color:var(--cc-stone);text-align:right;line-height:1.3;">${esc(wDone.room)}<br>${fmtTs(wDone.ts)}</div>`
+              : ''
+          }
+        </div>
       </div>
 
       <!-- Action strip: always-visible absence buttons outside the card -->
