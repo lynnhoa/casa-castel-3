@@ -1374,11 +1374,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   background: #FEFCE8;
   border-bottom: 0.5px solid #EAD96B;
 }
-.k-dsk-nudge-banner-text {
-  flex: 1;
-  font-size: 11px;
-  color: #78640A;
-}
+.k-dsk-nudge-banner-text {\n  flex: 1;\n  font-size: 11px;\n  color: #78640A;\n}\n\n/* Rotation list items in desktop left column */\n.k-dsk-rot-item {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 5px 0;\n  border-bottom: 0.5px solid var(--cc-rule);\n  font-size: 11px;\n}\n.k-dsk-rot-item:last-child { border-bottom: none; }\n.k-dsk-rot-dot {\n  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;\n}\n.k-dsk-rot-room { flex: 1; color: var(--cc-ink); }\n.k-dsk-rot-date { font-size: 9px; color: var(--cc-stone); }\n.k-dsk-rot-status { font-size: 8px; font-weight: 500; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }\n.rs-done  { background: #EAF3DE; color: #27500A; border: 0.5px solid #9AC87A; }\n.rs-missed{ background: #FDEEED; color: #7A2020; border: 0.5px solid #F5A8A5; }\n.rs-now   { background: #FDF5E8; color: #633806; border: 0.5px solid #E8C97A; }\n.rs-next  { background: #EBF4FF; color: #1A5896; border: 0.5px solid #90C2F5; }\n\n/* Desktop feed — mirrors mobile k-mob-feed scroll behaviour */\n.k-desktop-right .k-dsk-feed {\n  flex: 1;\n  min-height: 0;\n  overflow-y: auto;\n  scroll-behavior: smooth;\n  padding: 10px 14px;\n  background: var(--cc-bg);\n}
 
 .msg-row{display:flex;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--cc-rule);}
 .msg-row:last-child{border-bottom:none;}

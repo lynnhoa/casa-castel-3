@@ -71,6 +71,102 @@ document.getElementById('tab-kitchen').innerHTML = `
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════
+       DESKTOP GRID — hidden on mobile via CSS (@media max-width:700px)
+       Shown on desktop via @media min-width:701px
+       All IDs written by the same render functions as mobile.
+       ═══════════════════════════════════════════════════════ -->
+  <div class="k-desktop-grid">
+
+    <!-- Left column: week card + rotation + nudge compose -->
+    <div class="k-desktop-left">
+
+      <!-- This week -->
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">This week</span>
+          <span class="k-mob-status-chip pending" id="k-dsk-status-chip"></span>
+        </div>
+        <div class="k-mob-week-body" style="margin-top:0;">
+          <div class="k-mob-week-left">
+            <span class="k-mob-week-room" id="k-dsk-room-name">—</span>
+            <span class="k-mob-week-dates-sm" id="k-dsk-dates">—</span>
+          </div>
+        </div>
+        <div class="k-dsk-act-row" id="k-dsk-actions"></div>
+      </div>
+
+      <!-- Rotation list -->
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">Rotation</span>
+          <button class="k-dsk-section-link" onclick="kitchenOpenModal('history')">history ›</button>
+        </div>
+        <div id="k-dsk-rot-list"></div>
+      </div>
+
+      <!-- Nudge compose — inline on desktop (replaces bottom-sheet modal) -->
+      <div class="k-dsk-section" style="border-bottom:none;">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">Send nudge</span>
+          <button class="k-dsk-section-link" onclick="kitchenOpenModal('nudgelog')">log ›</button>
+        </div>
+        <div style="background:#FEFCE8;border:0.5px solid #EAD96B;border-radius:var(--cc-r-md);padding:10px;">
+          <p style="font-size:8px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#78640A;margin-bottom:6px;">Problem</p>
+          <div style="display:flex;gap:5px;margin-bottom:10px;" id="k-dsk-nudge-type-row">
+            <button class="k-mob-n-chip" style="flex:1;text-align:center;padding:6px 4px;" data-type="Trash not taken out">🗑 Trash</button>
+            <button class="k-mob-n-chip" style="flex:1;text-align:center;padding:6px 4px;" data-type="Dishes not clean">🍽 Dishes</button>
+            <button class="k-mob-n-chip" style="flex:1;text-align:center;padding:6px 4px;" data-type="Fridge not clean">🧊 Fridge</button>
+          </div>
+          <p style="font-size:8px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#78640A;margin-bottom:6px;">Send to</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;" id="k-dsk-nudge-to-row">
+            <button class="k-mob-n-chip" style="padding:6px 0;text-align:center;" data-to="All">All rooms</button>
+          </div>
+          <textarea class="issue-note-input" id="k-dsk-nudge-note" placeholder="Optional note…" rows="2" style="margin-bottom:8px;width:100%;"></textarea>
+          <button class="cc-btn cc-btn--primary" id="k-dsk-nudge-send-btn" style="width:100%;">Send nudge</button>
+        </div>
+      </div>
+
+    </div><!-- /.k-desktop-left -->
+
+    <!-- Right column: nudge banner + proof feed + compose -->
+    <div class="k-desktop-right">
+
+      <!-- Chat header -->
+      <div class="k-dsk-chat-hdr">
+        <span class="k-dsk-chat-lbl">Proof &amp; chat</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="k-dsk-chat-link" onclick="loadKitchen()">↺ Refresh</button>
+          <button class="k-dsk-chat-link" onclick="kClearChat()">✕ Clear</button>
+          <button class="k-dsk-chat-link k-dsk-chat-link--danger" onclick="kitchenOpenModal('nudgelog')">nudges ›</button>
+        </div>
+      </div>
+
+      <!-- Nudge banner (desktop) -->
+      <div id="k-dsk-nudge-banner" style="display:none;flex-shrink:0;padding:7px 14px;background:#FEFCE8;border-bottom:0.5px solid #EAD96B;align-items:center;gap:8px;">
+        <span style="font-size:12px;flex-shrink:0;">⚑</span>
+        <span id="k-dsk-nudge-banner-text" style="flex:1;font-size:11px;color:#78640A;font-weight:400;"></span>
+        <span id="k-dsk-nudge-banner-status" style="font-size:9px;font-weight:500;padding:2px 7px;border-radius:8px;background:#FEF9C3;border:0.5px solid #EAD96B;color:#78640A;white-space:nowrap;flex-shrink:0;"></span>
+        <button onclick="_kDismissNudgeBannerDsk()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+      </div>
+
+      <!-- Feed -->
+      <div class="k-dsk-feed" id="k-feed-dsk"></div>
+
+      <!-- Compose bar -->
+      <div class="k-mob-compose" style="padding-bottom:10px!important;">
+        <input class="k-mob-compose-input" id="k-dsk-msg-input" type="text" placeholder="Write to kitchen group…"/>
+        <button class="k-mob-nudge-flag-btn" id="k-dsk-nudge-flag-btn" onclick="kitchenOpenModal('nudge')" aria-label="Send a nudge">⚑</button>
+        <input type="file" id="k-dsk-photo-file" accept="image/*" style="display:none;"/>
+        <button class="k-mob-camera-btn" id="k-dsk-photo-btn" aria-label="Send photo">
+          <i class="ti ti-camera" style="font-size:18px;"></i>
+        </button>
+      </div>
+
+    </div><!-- /.k-desktop-right -->
+
+  </div><!-- /.k-desktop-grid -->
+
   <!-- History modal -->
   <div class="cc-modal-overlay" id="kitchen-modal-history" onclick="if(event.target===this)kitchenCloseModal('history')">
     <div class="cc-modal-sheet" style="max-height:70vh;">
@@ -314,22 +410,37 @@ function _kBuildFeedHtml(comments, weekRow) {
 
 /* ── FEED RENDER ────────────────────────────────────────── */
 async function _kRenderFeed(weekRow) {
-  const el = document.getElementById('k-feed-mob'); if (!el) return;
-  if (!weekRow) { el.innerHTML = '<p class="cc-note" style="padding:8px 0;">No data.</p>'; return; }
-  if (weekRow.status === 'missed') { el.innerHTML = '<p class="cc-note" style="padding:8px 0;">Week reset — marked as missed.</p>'; return; }
+  const el    = document.getElementById('k-feed-mob'); if (!el) return;
+  const elDsk = document.getElementById('k-feed-dsk');
+  if (!weekRow) {
+    el.innerHTML = '<p class="cc-note" style="padding:8px 0;">No data.</p>';
+    if (elDsk) elDsk.innerHTML = el.innerHTML;
+    return;
+  }
+  if (weekRow.status === 'missed') {
+    el.innerHTML = '<p class="cc-note" style="padding:8px 0;">Week reset — marked as missed.</p>';
+    if (elDsk) elDsk.innerHTML = el.innerHTML;
+    return;
+  }
   const comments = await _kGetComments(weekRow.id);
-  el.innerHTML = _kBuildFeedHtml(comments, weekRow);
-  el.querySelectorAll('[data-comment-id] .k-delete-btn').forEach(btn => {
-    btn.addEventListener('click', async e => {
-      e.stopPropagation();
-      const row = btn.closest('[data-comment-id]');
-      const id  = row && row.dataset.commentId; if (!id) return;
-      if (!confirm('Delete this message?')) return;
-      await _kDeleteComment(id);
-      await _kRenderFeed(_kWeekRow);
+  const html = _kBuildFeedHtml(comments, weekRow);
+  el.innerHTML = html;
+  if (elDsk) elDsk.innerHTML = html;
+  // Wire delete buttons on both feeds
+  [el, elDsk].forEach(feed => {
+    if (!feed) return;
+    feed.querySelectorAll('[data-comment-id] .k-delete-btn').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        e.stopPropagation();
+        const row = btn.closest('[data-comment-id]');
+        const id  = row && row.dataset.commentId; if (!id) return;
+        if (!confirm('Delete this message?')) return;
+        await _kDeleteComment(id);
+        await _kRenderFeed(_kWeekRow);
+      });
     });
+    scrollToBottom(feed);
   });
-  scrollToBottom(el);
 }
 
 /* ── ROTATION STRIP ─────────────────────────────────────── */
@@ -383,6 +494,27 @@ async function _kRenderRotation(weekRow, absData) {
   }).join('');
 
   el.innerHTML = `<div class="k-mob-rot-line"></div><div class="k-mob-rot-line-done" style="width:${greenPct}"></div><div class="k-mob-rot-items">${items}</div>`;
+
+  // Desktop: same data, vertical list format
+  const elDsk = document.getElementById('k-dsk-rot-list');
+  if (elDsk) {
+    const dotColor = { done:'#9AC87A', now:'#E8C97A', next:'#90C2F5', missed:'#F5A8A5', skipped:'#C4B5FD', absent:'#D4A87A', upcoming:'var(--cc-rule)', none:'var(--cc-rule)' };
+    const statusLabel = { done:'✓ Done', missed:'✗ Missed', skipped:'— Skip', absent:'Away', now:'Now', next:'Next', upcoming:'', none:'' };
+    const statusCls   = { done:'rs-done', missed:'rs-missed', now:'rs-now', next:'rs-next' };
+    elDsk.innerHTML = rooms.map((room, i) => {
+      const slotIdx = cycleStart + i;
+      const info    = kWeekInfo(Math.max(0, slotIdx));
+      const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
+      const dbRow   = dbRows[i];
+      const state   = _kRotState({ isNow:i===cyclePos, isPast:i<cyclePos, isNext:i===trueNextI, dbStatus:dbRow?dbRow.status:null, room, weekStart:info?info.start:null, absenceRows:absData });
+      const dot  = dotColor[state] || 'var(--cc-rule)';
+      const lbl  = statusLabel[state] || '';
+      const cls  = statusCls[state] || '';
+      const roomStyle = state === 'now' ? 'font-weight:500;color:#633806;' : '';
+      const badge = lbl ? `<span class="k-dsk-rot-status ${cls}">${lbl}</span>` : '';
+      return `<div class="k-dsk-rot-item"><div class="k-dsk-rot-dot" style="background:${dot};"></div><span class="k-dsk-rot-room" style="${roomStyle}">${esc(room)}</span><span class="k-dsk-rot-date">${dateStr}</span>${badge}</div>`;
+    }).join('');
+  }
 }
 
 /* ── WEEK CARD ──────────────────────────────────────────── */
@@ -396,6 +528,8 @@ function _kRenderWeekCard(weekRow, absData) {
   const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setTxt('k-mob-room-name', wi.room);
   setTxt('k-mob-dates', dateStr);
+  setTxt('k-dsk-room-name', wi.room);
+  setTxt('k-dsk-dates', dateStr);
 
   const state    = _kRotState({
     isNow:       true,
@@ -425,6 +559,8 @@ function _kRenderWeekCard(weekRow, absData) {
     : 'Pending';
   const chip = document.getElementById('k-mob-status-chip');
   if (chip) { chip.className = 'k-mob-status-chip ' + chipCls; chip.textContent = chipTxt; }
+  const chipDsk = document.getElementById('k-dsk-status-chip');
+  if (chipDsk) { chipDsk.className = 'k-mob-status-chip ' + chipCls; chipDsk.textContent = chipTxt; }
 
   // Action buttons
   const actEl = document.getElementById('k-mob-actions');
@@ -447,6 +583,8 @@ function _kRenderWeekCard(weekRow, absData) {
     items.push(`<button class="k-mob-wact red"   onclick="kReset()"   aria-label="Missed"><i class="ti ti-rotate"></i><span>Missed</span></button>`);
   }
   actEl.innerHTML = items.join('');
+  const actDsk = document.getElementById('k-dsk-actions');
+  if (actDsk) actDsk.innerHTML = items.join('');
 }
 
 /* ── NUDGE BANNER ───────────────────────────────────────── */
@@ -457,22 +595,37 @@ async function _kLoadNudgeBanner(weekRow) {
   const banner = document.getElementById('k-mob-nudge-banner');
   const text   = document.getElementById('k-mob-nudge-banner-text');
   const status = document.getElementById('k-mob-nudge-banner-status');
+  const bannerDsk = document.getElementById('k-dsk-nudge-banner');
+  const textDsk   = document.getElementById('k-dsk-nudge-banner-text');
+  const statusDsk = document.getElementById('k-dsk-nudge-banner-status');
   if (!banner || !text) return;
-  if (!data) { banner.style.display = 'none'; return; }
+  if (!data) {
+    banner.style.display = 'none';
+    if (bannerDsk) bannerDsk.style.display = 'none';
+    return;
+  }
   const to   = data.room === 'All' ? 'All rooms' : data.room;
   const note = data.title ? ` · ${data.title}` : '';
   text.textContent = `${data.body}${note} → ${to}`;
-  if (status) {
+  if (textDsk) textDsk.textContent = `${data.body}${note} → ${to}`;
+  const _setStatus = (el, weekRow, data) => {
+    if (!el) return;
     if (weekRow && data.room !== 'All') {
       const statusMap = { pending:'Pending', submitted:'Submitted', approved:'Approved', flagged:'Flagged', missed:'Missed', skipped:'Skipped' };
-      status.textContent = statusMap[weekRow.status] || '';
-      status.style.display = status.textContent ? '' : 'none';
-    } else { status.style.display = 'none'; }
-  }
+      el.textContent = statusMap[weekRow.status] || '';
+      el.style.display = el.textContent ? '' : 'none';
+    } else { el.style.display = 'none'; }
+  };
+  _setStatus(status, weekRow, data);
+  _setStatus(statusDsk, weekRow, data);
   banner.style.display = 'flex';
+  if (bannerDsk) bannerDsk.style.display = 'flex';
 }
 function _kDismissNudgeBanner() {
   const b = document.getElementById('k-mob-nudge-banner'); if (b) b.style.display = 'none';
+}
+function _kDismissNudgeBannerDsk() {
+  const b = document.getElementById('k-dsk-nudge-banner'); if (b) b.style.display = 'none';
 }
 
 /* ── MODAL POPULATORS ───────────────────────────────────── */
@@ -530,8 +683,11 @@ async function kClearChat() {
 
 /* ── SEND MESSAGE ───────────────────────────────────────── */
 async function _kSendMsg() {
-  const inp  = document.getElementById('k-mob-msg-input');
-  const text = inp.value.trim(); if (!text || !_kWeekRow || _kMobSending) return;
+  const mobInp = document.getElementById('k-mob-msg-input');
+  const dskInp = document.getElementById('k-dsk-msg-input');
+  // Use whichever input has content or last had focus
+  const inp  = (dskInp && dskInp.value.trim()) ? dskInp : mobInp;
+  const text = inp ? inp.value.trim() : ''; if (!text || !_kWeekRow || _kMobSending) return;
   _kMobSending = true; inp.value = '';
   const feed = document.getElementById('k-feed-mob');
   if (feed) {
@@ -660,6 +816,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePhotoMo
 /* ── NUDGE ROOM BUTTONS (refreshed after kitchenRooms loads) */
 function _kRefreshNudgeRoomButtons() {
   const rooms = getKitchenRooms();
+  // Mobile nudge modal
   const row = document.getElementById('k-mob-nudge-to-row'); if (!row) return;
   const allBtn = row.querySelector('.k-mob-n-chip[data-to="All"]');
   row.innerHTML = '';
@@ -674,6 +831,24 @@ function _kRefreshNudgeRoomButtons() {
   row.querySelectorAll('.k-mob-n-chip').forEach(btn => {
     btn.addEventListener('click', () => {
       row.querySelectorAll('.k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+  // Desktop inline nudge compose — same room list
+  const dskRow = document.getElementById('k-dsk-nudge-to-row'); if (!dskRow) return;
+  const dskAllBtn = dskRow.querySelector('.k-mob-n-chip[data-to="All"]');
+  dskRow.innerHTML = '';
+  if (dskAllBtn) dskRow.appendChild(dskAllBtn);
+  rooms.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'k-mob-n-chip';
+    btn.style.cssText = 'padding:6px 0;text-align:center;';
+    btn.dataset.to = r; btn.textContent = r;
+    dskRow.appendChild(btn);
+  });
+  dskRow.querySelectorAll('.k-mob-n-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      dskRow.querySelectorAll('.k-mob-n-chip').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
     });
   });
@@ -783,13 +958,45 @@ var initKitchen       = loadKitchen;
   });
 })();
 
+/* ── DESKTOP INLINE NUDGE COMPOSE WIRING ───────────────── */
+(function _wireNudgeDsk() {
+  document.querySelectorAll('#k-dsk-nudge-type-row .k-mob-n-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#k-dsk-nudge-type-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+  document.getElementById('k-dsk-nudge-send-btn')?.addEventListener('click', async () => {
+    const typeBtn = document.querySelector('#k-dsk-nudge-type-row .k-mob-n-chip.selected');
+    const toBtn   = document.querySelector('#k-dsk-nudge-to-row .k-mob-n-chip.selected');
+    const sendBtn = document.getElementById('k-dsk-nudge-send-btn');
+    if (!typeBtn || !toBtn) {
+      sendBtn.textContent = 'Select type & room first'; sendBtn.style.background = '#A32D2D';
+      setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.background = ''; }, 1500);
+      return;
+    }
+    if (!sbL) return;
+    const note = document.getElementById('k-dsk-nudge-note').value.trim();
+    await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
+    await sbL.from('lounge_data').insert({ type:'kitchen_nudge', room:toBtn.dataset.to, body:typeBtn.dataset.type, title:note||null });
+    document.querySelectorAll('#k-dsk-nudge-type-row .k-mob-n-chip, #k-dsk-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+    document.getElementById('k-dsk-nudge-note').value = '';
+    sendBtn.textContent = '✓ Sent'; sendBtn.style.background = '#27500A';
+    setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.background = ''; }, 1500);
+  });
+})();
+
 /* ── WIRE COMPOSE + PHOTO + PWA KEYBOARD FIX ───────────── */
 (function _wireCompose() {
   const mobInput = document.getElementById('k-mob-msg-input');
   const mobPhoto = document.getElementById('k-mob-photo-btn');
   const mobFile  = document.getElementById('k-mob-photo-file');
+  const dskInput = document.getElementById('k-dsk-msg-input');
+  const dskPhoto = document.getElementById('k-dsk-photo-btn');
+  const dskFile  = document.getElementById('k-dsk-photo-file');
 
   mobInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _kSendMsg(); } });
+  dskInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _kSendMsg(); } });
 
   mobPhoto?.addEventListener('click', () => mobFile?.click());
   mobFile?.addEventListener('change', async e => {
@@ -799,6 +1006,14 @@ var initKitchen       = loadKitchen;
     mobPhoto.style.opacity = '';
   });
 
-  // PWA keyboard fix — unchanged from v2
+  dskPhoto?.addEventListener('click', () => dskFile?.click());
+  dskFile?.addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    dskFile.value = ''; dskPhoto.style.opacity = '0.5';
+    await _kSendPhoto(file);
+    dskPhoto.style.opacity = '';
+  });
+
+  // PWA keyboard fix — mobile only (not needed on desktop)
   wireComposeBlur(mobInput);
 })();
