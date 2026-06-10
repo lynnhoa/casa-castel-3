@@ -17,12 +17,12 @@ function switchTab(tabName) {
   // Hide all tabs
   document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
 
-  // Show requested tab — chat tabs need display:flex on mobile for column layout;
-  // tenant lounge also needs flex on desktop (no landlord desktop layout for lounge)
+  // Show requested tab
+  // Lounge + kitchen need display:flex on mobile (column layout for chat viewport lock)
+  // On desktop all tabs use display:block — the desktop grid handles its own layout
   const tabEl = document.getElementById('tab-' + tabName);
   if (tabEl) {
-    const isTenantLounge = isLounge && !document.body.classList.contains('is-landlord');
-    tabEl.style.display = ((isLounge || isKitchen) && mobile) || isTenantLounge ? 'flex' : 'block';
+    tabEl.style.display = ((isLounge || isKitchen) && mobile) ? 'flex' : 'block';
   }
 
   // Active state on nav tabs

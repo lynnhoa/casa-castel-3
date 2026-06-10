@@ -14,7 +14,7 @@
 /* ── INJECT HTML ────────────────────────────────────────── */
 document.getElementById('tab-lounge').innerHTML = `
 
-  <!-- ① Announcement strip — mobile compact / desktop hidden via CSS -->
+  <!-- ① Mobile: ann strip + notice strip + chat — hidden on desktop via CSS -->
   <div class="l-ann-strip">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <span style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#8C5A1A;">Announcement</span>
@@ -23,37 +23,12 @@ document.getElementById('tab-lounge').innerHTML = `
     <div id="ann-list"><p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p></div>
   </div>
 
-  <!-- ② Desktop-only: ann compose + notice compose + chat card -->
-  <div class="l-desktop-only cc-mb-12">
-    <div class="ann-compose">
-      <p class="ann-compose-title">New announcement</p>
-      <div class="cc-input-wrap cc-mb-8">
-        <label class="cc-input-label" for="ann-title-input">Title (optional)</label>
-        <input class="cc-input" id="ann-title-input" type="text" placeholder="e.g. Important: bin day change"/>
-      </div>
-      <div class="cc-input-wrap cc-mb-8">
-        <label class="cc-input-label" for="ann-body-input">Message</label>
-        <textarea class="cc-input cc-textarea" id="ann-body-input" placeholder="Write your announcement…" rows="3"></textarea>
-      </div>
-      <label class="pin-toggle">
-        <input type="checkbox" id="ann-pin-check"/>
-        <span class="pin-toggle-label">Pin this announcement (shown at top for all tenants)</span>
-      </label>
-      <div class="ann-compose-actions">
-        <button class="cc-btn cc-btn--primary" id="ann-post-btn" style="flex:1;min-height:40px;">Post to app</button>
-        <a class="btn-email" id="ann-email-btn" href="#" target="_blank">✉ Email all</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ③ Notice strip — visible when notice is active -->
   <div class="l-notice-strip" id="notice-posted">
-    <span class="l-notice-icon">ℹ</span>
+    <span class="l-notice-icon">ⓘ</span>
     <span class="l-notice-text" id="notice-posted-text"></span>
     <button class="l-notice-edit" onclick="loungeOpenModal('notice')">Edit ›</button>
   </div>
 
-  <!-- ④ Mobile chat (hidden on desktop via CSS) -->
   <div class="l-chat">
     <div class="l-chat-hdr">
       <span class="l-chat-lbl">House chat</span>
@@ -72,31 +47,78 @@ document.getElementById('tab-lounge').innerHTML = `
     </div>
   </div>
 
-  <!-- ⑤ Desktop-only: notice compose + full chat card -->
-  <div class="l-desktop-only">
-    <p class="cc-label cc-mb-8">Notice <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--cc-stone);">— info box above chat</span></p>
-    <div class="notice-compose cc-mb-12">
-      <div class="notice-compose__header">
-        <span class="notice-compose__icon">ℹ</span>
-        <span class="notice-compose__label">Write a notice</span>
-        <div class="notice-color-picker" style="margin-left:auto;display:flex;gap:6px;align-items:center;">
-          <button type="button" class="notice-color-btn notice-color-btn--yellow active" data-color="yellow" title="Yellow" aria-label="Yellow"></button>
-          <button type="button" class="notice-color-btn notice-color-btn--green"  data-color="green"  title="Green"  aria-label="Green"></button>
-          <button type="button" class="notice-color-btn notice-color-btn--red"    data-color="red"    title="Red"    aria-label="Red"></button>
+  <!-- ② Desktop 2-column layout — hidden on mobile via CSS -->
+  <div class="l-desktop-grid">
+
+    <!-- Left column: current status + compose forms -->
+    <div class="l-desktop-left">
+
+      <div class="l-dsk-section">
+        <div class="l-dsk-section-hdr">
+          <span class="l-dsk-section-lbl">Announcement</span>
+          <button class="l-dsk-section-action" onclick="loungeOpenModal('ann')">+ New</button>
+        </div>
+        <div id="ann-list-desktop"><p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p></div>
+      </div>
+
+      <div class="l-dsk-section">
+        <div class="l-dsk-section-hdr">
+          <span class="l-dsk-section-lbl">Active notice</span>
+        </div>
+        <div id="notice-display-desktop"><p class="cc-note" style="padding:4px 0;">No notice posted.</p></div>
+      </div>
+
+      <div class="l-dsk-section">
+        <p class="l-dsk-compose-lbl">New announcement</p>
+        <div class="cc-input-wrap cc-mb-8">
+          <label class="cc-input-label" for="ann-title-input">Title (optional)</label>
+          <input class="cc-input" id="ann-title-input" type="text" placeholder="e.g. Important: bin day change"/>
+        </div>
+        <div class="cc-input-wrap cc-mb-8">
+          <label class="cc-input-label" for="ann-body-input">Message</label>
+          <textarea class="cc-input cc-textarea" id="ann-body-input" placeholder="Write your announcement…" rows="3"></textarea>
+        </div>
+        <label class="pin-toggle">
+          <input type="checkbox" id="ann-pin-check"/>
+          <span class="pin-toggle-label">Pin this announcement</span>
+        </label>
+        <div class="ann-compose-actions">
+          <button class="cc-btn cc-btn--primary" id="ann-post-btn" style="flex:1;min-height:40px;">Post to app</button>
+          <a class="btn-email" id="ann-email-btn" href="#" target="_blank">✉ Email all</a>
         </div>
       </div>
-      <textarea class="notice-compose__input" id="notice-input" rows="2" placeholder="e.g. Plumber visiting Thursday 10–12. Please keep hallway clear."></textarea>
-      <div class="notice-compose__footer">
-        <button type="button" class="cc-btn--ghost" id="notice-clear-btn" style="display:none;">Clear notice</button>
-        <button type="button" class="notice-compose__btn" id="notice-post-btn">Post notice</button>
+
+      <div class="l-dsk-section" style="border-bottom:none;">
+        <p class="l-dsk-compose-lbl">Post notice</p>
+        <div class="notice-compose">
+          <div class="notice-compose__header">
+            <span class="notice-compose__icon">ⓘ</span>
+            <span class="notice-compose__label">Write a notice</span>
+            <div class="notice-color-picker" style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+              <button type="button" class="notice-color-btn notice-color-btn--yellow active" data-color="yellow" title="Yellow" aria-label="Yellow"></button>
+              <button type="button" class="notice-color-btn notice-color-btn--green"  data-color="green"  title="Green"  aria-label="Green"></button>
+              <button type="button" class="notice-color-btn notice-color-btn--red"    data-color="red"    title="Red"    aria-label="Red"></button>
+            </div>
+          </div>
+          <textarea class="notice-compose__input" id="notice-input" rows="2" placeholder="e.g. Plumber visiting Thursday 10–12. Please keep hallway clear."></textarea>
+          <div class="notice-compose__footer">
+            <button type="button" class="cc-btn--ghost" id="notice-clear-btn" style="display:none;">Clear notice</button>
+            <button type="button" class="notice-compose__btn" id="notice-post-btn">Post notice</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <p class="cc-label cc-mb-8">Chat</p>
-    <div class="lounge-chat-card">
-      <div class="notice-posted" id="notice-posted-desktop" style="display:none;">
-        <span class="notice-posted__icon">ℹ</span>
-        <span class="notice-posted__text" id="notice-posted-text-desktop"></span>
-        <button type="button" class="notice-posted__remove" id="notice-remove-btn">Remove</button>
+
+    </div><!-- /.l-desktop-left -->
+
+    <!-- Right column: chat (feed + fixed compose bar) -->
+    <div class="l-desktop-right">
+      <div class="l-dsk-chat-hdr">
+        <span class="l-dsk-chat-lbl">House chat</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="l-dsk-chat-link" onclick="loadLounge()">↺ Refresh</button>
+          <a class="l-dsk-chat-link" id="lounge-email-all-desktop" href="#" target="_blank">✉ Email all</a>
+          <button class="l-dsk-chat-link l-dsk-chat-link--danger" id="lounge-reset-btn">↺ Reset chat</button>
+        </div>
       </div>
       <div class="lounge-feed" id="lounge-feed-desktop">
         <p class="cc-note" style="padding:8px 0 4px;">No messages yet.</p>
@@ -105,12 +127,9 @@ document.getElementById('tab-lounge').innerHTML = `
         <textarea class="compose-input" id="lounge-input-desktop" placeholder="Message as Casa Castel… @London @Paris @Oslo" rows="1"></textarea>
         <button class="compose-send" id="lounge-send-desktop">↑</button>
       </div>
-      <div style="padding:8px 16px 12px;display:flex;gap:8px;align-items:center;border-top:0.5px solid var(--cc-rule);">
-        <a class="btn-email" id="lounge-email-all-desktop" href="#" target="_blank">✉ Email all tenants</a>
-        <button type="button" id="lounge-reset-btn" style="margin-left:auto;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--cc-stone);background:none;border:0.5px solid var(--cc-rule);border-radius:var(--cc-r-sm);padding:5px 12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">↺ Reset chat</button>
-      </div>
-    </div>
-  </div>
+    </div><!-- /.l-desktop-right -->
+
+  </div><!-- /.l-desktop-grid -->
 
   <!-- ── MOBILE MODALS ── -->
 
@@ -236,15 +255,18 @@ async function loadAnnouncements() {
 }
 
 function _renderAnn(data) {
-  const el = document.getElementById('ann-list'); if (!el) return;
-  if (!data) { el.innerHTML = '<p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p>'; return; }
-  el.innerHTML = `<div class="ann-card${data.pinned ? ' ann-card--pinned' : ''}">
+  const emptyHtml = '<p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p>';
+  const annHtml = !data ? emptyHtml : `<div class="ann-card${data.pinned ? ' ann-card--pinned' : ''}">
     <div class="ann-top">${data.pinned ? '<span class="ann-pin">Pinned</span>' : '<span></span>'}
       <span class="ann-date">${fmtTs(new Date(data.created_at).getTime())}</span></div>
     ${data.title ? `<p class="ann-title-text">${esc(data.title)}</p>` : ''}
     <p class="ann-body-text">${esc(data.body)}</p>
     <div class="ann-actions"><button class="ann-del" onclick="deleteAnn('${data.id}')">Delete</button></div>
   </div>`;
+  const el    = document.getElementById('ann-list');
+  const elDsk = document.getElementById('ann-list-desktop');
+  if (el)    el.innerHTML    = annHtml;
+  if (elDsk) elDsk.innerHTML = annHtml;
   if (document.getElementById('lounge-modal-ann')?.classList.contains('open')) _populateAnnModal();
 }
 
@@ -312,30 +334,39 @@ async function loadNotice() {
 function _renderNotice(data) {
   const strip    = document.getElementById('notice-posted');
   const clearBtn = document.getElementById('notice-clear-btn');
-  const desktopEl = document.getElementById('notice-posted-desktop');
-  const desktopTxt= document.getElementById('notice-posted-text-desktop');
+  const dskEl    = document.getElementById('notice-display-desktop');
+
+  const cols = {
+    yellow: { bg:'#FEFCE8', bd:'#EAD96B', tx:'#78640A', ic:'#A0860E' },
+    green:  { bg:'#F0FDF4', bd:'#86EFAC', tx:'#14532D', ic:'#16A34A' },
+    red:    { bg:'#FFF1F2', bd:'#FECDD3', tx:'#9F1239', ic:'#E11D48' },
+  };
 
   if (!data || !data.body) {
-    if (strip)    { strip.className = 'l-notice-strip'; }
+    if (strip)    strip.className = 'l-notice-strip';
     if (clearBtn) clearBtn.style.display = 'none';
-    if (desktopEl) desktopEl.style.display = 'none';
+    if (dskEl)    dskEl.innerHTML = '<p class="cc-note" style="padding:4px 0;">No notice posted.</p>';
     _renderNoticeModalPreview(null);
     return;
   }
   const c = data.color || 'yellow';
+  // Mobile strip
   document.getElementById('notice-posted-text').textContent = data.body;
   strip.className = 'l-notice-strip visible ' + c;
+  // Sync notice compose textarea + color picker
   const ni = document.getElementById('notice-input'); if (ni) ni.value = data.body;
-  document.querySelectorAll('#tab-lounge .l-desktop-only .notice-color-btn')
+  document.querySelectorAll('#tab-lounge .l-desktop-grid .notice-color-btn')
     .forEach(b => b.classList.toggle('active', b.dataset.color === c));
   _noticeColor = c;
   if (clearBtn) clearBtn.style.display = '';
-  // Desktop card notice
-  if (desktopEl && desktopTxt) {
-    const colors = { yellow:'notice-posted--yellow', green:'notice-posted--green', red:'notice-posted--red' };
-    desktopEl.className = 'notice-posted ' + (colors[c] || '');
-    desktopEl.style.display = '';
-    desktopTxt.textContent = data.body;
+  // Desktop sidebar notice display
+  if (dskEl) {
+    const col = cols[c] || cols.yellow;
+    dskEl.innerHTML = `<div style="background:${col.bg};border:0.5px solid ${col.bd};border-radius:var(--cc-r-md);padding:9px 12px;display:flex;align-items:flex-start;gap:8px;">
+      <span style="font-size:13px;color:${col.ic};flex-shrink:0;">ⓘ</span>
+      <span style="font-size:12px;font-weight:300;color:${col.tx};flex:1;line-height:1.5;">${esc(data.body)}</span>
+      <button onclick="clearNotice()" style="font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#9F1239;background:none;border:none;cursor:pointer;flex-shrink:0;font-family:inherit;">Clear</button>
+    </div>`;
   }
   _renderNoticeModalPreview(data);
 }
@@ -394,12 +425,7 @@ function _populateNoticeModal() {
     clearBtnM.addEventListener('click', async () => { await clearNotice(); loungeCloseModal('notice'); });
     clearBtnM._wired = true;
   }
-  // Wire remove button on desktop card
-  const removeBtn = document.getElementById('notice-remove-btn');
-  if (removeBtn && !removeBtn._wired) {
-    removeBtn.addEventListener('click', clearNotice);
-    removeBtn._wired = true;
-  }
+  // Note: desktop notice "Clear" button is rendered inline in _renderNotice via onclick="clearNotice()"
 }
 
 async function clearNotice() {
@@ -542,9 +568,9 @@ async function loadLoungeAll() {
   document.getElementById('ann-body-input')?.addEventListener('input',  _updateAnnEmailBtn);
 
   // Desktop notice
-  document.querySelectorAll('#tab-lounge .l-desktop-only .notice-color-btn').forEach(btn => {
+  document.querySelectorAll('#tab-lounge .l-desktop-grid .notice-color-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#tab-lounge .l-desktop-only .notice-color-btn')
+      document.querySelectorAll('#tab-lounge .l-desktop-grid .notice-color-btn')
         .forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       _noticeColor = btn.dataset.color;
