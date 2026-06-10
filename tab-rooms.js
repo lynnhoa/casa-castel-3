@@ -73,6 +73,22 @@ document.getElementById('tab-rooms').innerHTML = `
     </div>
   </div>
 
+  <!-- ══ PDF PREVIEW OVERLAY ══ -->
+  <div id="pdfPreviewOverlay" style="display:none;position:fixed;inset:0;z-index:600;background:var(--cc-surface);flex-direction:column;overflow:hidden;">
+    <!-- Sticky header bar -->
+    <div id="pdfPreviewHdr" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(14px,env(safe-area-inset-top,14px)) 12px 12px;background:var(--cc-white);border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;position:sticky;top:0;z-index:10;">
+      <button id="pdfPreviewClose" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:0.5px solid var(--cc-rule);border-radius:50%;cursor:pointer;color:var(--cc-stone);font-size:16px;flex-shrink:0;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:border-color .15s;">✕</button>
+      <span id="pdfPreviewTitle" style="flex:1;text-align:center;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--cc-taupe);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+      <button id="pdfPreviewSaveBtn" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 16px;background:var(--cc-ink);color:var(--cc-white);border:none;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;font-family:inherit;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:opacity .15s;">
+        <i class="ti ti-printer" style="font-size:14px;"></i> PDF
+      </button>
+    </div>
+    <!-- Scrollable preview body -->
+    <div id="pdfPreviewBody" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px;display:flex;flex-direction:column;align-items:center;">
+      <div id="pdfPreviewDoc" style="width:100%;max-width:794px;background:var(--cc-white);border-radius:6px;border:0.5px solid var(--cc-rule);overflow:hidden;"></div>
+    </div>
+  </div>
+
   <!-- ══ CONFIRM DELETE ══ -->
   <div class="rm-confirm-overlay" id="confirmOverlay">
     <div class="rm-confirm-box">
@@ -1420,6 +1436,59 @@ document.getElementById('inventarSave')?.addEventListener('click', async () => {
 let _contractRoomId = null;
 let _contractType   = null;
 
+/* ── PDF PREVIEW MODAL ─────────────────────────────────────── */
+function _openPdfPreview(title, saveFn) {
+  const overlay  = document.getElementById('pdfPreviewOverlay');
+  const titleEl  = document.getElementById('pdfPreviewTitle');
+  const saveBtn  = document.getElementById('pdfPreviewSaveBtn');
+  const closeBtn = document.getElementById('pdfPreviewClose');
+  const doc      = document.getElementById('pdfPreviewDoc');
+  if (!overlay) return;
+
+  // Render contract HTML into preview (same HTML _generateXxxPDF will use)
+  // We re-use the hidden render container if already built, else build fresh
+  const renderSrc = document.getElementById('_pdfRenderContainer');
+  if (renderSrc) {
+    doc.innerHTML = renderSrc.innerHTML;
+  } else {
+    doc.innerHTML = '<p style="padding:24px;color:var(--cc-stone);font-size:12px;text-align:center;">Generating preview…</p>';
+  }
+
+  // Scale preview to fit screen width
+  const scaleDoc = () => {
+    const available = Math.min(window.innerWidth - 32, 840);
+    const scale     = Math.min(1, available / 794);
+    const inner     = doc.firstElementChild;
+    if (inner) {
+      inner.style.transform       = `scale(${scale})`;
+      inner.style.transformOrigin = 'top left';
+      inner.style.width           = '794px';
+      doc.style.height            = (inner.scrollHeight * scale) + 'px';
+      doc.style.overflow          = 'hidden';
+    }
+  };
+  setTimeout(scaleDoc, 30);
+  window.addEventListener('resize', scaleDoc, { once: true });
+
+  titleEl.innerHTML = `<span style="color:var(--cc-stone);margin-right:4px;">Vorschau ·</span>${title}`;
+  overlay.style.display = 'flex';
+
+  // Wire save button — calls original generate function unchanged
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  document.getElementById('pdfPreviewSaveBtn').addEventListener('click', async () => {
+    document.getElementById('pdfPreviewOverlay').style.display = 'none';
+    await saveFn();
+  });
+
+  // Wire close
+  const newClose = closeBtn.cloneNode(true);
+  closeBtn.parentNode.replaceChild(newClose, closeBtn);
+  document.getElementById('pdfPreviewClose').addEventListener('click', () => {
+    document.getElementById('pdfPreviewOverlay').style.display = 'none';
+  });
+}
+
 function _openContract(type, roomId) {
   _contractRoomId = roomId;
   _contractType   = type;
@@ -1442,7 +1511,36 @@ function _openContract(type, roomId) {
     footer.innerHTML     = `
       <button class="rm-btn rm-btn--ghost" id="contractCancelBtn">${t('rooms_cancel')}</button>
       <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> PDF</button>`;
-    document.getElementById('contractPdfBtn').addEventListener('click', _generateKurzzeitPDF);
+    document.getElementById('contractPdfBtn').addEventListener('click', async () => {
+      const room2 = getRoomById(_contractRoomId); if (!room2) return;
+      const mieterName = document.getElementById('cm-name')?.value.trim();
+      const mieterAdr  = document.getElementById('cm-adr')?.value.trim();
+      const mieterDob  = document.getElementById('cm-dob')?.value.trim();
+      const mieterEmail= document.getElementById('cm-email')?.value.trim();
+      const startVal   = document.getElementById('cm-start')?.value;
+      const endVal     = document.getElementById('cm-end')?.value;
+      const sigVal     = document.getElementById('cm-sig')?.value;
+      const ersterMonatVoll  = document.getElementById('cm-erster-btn')?.dataset.mode === 'voll';
+      const letzterMonatVoll = document.getElementById('cm-letzter-btn')?.dataset.mode === 'voll';
+      if (!startVal || !endVal) { alert('Bitte Mietbeginn und Mietende ausfüllen.'); return; }
+      const s    = appSettings;
+      const data = _buildMietvertragData(room2, s, { mieterName, mieterAdr, mieterDob, mieterEmail, startVal, endVal, sigVal, ersterMonatVoll, letzterMonatVoll });
+      const html = _renderKurzzeitHTML(data);
+      // Pre-render into hidden container so preview can read it
+      let container = document.getElementById('_pdfRenderContainer');
+      if (container) container.remove();
+      container = document.createElement('div');
+      container.id = '_pdfRenderContainer';
+      container.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;background:#faf9f7;z-index:-1;font-size:11.33px;';
+      container.innerHTML = html;
+      document.body.appendChild(container);
+      await document.fonts.ready;
+      if (window.innerWidth >= 701) {
+        _openPdfPreview('Kurzzeitmiete', _generateKurzzeitPDF);
+      } else {
+        await _generateKurzzeitPDF();
+      }
+    });
     document.getElementById('cm-start')?.addEventListener('change', _updateMonatToggles);
     document.getElementById('cm-end')?.addEventListener('change', _updateMonatToggles);
 
@@ -1464,7 +1562,20 @@ function _openContract(type, roomId) {
     footer.innerHTML     = `
       <button class="rm-btn rm-btn--ghost" id="contractCancelBtn">${t('rooms_cancel')}</button>
       <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> PDF</button>`;
-    document.getElementById('contractPdfBtn').addEventListener('click', () => _generateUebergPDF(isEinzug));
+    document.getElementById('contractPdfBtn').addEventListener('click', async () => {
+      // Validate required fields first
+      const mieterName2 = document.getElementById('ub-mieter-name')?.value.trim();
+      const datum2      = document.getElementById('ub-datum')?.value;
+      if (!mieterName2 || !datum2) { alert('Bitte Mieter Name und Übergabedatum ausfüllen.'); return; }
+      // Pre-render into hidden container so preview reads from it
+      // _generateUebergPDF will re-render anyway when PDF is actually saved
+      await _generateUebergPreviewContainer(isEinzug);
+      if (window.innerWidth >= 701) {
+        _openPdfPreview('Übergabeprotokoll', () => _generateUebergPDF(isEinzug));
+      } else {
+        await _generateUebergPDF(isEinzug);
+      }
+    });
     // Init toggle after DOM renders
     setTimeout(() => { _initUebergMieterToggle(room); }, 50);
   }
@@ -2487,6 +2598,61 @@ function _renderKurzzeitHTML(d) {
 }
 
 /* ── PDF GENERATION — ÜBERGABEPROTOKOLL ─────────────────── */
+async function _generateUebergPreviewContainer(isEinzug) {
+  // Collects current form values and renders Übergabe HTML into _pdfRenderContainer
+  // so _openPdfPreview can display it. _generateUebergPDF remains unchanged.
+  const room = getRoomById(_contractRoomId); if (!room) return;
+  const s = appSettings;
+  const mieterName  = document.getElementById('ub-mieter-name')?.value.trim() || '';
+  const mieterAdr   = document.getElementById('ub-mieter-adr')?.value.trim() || '';
+  const datum       = document.getElementById('ub-datum')?.value || '';
+  const sigVal      = document.getElementById('ub-sig')?.value || '';
+  const neueAdr     = document.getElementById('ub-neue-adr')?.value.trim() || '';
+  const maengel     = document.getElementById('ub-maengel')?.value.trim() || '';
+  const bemerkungen = document.getElementById('ub-bemerkungen')?.value.trim() || '';
+  const stromStand  = document.getElementById('ub-strom')?.value.trim() || '';
+  const gasStand    = document.getElementById('ub-gas')?.value.trim() || '';
+  const wasserStand = document.getElementById('ub-wasser')?.value.trim() || '';
+  const haustur     = document.getElementById('ub-haustur')?.value || '1';
+  const zimmertur   = document.getElementById('ub-zimmertur')?.value || '1';
+  const zaehler = _parseArr(s.zaehler);
+  const strom   = zaehler.find(z => z.type === 'Strom');
+  const gas     = zaehler.find(z => z.type === 'Gas');
+  const wasser  = zaehler.find(z => z.type === 'Wasser');
+  const fmtDate = v => { if (!v) return ''; if (/^\d{2}\.\d{2}\.\d{4}$/.test(v)) return v; const dd = new Date(v); return String(dd.getDate()).padStart(2,'0') + '.' + String(dd.getMonth()+1).padStart(2,'0') + '.' + dd.getFullYear(); };
+  const inventar = Array.isArray(room.inventar) ? room.inventar : [];
+  const d = {
+    isEinzug, datum: fmtDate(datum),
+    objekt: s.objekt_adresse || '', zimmer: room.name, zimmerName: room.name,
+    flaeche: room.zimmerFlaeche || room.flaeche_m2 || '',
+    zimmerFlaeche: room.flaeche_m2 || '',
+    gemeinschaftsraeume: _parseArr(room.gemeinschaftsraeume).join(', ') || '',
+    mieterName, mieterAdresse: mieterAdr, mieterGeburtsdatum: '', mieterEmail: '',
+    vermieterName: s.vermieter_name || s.landlord_name || '',
+    vermieterAdresse: s.vermieter_adresse || s.landlord_address || '',
+    vermieterEmail: s.vermieter_email || '',
+    objektAdresse: s.objekt_adresse || '',
+    unterschriftOrt: s.unterschrift_ort || 'Wiesbaden',
+    unterzeichnungsDatum: fmtDate(sigVal),
+    neueAdresseMieter: neueAdr, maengel, bemerkungen,
+    strom:   { nummer: strom?.nummer || '', stand: stromStand },
+    gas:     { nummer: gas?.nummer || '', stand: gasStand },
+    wasser:  { nummer: wasser?.nummer || '', stand: wasserStand },
+    haustur: parseInt(haustur), zimmertur: parseInt(zimmertur),
+    footerAdresse: s.footer_adresse || s.objekt_adresse || '',
+    inventar,
+  };
+  const html = _renderUebergHTML(d);
+  let container = document.getElementById('_pdfRenderContainer');
+  if (container) container.remove();
+  container = document.createElement('div');
+  container.id = '_pdfRenderContainer';
+  container.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;background:#fff;z-index:-1;font-size:11.33px;';
+  container.innerHTML = html;
+  document.body.appendChild(container);
+  await document.fonts.ready;
+}
+
 async function _generateUebergPDF(isEinzug) {
   const room = getRoomById(_contractRoomId);
   if (!room) return;
