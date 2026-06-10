@@ -269,9 +269,9 @@ let _kTenMobSending = false;
    Back/Next navigate; last slide Next = Submit
    ───────────────────────────────────────────────────────── */
 const _kWizSlots = [
-  { type: 'trash',    emoji: '🗑️', label: 'Trash',    hint: 'Bin empty & clean' },
-  { type: 'geschirr', emoji: '🍽️', label: 'Dishes',   hint: 'Dishes & sink clean' },
-  { type: 'overview', emoji: '🏠', label: 'Overview', hint: 'Stovetop, surfaces, floor' },
+  { type: 'trash',    emoji: '🗑️', label: 'Trash',    hint: 'Please take a photo of the emptied trash can.' },
+  { type: 'geschirr', emoji: '🍽️', label: 'Dishes',   hint: 'Please take a photo of the sink without any dishes left.' },
+  { type: 'overview', emoji: '🏠', label: 'Overview', hint: 'Please take a photo of the full kitchen, cleaned.' },
 ];
 let _kWizBlobs      = [null, null, null];
 let _kWizPreviews   = [null, null, null];
@@ -315,18 +315,23 @@ function _kTenWizRender() {
   const slideEl = document.getElementById('k-ten-wiz-slide');
   if (slideEl) {
     slideEl.innerHTML =
-      `<div style="text-align:center;padding:8px 0 20px;">
+      `<div style="text-align:center;padding:8px 0 16px;">
         <div style="font-size:36px;margin-bottom:8px;">${slot.emoji}</div>
         <p style="font-size:16px;font-weight:500;color:var(--cc-ink);margin-bottom:4px;">${slot.label}</p>
         <p style="font-size:12px;color:var(--cc-taupe);">${slot.hint}</p>
       </div>
-      <div onclick="_kTenWizTakePhoto()" style="width:100%;aspect-ratio:4/3;border-radius:var(--cc-r-md);overflow:hidden;border:${hasPhoto ? '1.5px solid var(--cc-gold)' : '1px dashed var(--cc-rule)'};background:var(--cc-surface);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;">`
+      <div onclick="_kTenWizTakePhoto()" style="width:100%;aspect-ratio:3/4;border-radius:var(--cc-r-md);overflow:hidden;border:${hasPhoto ? '1.5px solid var(--cc-gold)' : '1px dashed var(--cc-rule)'};background:var(--cc-surface);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;">`
       + (hasPhoto && preview
           ? `<img src="${preview}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="${slot.label}"/>
-             <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);padding:6px 0;text-align:center;font-size:9px;color:#fff;letter-spacing:0.06em;text-transform:uppercase;">↺ retake</div>`
-          : `<i class="${window.innerWidth <= 700 ? 'ti ti-camera' : 'ti ti-upload'}" style="font-size:36px;color:var(--cc-stone);" aria-hidden="true"></i>
-             <span style="font-size:11px;color:var(--cc-taupe);margin-top:8px;">${window.innerWidth <= 700 ? 'Tap to take photo' : 'Click to upload photo'}</span>`)
+             <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);padding:8px 0;text-align:center;font-size:9px;color:#fff;letter-spacing:0.06em;text-transform:uppercase;">↺ tap to retake</div>`
+          : `<i class="ti ti-camera" style="font-size:36px;color:var(--cc-stone);" aria-hidden="true"></i>
+             <span style="font-size:11px;color:var(--cc-taupe);margin-top:8px;">Opening camera…</span>`)
       + `</div>`;
+  }
+
+  // Auto-fire camera on mobile when no photo taken yet for this slide
+  if (window.innerWidth <= 700 && !hasPhoto) {
+    setTimeout(() => _kTenWizTakePhoto(), 120);
   }
 
   const backBtn = document.getElementById('k-ten-wiz-back-btn');
