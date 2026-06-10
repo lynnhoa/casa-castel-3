@@ -1523,29 +1523,43 @@ function _openPdfPreview(title, saveFn) {
   const doc      = document.getElementById('pdfPreviewDoc');
   if (!overlay) return;
 
-  // Render contract HTML into preview (same HTML _generateXxxPDF will use)
-  // We re-use the hidden render container if already built, else build fresh
+  // Build preview from hidden render container
+  // Container holds a full HTML doc — extract <style> + .pdf-page elements
   const renderSrc = document.getElementById('_pdfRenderContainer');
+  doc.innerHTML = '';
   if (renderSrc) {
-    doc.innerHTML = renderSrc.innerHTML;
+    // Extract and inject styles
+    const styleEl = renderSrc.querySelector('style');
+    if (styleEl) {
+      const s = document.createElement('style');
+      s.textContent = styleEl.textContent;
+      doc.appendChild(s);
+    }
+    // Extract and inject each page with a gap between them
+    const pages = renderSrc.querySelectorAll('.pdf-page');
+    pages.forEach((pg, i) => {
+      const clone = pg.cloneNode(true);
+      clone.style.display = 'block';
+      clone.style.marginBottom = i < pages.length - 1 ? '12px' : '0';
+      doc.appendChild(clone);
+    });
   } else {
     doc.innerHTML = '<p style="padding:24px;color:var(--cc-stone);font-size:12px;text-align:center;">Generating preview…</p>';
   }
 
-  // Scale preview to fit screen width
+  // Scale each page to fit screen width
   const scaleDoc = () => {
     const available = Math.min(window.innerWidth - 32, 840);
     const scale     = Math.min(1, available / 794);
-    const inner     = doc.firstElementChild;
-    if (inner) {
-      inner.style.transform       = `scale(${scale})`;
-      inner.style.transformOrigin = 'top left';
-      inner.style.width           = '794px';
-      doc.style.height            = (inner.scrollHeight * scale) + 'px';
-      doc.style.overflow          = 'hidden';
-    }
+    doc.querySelectorAll('.pdf-page').forEach(pg => {
+      pg.style.transform       = `scale(${scale})`;
+      pg.style.transformOrigin = 'top left';
+      pg.style.width           = '794px';
+      pg.style.marginBottom    = (pg.nextElementSibling ? (pg.offsetHeight * scale - pg.offsetHeight + 12) : 0) + 'px';
+    });
+    doc.style.width = (794 * scale) + 'px';
   };
-  setTimeout(scaleDoc, 30);
+  setTimeout(scaleDoc, 60);
   window.addEventListener('resize', scaleDoc, { once: true });
 
   titleEl.innerHTML = `<span style="color:var(--cc-stone);margin-right:4px;">Vorschau ·</span>${title}`;
