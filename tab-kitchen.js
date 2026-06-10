@@ -672,28 +672,29 @@ async function _kRenderMobRotation() {
 /* ── DESKTOP ROTATION TIMELINE ──────────────────────────── */
 async function _kRenderDesktopRotation(currentIdx, currentInfo) {
   const el = document.getElementById('k-rotation'); if (!el) return;
-  const rooms = getKitchenRooms();
-  const ini   = currentInfo || kWeekInfo(currentIdx);
+  // Use _kGetRoomList() — same as mobile — respects appRooms sort_order + kitchen_enabled
+  const rooms = _kGetRoomList();
+  if (!rooms.length) { el.innerHTML = '<p class="cc-note">No kitchen rooms configured.</p>'; return; }
   const idx   = Math.max(0, currentIdx);
   const pad   = n => String(n).padStart(2, '0');
   const fmt   = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
-  const cycleStart = idx - ((idx % rooms.length + rooms.length) % rooms.length);
-  const weekIdxMap = {}; rooms.forEach((room, i) => { weekIdxMap[room] = cycleStart + i; });
+  // Use same cycle calculation as mobile strip
+  const cyclePos   = ((idx % rooms.length) + rooms.length) % rooms.length;
+  const cycleStart = idx - cyclePos;
 
-  const [rows, absData] = await Promise.all([
-    Promise.all(rooms.map(room => _kGetWeek(weekIdxMap[room]))),
+  const [dbRows, absData] = await Promise.all([
+    Promise.all(rooms.map((_, i) => _kGetWeek(cycleStart + i))),
     sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
   ]);
-  const statusMap = {}; rooms.forEach((room, i) => { statusMap[room] = rows[i]; });
 
   el.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
-    const weekIdx  = weekIdxMap[room];
-    const start    = new Date(K_START.getTime() + weekIdx * 7 * 24 * 60 * 60 * 1000);
+    const slotIdx  = cycleStart + i;
+    const start    = new Date(K_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
     const end      = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
     const dateStr  = fmt(start) + ' – ' + fmt(end);
-    const isNow    = ini && room === ini.room;
-    const isPast   = !isNow && weekIdx <= idx;
-    const dbRow    = statusMap[room];
+    const isNow    = i === cyclePos;
+    const isPast   = i < cyclePos;
+    const dbRow    = dbRows[i];
     const state    = _kRotState({
       isNow, isPast,
       dbStatus:    dbRow ? dbRow.status : null,
