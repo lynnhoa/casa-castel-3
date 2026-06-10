@@ -147,7 +147,10 @@ document.getElementById('tab-kitchen').innerHTML = `
       </div>
 
       <div class="k-dsk-section" style="border-bottom:none;">
-        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">Nudge log</span></div>
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">Nudge log</span>
+          <button class="k-dsk-section-link" onclick="kitchenOpenModal('nudgelog')">see all</button>
+        </div>
         <div id="k-issues-log"></div>
       </div>
 
@@ -822,7 +825,7 @@ async function _kRenderNudgeLog() {
   const el = document.getElementById('k-issues-log');
   if (!el) return;
   if (!sbL) { el.innerHTML = '<p class="cc-note">No nudges sent yet.</p>'; return; }
-  const { data } = await sbL.from('lounge_data').select('*').eq('type', 'kitchen_nudge').order('created_at', { ascending: false }).limit(20);
+  const { data } = await sbL.from('lounge_data').select('*').eq('type', 'kitchen_nudge').order('created_at', { ascending: false }).limit(4);
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note" style="font-size:10px;">No nudges sent yet.</p>'; return; }
   el.innerHTML = data.map(n => {
     const to = n.room === 'All' ? 'All rooms' : n.room;
@@ -837,6 +840,23 @@ async function _kRenderNudgeLog() {
 }
 
 /* ── NUDGE BANNER (mobile) ──────────────────────────────── */
+/* ── NUDGE NOTICE IN WEEK CARD (desktop) ─────────────────── */
+async function _kRefreshNudgeNotice() {
+  const noticeEl = document.getElementById('k-nudge-notice');
+  const noticeText = document.getElementById('k-nudge-notice-text');
+  if (!noticeEl) return;
+  if (!sbL) { noticeEl.style.display = 'none'; return; }
+  const { data } = await sbL.from('lounge_data').select('*')
+    .eq('type', 'kitchen_nudge').order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (data && data.body) {
+    const to = data.room === 'All' ? 'All rooms' : data.room;
+    noticeText.textContent = '⚑ ' + data.body + ' → ' + to;
+    noticeEl.style.display = 'flex';
+  } else {
+    noticeEl.style.display = 'none';
+  }
+}
+
 async function _kLoadNudgeBanner() {
   if (!sbL) return;
   const { data } = await sbL.from('lounge_data').select('*')
@@ -1164,12 +1184,8 @@ async function initKitchen() {
   await _kRenderFeed('k-feed', weekRow, false);
   _kRenderNudgeLog();
 
-  // Check active nudge banner
-  const { data: nudge } = await sbL.from('lounge_data').select('*').eq('type', 'kitchen_nudge').order('created_at', { ascending: false }).limit(1).maybeSingle();
-  if (nudge && nudge.body && weekRow.status === 'pending') {
-    document.getElementById('k-nudge-notice').style.display = 'flex';
-    document.getElementById('k-nudge-notice-text').textContent = 'Nudge active: "' + nudge.body + '"';
-  }
+  // Check active nudge notice in week card
+  await _kRefreshNudgeNotice();
 
   // Wire desktop action buttons (clone to remove stale listeners)
   const rewire = (id, fn) => {
@@ -1301,7 +1317,10 @@ function _kSubscribe(idx) {
       if (isNudge) {
         _kLoadNudgeBanner();
         const mobile = window.innerWidth <= 700;
-        if (!mobile) _kRenderNudgeLog();
+        if (!mobile) {
+          _kRenderNudgeLog();
+          _kRefreshNudgeNotice();
+        }
       }
     })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async payload => {
@@ -1392,7 +1411,7 @@ function _kRefreshNudgeRoomButtons() {
     await sbL.from('lounge_data').insert({ type: 'kitchen_nudge', room: _kSelTo, body: _kSelType, title: note || null });
     document.getElementById('k-issue-note').value = '';
     document.querySelectorAll('#k-type-grid .issue-type-btn, #k-to-grid .issue-to-btn').forEach(b => b.classList.remove('selected'));
-    _kSelType = null; _kSelTo = null; _kRenderNudgeLog();
+    _kSelType = null; _kSelTo = null; _kRenderNudgeLog(); _kRefreshNudgeNotice();
   });
 
   // Mobile nudge modal
