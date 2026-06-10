@@ -96,8 +96,8 @@ document.getElementById('tab-rooms').innerHTML = `
       <div class="rm-confirm-title" data-i18n="rooms_delete">Delete room</div>
       <div class="rm-confirm-body" id="confirmBody"></div>
       <div class="rm-confirm-btns">
-        <button class="rm-btn rm-btn--ghost" id="confirmCancel" data-i18n="rooms_cancel">Cancel</button>
-        <button class="rm-btn rm-btn--danger" id="confirmOk"><i class="ti ti-trash"></i> <span data-i18n="rooms_delete">Delete</span></button>
+        <button class="rm-btn rm-btn--cancel" id="confirmCancel">Cancel</button>
+        <button class="rm-btn rm-btn--danger" id="confirmOk"><i class="ti ti-trash"></i> Delete room</button>
       </div>
     </div>
   </div>
@@ -669,7 +669,16 @@ document.getElementById('tab-rooms').innerHTML = `
 .rm-confirm-icon { font-size:28px; color:#C4705A; margin-bottom:12px; }
 .rm-confirm-title { font-family:'Cormorant Garamond',Georgia,serif; font-size:20px; font-weight:400; color:var(--cc-ink); margin-bottom:6px; }
 .rm-confirm-body { font-size:13px; color:var(--cc-taupe); line-height:1.6; margin-bottom:20px; }
-.rm-confirm-btns { display:flex; gap:8px; }
+.rm-confirm-btns { display:flex; align-items:center; gap:10px; }
+/* danger btn — wide red, same height as contract PDF btn */
+.rm-btn--danger {
+  flex:1; height:48px; background:#C4705A; color:var(--cc-white); border:none;
+  border-radius:var(--cc-r-md); font-size:13px; font-weight:500;
+  letter-spacing:0; text-transform:none;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  cursor:pointer; font-family:inherit; -webkit-tap-highlight-color:transparent;
+}
+.rm-btn--danger:active { opacity:.85; }
   `;
   document.head.appendChild(s);
 })();
