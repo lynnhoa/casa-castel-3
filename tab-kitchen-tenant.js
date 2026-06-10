@@ -16,25 +16,6 @@
 /* ── INJECT HTML ────────────────────────────────────────── */
 document.getElementById('tab-kitchen').innerHTML = `
 
-  <style>
-    /* Tenant kitchen: show k-mob-wrapper on desktop as normal scrollable column.
-       Overrides the global @media(min-width:701px){#k-mob-wrapper{display:none}} */
-    @media(min-width:701px){
-      #tab-kitchen #k-mob-wrapper {
-        display: flex !important;
-        flex-direction: column;
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 32px 0 48px;
-        height: auto;
-        overflow: visible;
-      }
-      #tab-kitchen #k-mob-rot-strip { display: none; }
-      #tab-kitchen .k-mob-week { border-radius: var(--cc-r-lg); }
-      #tab-kitchen .k-mob-feed { max-height: 480px; }
-      #tab-kitchen #k-ten-nudge-banner { border-radius: var(--cc-r-md); margin-bottom: 8px; }
-    }
-  </style>
 
   <!-- ══ MOBILE WRAPPER ══ -->
   <div id="k-mob-wrapper">
@@ -108,6 +89,62 @@ document.getElementById('tab-kitchen').innerHTML = `
     </div>
 
   </div><!-- /#k-mob-wrapper -->
+
+  <!-- Desktop 2-col grid (hidden on mobile via CSS) -->
+  <div class="k-desktop-grid">
+
+    <!-- Left column: week card + rotation + history -->
+    <div class="k-desktop-left">
+
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">This week</span>
+        </div>
+        <p class="k-dsk-week-room" id="k-ten-dsk-room">—</p>
+        <p class="k-dsk-week-dates" id="k-ten-dsk-dates">—</p>
+        <span class="k-mob-status-chip pending" id="k-ten-dsk-chip" style="display:inline-block;margin-bottom:10px;"></span>
+        <div id="k-ten-dsk-act"></div>
+      </div>
+
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">Rotation</span></div>
+        <div id="k-ten-dsk-rot"></div>
+      </div>
+
+      <div class="k-dsk-section" style="border-bottom:none;">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">History</span>
+          <button class="k-dsk-section-link" onclick="kitchenTenantOpenModal('history')">see all</button>
+        </div>
+        <div id="k-ten-dsk-hist"><p class="cc-note">Loading…</p></div>
+      </div>
+
+    </div><!-- /.k-desktop-left -->
+
+    <!-- Right column: nudge banner + proof/chat feed -->
+    <div class="k-desktop-right">
+      <div class="k-dsk-chat-hdr">
+        <span class="k-dsk-chat-lbl">Proof &amp; chat</span>
+        <button class="k-dsk-chat-link" onclick="initKitchenMobile()">↺ Refresh</button>
+      </div>
+      <div id="k-ten-dsk-nudge-banner" style="display:none;flex-shrink:0;padding:8px 14px;background:#FEFCE8;border-bottom:0.5px solid #EAD96B;align-items:center;gap:8px;">
+        <span style="font-size:13px;flex-shrink:0;">⚑</span>
+        <span id="k-ten-dsk-nudge-text" style="flex:1;font-size:11px;color:#78640A;font-weight:400;"></span>
+        <button onclick="_kTenMarkNudgeDone()" style="flex-shrink:0;background:#FEF9C3;border:0.5px solid #EAD96B;border-radius:6px;font-size:10px;font-weight:500;color:#78640A;cursor:pointer;padding:4px 10px;font-family:inherit;white-space:nowrap;">✓ Done</button>
+        <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+      </div>
+      <div class="k-dsk-feed" id="k-ten-dsk-feed"></div>
+      <div class="k-mob-compose" style="flex-shrink:0;">
+        <input class="k-mob-compose-input" id="k-ten-dsk-msg-input" type="text" placeholder="Write to kitchen group…"/>
+        <input type="file" id="k-ten-dsk-photo-file" accept="image/*" style="display:none;"/>
+        <button class="k-mob-camera-btn" id="k-ten-dsk-photo-btn" aria-label="Send photo">
+          <i class="ti ti-camera" style="font-size:18px;"></i>
+        </button>
+      </div>
+    </div><!-- /.k-desktop-right -->
+
+  </div><!-- /.k-desktop-grid -->
+
 
   <!-- History modal -->
   <div class="cc-modal-overlay" id="kitchen-tenant-modal-history" onclick="if(event.target===this)kitchenTenantCloseModal('history')">
@@ -384,8 +421,8 @@ async function _kTenWizSubmit() {
 
 /* ── ACTION BUTTON (upload proof / re-upload) ───────────── */
 // Called from _kTenRenderWeekCard with state+freshRow already derived — no extra fetch.
-function _kTenRenderActBtnFromState(state, freshRow) {
-  const el = document.getElementById('k-ten-act'); if (!el) return;
+function _kTenRenderActBtnToEl(el, state, freshRow) {
+  if (!el) return;
   if (state !== 'now') { el.innerHTML = ''; return; }
   const dbStatus = freshRow ? freshRow.status : null;
   if (dbStatus === 'flagged') {
@@ -408,11 +445,15 @@ async function _kTenRenderWeekCard(overrideRow) {
   const myRoom = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
   const isAssigned = wi.room === myRoom;
 
-  document.getElementById('k-mob-room-name').textContent = wi.room;
   const pad = n => String(n).padStart(2, '0');
   const fmt = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
-  document.getElementById('k-mob-dates').textContent =
-    fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
+  const dateStr = fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
+  document.getElementById('k-mob-room-name').textContent = wi.room;
+  document.getElementById('k-mob-dates').textContent = dateStr;
+  const dskRoom  = document.getElementById('k-ten-dsk-room');
+  const dskDates = document.getElementById('k-ten-dsk-dates');
+  if (dskRoom)  dskRoom.textContent  = wi.room;
+  if (dskDates) dskDates.textContent = dateStr;
 
   // If caller passes overrideRow (e.g. after optimistic patch), use it directly — no DB fetch.
   // Otherwise fetch fresh from Supabase as normal.
@@ -444,11 +485,13 @@ async function _kTenRenderWeekCard(overrideRow) {
   }
 
   // Chip
-  const chip = document.getElementById('k-mob-status-chip');
-  if (chip) {
+  const _setChip = (el, cls, txt) => { if (el) { el.className = cls; el.textContent = txt; } };
+  const chip    = document.getElementById('k-mob-status-chip');
+  const dskChip = document.getElementById('k-ten-dsk-chip');
+  if (chip || dskChip) {
     if (!isAssigned) {
-      chip.className   = 'k-mob-status-chip not-your-turn';
-      chip.textContent = '— Not your turn';
+      _setChip(chip,    'k-mob-status-chip not-your-turn', '— Not your turn');
+      _setChip(dskChip, 'k-mob-status-chip not-your-turn', '— Not your turn');
     } else {
       const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
       const chipMap = {
@@ -469,25 +512,27 @@ async function _kTenRenderWeekCard(overrideRow) {
                     : dbStatus === 'flagged'   ? 'flagged'
                     : dbStatus === 'submitted' ? 'submitted'
                     : 'pending';
-      chip.className   = 'k-mob-status-chip ' + chipCls;
-      chip.textContent = state !== 'now'
+      const chipTxt = state !== 'now'
         ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
         : isResub                      ? '↑↑ Re-submitted'
         : dbStatus === 'submitted'     ? '↑ Submitted'
         : dbStatus === 'flagged'       ? '⚑ Redo'
         : 'Pending';
+      _setChip(chip,    'k-mob-status-chip ' + chipCls, chipTxt);
+      _setChip(dskChip, 'k-mob-status-chip ' + chipCls, chipTxt);
     }
   }
 
   // Action button — same fetch, same state
-  const actEl = document.getElementById('k-ten-act');
-  if (actEl) {
-    if (!isAssigned) {
-      actEl.innerHTML = '';
-    } else {
-      _kTenRenderActBtnFromState(state, freshRow);
-    }
-  }
+  const actEl    = document.getElementById('k-ten-act');
+  const dskActEl = document.getElementById('k-ten-dsk-act');
+  const _setAct = (el) => {
+    if (!el) return;
+    if (!isAssigned) { el.innerHTML = ''; return; }
+    _kTenRenderActBtnToEl(el, state, freshRow);
+  };
+  _setAct(actEl);
+  _setAct(dskActEl);
 
   const absNote = document.getElementById('k-mob-absent-note');
   if (absNote) {
@@ -558,6 +603,44 @@ async function _kTenRenderMobRotation() {
   }).join('');
 
   el.innerHTML = `<div class="k-mob-rot-line"></div><div class="k-mob-rot-line-done" style="width:${greenPct}"></div><div class="k-mob-rot-items">${items}</div>`;
+
+  // Also render desktop rotation list
+  const dskRot = document.getElementById('k-ten-dsk-rot');
+  if (dskRot) {
+    const stateColors = { done:'#7AC87A', now:'#C89830', missed:'#E24B4A', absent:'#D4A87A', next:'var(--cc-rule)', none:'var(--cc-rule)', skipped:'var(--cc-rule)' };
+    const stateBadge = { done:'✓ Done', now:'Now', missed:'✗ Missed', absent:'Away', next:'Next', none:'—', skipped:'Skipped' };
+    dskRot.innerHTML = rooms.map((room, i) => {
+      const slotIdx = cycleStart + i;
+      const info    = kWeekInfo(Math.max(0, slotIdx));
+      const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
+      const dbRow   = dbRows[i];
+      const state   = _kRotState({ isNow: i === cyclePos, isPast: i < cyclePos, dbStatus: dbRow ? dbRow.status : null, room, weekStart: info ? info.start : null, absenceRows: absData });
+      const dot = `<span style="width:8px;height:8px;border-radius:50%;background:${stateColors[state] || 'var(--cc-rule)'};display:inline-block;flex-shrink:0;"></span>`;
+      const badge = `<span style="font-size:9px;padding:1px 7px;border-radius:10px;font-weight:500;background:var(--cc-surface);color:var(--cc-taupe);border:0.5px solid var(--cc-rule);">${stateBadge[state] || 'Next'}</span>`;
+      const weight = i === cyclePos ? 'font-weight:500;' : '';
+      return `<div class="k-dsk-rot-item">${dot}<span class="k-dsk-rot-room" style="${weight}">${esc(room)}</span>${badge}<span class="k-dsk-rot-date">${dateStr}</span></div>`;
+    }).join('');
+  }
+
+  // Also render compact history for desktop sidebar
+  _kTenRenderDskHistory();
+}
+
+async function _kTenRenderDskHistory() {
+  const el = document.getElementById('k-ten-dsk-hist'); if (!el || !sbL) return;
+  const idx = kWeekIdx();
+  const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', idx).order('week_index', { ascending: false }).limit(4);
+  if (!data || !data.length) { el.innerHTML = '<p class="cc-note" style="font-size:10px;">No history yet.</p>'; return; }
+  const base = 'font-size:9px;padding:1px 7px;border-radius:10px;font-weight:500;white-space:nowrap;border:0.5px solid;';
+  const pill = s => {
+    if (s === 'approved') return `<span style="${base}background:#EDF5E8;color:#3A6A1A;border-color:#9AC87A;">✓ Done</span>`;
+    if (s === 'missed')   return `<span style="${base}background:#FEF2F2;color:#991B1B;border-color:#FCA5A5;">✗ Missed</span>`;
+    return `<span style="${base}background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">—</span>`;
+  };
+  el.innerHTML = data.map(w => {
+    const wi = kWeekInfo(w.week_index); const dateStr = wi ? wi.dateRange : '—';
+    return `<div class="k-dsk-hist-row"><div><div class="k-dsk-hist-room">${esc(w.room)}</div><div class="k-dsk-hist-date">${dateStr}</div></div>${pill(w.status)}</div>`;
+  }).join('');
 }
 
 /* ── FEED RENDERER (identical to landlord, no delete buttons) */
@@ -658,13 +741,25 @@ function _kTenBuildFeedHtml(comments, weekRow) {
 }
 
 async function _kTenRenderFeed() {
-  const el  = document.getElementById('k-feed-mob'); if (!el) return;
   const row = _kTenWeekRow;
-  if (!row)                    { el.innerHTML = '<p class="cc-note" style="padding:8px 0;">No data.</p>'; return; }
-  if (row.status === 'missed') { el.innerHTML = '<p class="cc-note" style="padding:8px 0;">Week reset — marked as missed.</p>'; return; }
+  const empty  = '<p class="cc-note" style="padding:8px 0;">No data.</p>';
+  const missed = '<p class="cc-note" style="padding:8px 0;">Week reset — marked as missed.</p>';
+  const elMob = document.getElementById('k-feed-mob');
+  const elDsk = document.getElementById('k-ten-dsk-feed');
+  if (!row) {
+    if (elMob) elMob.innerHTML = empty;
+    if (elDsk) elDsk.innerHTML = empty;
+    return;
+  }
+  if (row.status === 'missed') {
+    if (elMob) elMob.innerHTML = missed;
+    if (elDsk) elDsk.innerHTML = missed;
+    return;
+  }
   const comments = await _kTenGetComments(row.id);
-  el.innerHTML = _kTenBuildFeedHtml(comments, row);
-  scrollToBottom(el);
+  const html = _kTenBuildFeedHtml(comments, row);
+  if (elMob) { elMob.innerHTML = html; scrollToBottom(elMob); }
+  if (elDsk) { elDsk.innerHTML = html; scrollToBottom(elDsk); }
 }
 
 /* ── HISTORY MODAL ──────────────────────────────────────── */
@@ -824,13 +919,29 @@ async function _kTenLoadNudgeBanner() {
     const acked = Array.isArray(n.dismissed_by) ? n.dismissed_by : [];
     return !acked.includes(myRoom);
   });
-  if (!nudge) { banner.style.display = 'none'; return; }
+  const dskBanner = document.getElementById('k-ten-dsk-nudge-banner');
+  const dskText   = document.getElementById('k-ten-dsk-nudge-text');
+  if (!nudge) {
+    if (banner) banner.style.display = 'none';
+    if (dskBanner) dskBanner.style.display = 'none';
+    return;
+  }
   const note = nudge.title ? ` · ${nudge.title}` : '';
-  text.textContent = `${nudge.body}${note}`;
-  banner.dataset.nudgeBody = nudge.body;
-  banner.dataset.nudgeId   = nudge.id;
-  banner.dataset.nudgeRoom = nudge.room;
-  banner.style.display = 'flex';
+  const msg  = `${nudge.body}${note}`;
+  if (banner) {
+    text.textContent         = msg;
+    banner.dataset.nudgeBody = nudge.body;
+    banner.dataset.nudgeId   = nudge.id;
+    banner.dataset.nudgeRoom = nudge.room;
+    banner.style.display     = 'flex';
+  }
+  if (dskBanner && dskText) {
+    dskText.textContent          = msg;
+    dskBanner.dataset.nudgeBody  = nudge.body;
+    dskBanner.dataset.nudgeId    = nudge.id;
+    dskBanner.dataset.nudgeRoom  = nudge.room;
+    dskBanner.style.display      = 'flex';
+  }
 }
 let _kTenNudgeBusy = false;
 async function _kTenMarkNudgeDone() {
@@ -911,7 +1022,32 @@ async function _kTenDismissNudgeBanner() {
   });
 
   wireComposeBlur(mobInput);
+
+  // Desktop compose wiring
+  const dskInput = document.getElementById('k-ten-dsk-msg-input');
+  const dskPhoto = document.getElementById('k-ten-dsk-photo-btn');
+  const dskFile  = document.getElementById('k-ten-dsk-photo-file');
+
+  dskInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); _kTenDskSendMsg(); }
+  });
+  dskPhoto?.addEventListener('click', () => dskFile?.click());
+  dskFile?.addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    dskFile.value = ''; dskPhoto.style.opacity = '0.5';
+    await _kTenSendPhoto(file, 'k-ten-dsk-feed');
+    dskPhoto.style.opacity = '';
+  });
 })();
+
+async function _kTenDskSendMsg() {
+  const inp  = document.getElementById('k-ten-dsk-msg-input');
+  const text = inp ? inp.value.trim() : '';
+  if (!text || !_kTenWeekRow) return;
+  inp.value = '';
+  const room = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
+  await _kTenAddComment(_kTenWeekRow.id, room, text, false);
+}
 
 /* ── SHOW KITCHEN TAB IN NAV ────────────────────────────── */
 function _kTenShowTabIfEligible() {

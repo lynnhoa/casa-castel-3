@@ -84,80 +84,92 @@ document.getElementById('tab-kitchen').innerHTML = `
     </div>
   </div><!-- /#k-mob-wrapper -->
 
-  <!-- ══ DESKTOP SECTIONS (hidden on mobile via CSS) ══ -->
-  <div class="cc-section" style="padding-top:0;">
-    <p class="hc-section-title">Current week</p>
-    <div class="kc-card" style="border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;margin-bottom:0;">
-      <span class="kc-week-badge" id="k-week-label">This week</span>
-      <p class="kc-room-name" id="k-current-room">—</p>
-      <p class="kc-dates" id="k-dates">—</p>
-      <div class="k-nudge-notice" id="k-nudge-notice" style="display:none;">
-        <span class="k-nudge-notice__icon">⚑</span>
-        <span id="k-nudge-notice-text">A house nudge was sent this week.</span>
-      </div>
-      <p class="kc-proof-meta" id="k-proof-meta" style="margin-bottom:4px;"></p>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:var(--cc-sp-8);">
-        <button class="cc-btn cc-btn--primary" id="k-approve-btn"   style="display:none;">✓ Approve week</button>
-        <button class="k-flag-btn"             id="k-unapprove-btn" style="display:none;background:var(--cc-surface);color:var(--cc-taupe);border-color:var(--cc-rule);">↩ Undo approval</button>
-        <button class="k-flag-btn"             id="k-flag-btn">⚑ Flag — needs redo</button>
-        <button class="k-flag-btn"             id="k-reminder-btn" style="background:var(--cc-surface);color:var(--cc-taupe);border-color:var(--cc-rule);">📧 Send reminder</button>
-        <button class="k-flag-btn"             id="k-reset-btn"    style="background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">↺ Reset — mark missed</button>
-      </div>
-    </div>
-    <div style="border:0.5px solid var(--cc-gold);border-top:none;border-bottom-left-radius:var(--cc-r-lg);border-bottom-right-radius:var(--cc-r-lg);overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 0;">
-        <p class="hc-section-title" style="margin-bottom:0;">Proof &amp; chat</p>
-        <div style="display:flex;gap:6px;">
-          <button onclick="kClearChat()" style="font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#8C3A2A;background:none;border:0.5px solid #D4A87A;border-radius:var(--cc-r-sm);padding:4px 10px;cursor:pointer;">✕ Clear chat</button>
-          <button onclick="initKitchen()" style="font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--cc-taupe);background:none;border:0.5px solid var(--cc-rule);border-radius:var(--cc-r-sm);padding:4px 10px;cursor:pointer;">↺ Refresh</button>
-        </div>
-      </div>
-      <div class="k-feed-card" style="border-radius:0;">
-        <div id="k-feed" class="k-feed-inner"></div>
-        <div class="k-feed-compose">
-          <textarea class="k-feed-compose-input" id="k-msg-input" placeholder="Write to the kitchen group…" rows="1"></textarea>
-          <button class="k-feed-compose-send" id="k-msg-send">↑</button>
-          <input type="file" id="k-desk-photo-file" accept="image/*" style="display:none;"/>
-          <button class="k-feed-compose-send" id="k-desk-photo-btn" title="Send photo" style="background:var(--cc-surface);color:var(--cc-taupe);border:0.5px solid var(--cc-rule);">
-            <i class="ti ti-camera" style="font-size:17px;"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ══ DESKTOP GRID (hidden on mobile via CSS) ══ -->
+  <div class="k-desktop-grid">
 
-  <div class="cc-section">
-    <p class="hc-section-title">Rotation</p>
-    <div id="k-rotation"></div>
-  </div>
-  <div class="cc-section">
-    <p class="hc-section-title">History</p>
-    <div id="k-history"></div>
-  </div>
-  <div class="cc-section">
-    <p class="hc-section-title">Send a nudge <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--cc-stone);">— anonymous to all rooms</span></p>
-    <div class="issue-panel">
-      <p class="issue-panel-title">What is the problem?</p>
-      <div class="issue-type-grid" id="k-type-grid">
-        <button class="issue-type-btn" data-type="Trash not taken out"><span class="icon">🗑</span>Trash</button>
-        <button class="issue-type-btn" data-type="Dishes not clean"><span class="icon">🍽</span>Dishes</button>
+    <!-- Left column: week status + rotation + history + nudge -->
+    <div class="k-desktop-left">
+
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">This week</span>
+          <span class="kc-week-badge" id="k-week-label">Awaiting proof</span>
+        </div>
+        <p class="k-dsk-week-room" id="k-current-room">—</p>
+        <p class="k-dsk-week-dates" id="k-dates">—</p>
+        <div class="k-nudge-notice" id="k-nudge-notice" style="display:none;">
+          <span class="k-nudge-notice__icon">⚑</span>
+          <span id="k-nudge-notice-text">A house nudge was sent this week.</span>
+        </div>
+        <p class="kc-proof-meta" id="k-proof-meta" style="font-size:11px;color:var(--cc-taupe);margin-bottom:4px;"></p>
+        <div class="k-dsk-act-row">
+          <button class="cc-btn cc-btn--primary k-flag-btn" id="k-approve-btn"   style="display:none;">✓ Approve</button>
+          <button class="k-flag-btn"                        id="k-unapprove-btn" style="display:none;background:var(--cc-surface);color:var(--cc-taupe);border-color:var(--cc-rule);">↩ Undo</button>
+          <button class="k-flag-btn"                        id="k-flag-btn">⚑ Flag</button>
+          <button class="k-flag-btn"                        id="k-reminder-btn" style="background:var(--cc-surface);color:var(--cc-taupe);border-color:var(--cc-rule);">✉ Remind</button>
+          <button class="k-flag-btn"                        id="k-reset-btn"    style="background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">↺ Reset</button>
+        </div>
       </div>
-      <p class="issue-to-label">Send to</p>
-      <div class="issue-to-grid" id="k-to-grid">
-        <button class="issue-to-btn" data-to="All">All rooms</button>
-        ${getKitchenRooms().map(r => `<button class="issue-to-btn" data-to="${r}">${r}</button>`).join('')}
+
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">Rotation</span></div>
+        <div id="k-rotation"></div>
       </div>
-      <textarea class="issue-note-input" id="k-issue-note" placeholder="Optional note… e.g. bio bin is full" rows="2"></textarea>
-      <div class="issue-actions">
-        <button class="issue-post-btn" id="k-post-btn">Send anonymous nudge</button>
-        <a class="btn-email" id="k-email-btn" href="#">✉ Email</a>
+
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">History</span></div>
+        <div id="k-history"></div>
       </div>
-    </div>
-  </div>
-  <div class="cc-section">
-    <p class="hc-section-title">Nudge log <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--cc-stone);">— private</span></p>
-    <div id="k-issues-log"></div>
-  </div>
+
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">Send nudge</span></div>
+        <div class="issue-panel" style="border:none;padding:0;background:none;">
+          <p class="issue-panel-title" style="margin-bottom:6px;">What is the problem?</p>
+          <div class="issue-type-grid" id="k-type-grid" style="margin-bottom:8px;">
+            <button class="issue-type-btn" data-type="Trash not taken out"><span class="icon">🗑</span>Trash</button>
+            <button class="issue-type-btn" data-type="Dishes not clean"><span class="icon">🍽</span>Dishes</button>
+          </div>
+          <p class="issue-to-label" style="margin-bottom:6px;">Send to</p>
+          <div class="issue-to-grid" id="k-to-grid" style="margin-bottom:8px;">
+            <button class="issue-to-btn" data-to="All">All rooms</button>
+            ${getKitchenRooms().map(r => `<button class="issue-to-btn" data-to="${r}">${r}</button>`).join('')}
+          </div>
+          <textarea class="issue-note-input" id="k-issue-note" placeholder="Optional note… e.g. bio bin is full" rows="2" style="margin-bottom:8px;"></textarea>
+          <div class="issue-actions">
+            <button class="issue-post-btn" id="k-post-btn">Send anonymous nudge</button>
+            <a class="btn-email" id="k-email-btn" href="#">✉ Email</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="k-dsk-section" style="border-bottom:none;">
+        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">Nudge log</span></div>
+        <div id="k-issues-log"></div>
+      </div>
+
+    </div><!-- /.k-desktop-left -->
+
+    <!-- Right column: proof & chat feed -->
+    <div class="k-desktop-right">
+      <div class="k-dsk-chat-hdr">
+        <span class="k-dsk-chat-lbl">Proof &amp; chat</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="k-dsk-chat-link" onclick="initKitchen()">↺ Refresh</button>
+          <button class="k-dsk-chat-link k-dsk-chat-link--danger" onclick="kClearChat()">✕ Clear chat</button>
+        </div>
+      </div>
+      <div class="k-feed-inner" id="k-feed"></div>
+      <div class="k-feed-compose">
+        <textarea class="k-feed-compose-input" id="k-msg-input" placeholder="Write to the kitchen group…" rows="1"></textarea>
+        <button class="k-feed-compose-send" id="k-msg-send">↑</button>
+        <input type="file" id="k-desk-photo-file" accept="image/*" style="display:none;"/>
+        <button class="k-feed-compose-send" id="k-desk-photo-btn" title="Send photo" style="background:var(--cc-surface);color:var(--cc-taupe);border:0.5px solid var(--cc-rule);">
+          <i class="ti ti-camera" style="font-size:17px;"></i>
+        </button>
+      </div>
+    </div><!-- /.k-desktop-right -->
+
+  </div><!-- /.k-desktop-grid -->
 
   <!-- ── MOBILE MODALS ── -->
 
