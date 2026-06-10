@@ -769,7 +769,7 @@ async function _kRenderDesktopHistory(currentIdx) {
   const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', currentIdx).order('week_index', { ascending: false }).limit(4);
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note">Past weeks will appear here.</p>'; return; }
   el.innerHTML = data.map(w => {
-    const wi = kWeekInfo(w.week_index); const dateStr = wi ? wi.dateRange : '—';
+    const dateStr = kWeekDateRange(w.week_index);
     return `<div class="k-dsk-hist-row"><div><div class="k-dsk-hist-room">${esc(w.room)}</div><div class="k-dsk-hist-date">${dateStr}</div></div>${kHistPill(w.status, 'sm')}</div>`;
   }).join('');
 }
@@ -782,7 +782,7 @@ async function _populateKHistory() {
   const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', idx).order('week_index', { ascending: false }).limit(12);
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note">No past weeks yet.</p>'; return; }
   el.innerHTML = data.map(w => {
-    const wi = kWeekInfo(w.week_index); const dateStr = wi ? wi.dateRange : '—';
+    const dateStr = kWeekDateRange(w.week_index);
     const c = w.comment_count ? ` · ${w.comment_count} comment${w.comment_count !== 1 ? 's' : ''}` : '';
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--cc-rule);"><div><p style="font-size:13px;font-weight:500;color:var(--cc-ink);">${esc(w.room)}</p><p style="font-size:11px;color:var(--cc-taupe);">${dateStr}${c}</p></div>${_kHistPill(w.status)}</div>`;
   }).join('');

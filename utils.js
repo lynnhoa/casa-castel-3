@@ -129,3 +129,14 @@ function kHistPill(status, size) {
     return `<span style="${base}background:#F5EEE8;color:#8C5A30;border-color:#D4A87A;">Away</span>`;
   return `<span style="${base}background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">—</span>`;
 }
+
+/* ── KITCHEN WEEK DATE RANGE (index-only, rotation-independent) ── */
+/* Use this in history renderers — never kWeekInfo — so dates stay  */
+/* correct even if the room rotation changes later.                  */
+function kWeekDateRange(weekIndex) {
+  const pad   = n => String(n).padStart(2, '0');
+  const fmtD  = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
+  const start = new Date(K_START.getTime() + weekIndex * 7 * 24 * 60 * 60 * 1000);
+  const end   = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+  return fmtD(start) + ' – ' + fmtD(end);
+}
