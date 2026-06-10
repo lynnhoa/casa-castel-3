@@ -63,12 +63,13 @@ function _renderAll() {
   body.innerHTML = '';
 
   const sections = [
-    { key: 'vermieter',     title: 'Vermieter' },
-    { key: 'objekt',        title: 'Objekt' },
-    { key: 'bank',          title: 'Bankverbindung' },
-    { key: 'gemeinschaft',  title: 'Gemeinschaftsräume' },
-    { key: 'badezimmer',    title: 'Badezimmer' },
-    { key: 'zaehler',       title: 'Zähler' },
+    { key: 'vermieter',      title: 'Vermieter' },
+    { key: 'objekt',         title: 'Objekt' },
+    { key: 'bank',           title: 'Bankverbindung' },
+    { key: 'energieausweis', title: 'Energieausweis' },
+    { key: 'gemeinschaft',   title: 'Gemeinschaftsräume' },
+    { key: 'badezimmer',     title: 'Badezimmer' },
+    { key: 'zaehler',        title: 'Zähler' },
   ];
 
   sections.forEach(({ key, title }) => {
@@ -109,7 +110,7 @@ function _renderCard(section, title, editing) {
 
   let body = '';
 
-  if (['vermieter', 'objekt', 'bank'].includes(section)) {
+  if (['vermieter', 'objekt', 'bank', 'energieausweis'].includes(section)) {
     const fields = _fieldsFor(section, s);
     body = `<div class="prf-rows">` +
       fields.map(f => `
@@ -185,6 +186,11 @@ function _fieldsFor(section, s) {
     { key: 'iban',         label: 'IBAN', placeholder: 'DE00 0000 0000 0000 0000 00' },
     { key: 'bic',          label: 'BIC' },
   ];
+  if (section === 'energieausweis') return [
+    { key: 'energieklasse',     label: 'Effizienzklasse',   placeholder: 'z. B. D' },
+    { key: 'energieausweisart', label: 'Art des Ausweises', placeholder: 'Verbrauchsausweis' },
+    { key: 'endenergiebedarf',  label: 'Endenergiebedarf',  placeholder: '142 kWh/(m²·a)' },
+  ];
   return [];
 }
 
@@ -253,12 +259,13 @@ function _editZaehlerBody(items) {
 /* ── BIND ONE CARD ───────────────────────────────────────── */
 
 const _TITLES = {
-  vermieter:    'Vermieter',
-  objekt:       'Objekt',
-  bank:         'Bankverbindung',
-  gemeinschaft: 'Gemeinschaftsräume',
-  badezimmer:   'Badezimmer',
-  zaehler:      'Zähler',
+  vermieter:      'Vermieter',
+  objekt:         'Objekt',
+  bank:           'Bankverbindung',
+  energieausweis: 'Energieausweis',
+  gemeinschaft:   'Gemeinschaftsräume',
+  badezimmer:     'Badezimmer',
+  zaehler:        'Zähler',
 };
 
 function _bindCard(card, section) {
@@ -314,7 +321,7 @@ async function _doSave(section) {
 
   let fields = {};
 
-  if (['vermieter', 'objekt', 'bank'].includes(section)) {
+  if (['vermieter', 'objekt', 'bank', 'energieausweis'].includes(section)) {
     card.querySelectorAll('.prf-inline[data-key]').forEach(inp => {
       fields[inp.dataset.key] = inp.value.trim();
     });

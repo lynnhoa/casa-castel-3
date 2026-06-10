@@ -34,6 +34,11 @@ let appSettings = {
   iban:               '',
   bic:                '',
 
+  // Energieausweis (§ 16a GEG) — house-level, single source of truth
+  energieklasse:     '',   // e.g. 'D'
+  endenergiebedarf:  '',   // e.g. '142 kWh/(m²·a)'
+  energieausweisart: '',   // 'Verbrauchsausweis' | 'Bedarfsausweis'
+
   // Building lists
   gemeinschaftsraeume: [],  // string[]
   badezimmer:          [],  // string[]
@@ -157,4 +162,7 @@ function _applyToCache(row) {
   appSettings.gemeinschaftsraeume = Array.isArray(row.gemeinschaftsraeume) ? row.gemeinschaftsraeume : appSettings.gemeinschaftsraeume;
   appSettings.badezimmer          = Array.isArray(row.badezimmer)          ? row.badezimmer          : appSettings.badezimmer;
   appSettings.zaehler             = Array.isArray(row.zaehler)             ? row.zaehler             : appSettings.zaehler;
+  appSettings.energieklasse       = row.energieklasse     ?? appSettings.energieklasse;
+  appSettings.endenergiebedarf    = row.endenergiebedarf  ?? appSettings.endenergiebedarf;
+  appSettings.energieausweisart   = row.energieausweisart ?? appSettings.energieausweisart;
 }

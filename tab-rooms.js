@@ -1821,6 +1821,7 @@ function _openContract(type, roomId) {
       const mieterAdr  = document.getElementById('cm-adr')?.value.trim();
       const mieterDob  = document.getElementById('cm-dob')?.value.trim();
       const mieterEmail= document.getElementById('cm-email')?.value.trim();
+      const mieterTel  = document.getElementById('cm-tel')?.value.trim();
       const startVal   = document.getElementById('cm-start')?.value;
       const endVal     = document.getElementById('cm-end')?.value;
       const sigVal     = document.getElementById('cm-sig')?.value;
@@ -1828,7 +1829,7 @@ function _openContract(type, roomId) {
       const letzterMonatVoll = document.getElementById('cm-letzter-btn')?.dataset.mode === 'voll';
       if (!startVal || !endVal) { alert('Bitte Mietbeginn und Mietende ausfüllen.'); return; }
       const s    = appSettings;
-      const data = _buildMietvertragData(room2, s, { mieterName, mieterAdr, mieterDob, mieterEmail, startVal, endVal, sigVal, ersterMonatVoll, letzterMonatVoll });
+      const data = _buildMietvertragData(room2, s, { mieterName, mieterAdr, mieterDob, mieterEmail, mieterTel, startVal, endVal, sigVal, ersterMonatVoll, letzterMonatVoll });
       const html = _renderKurzzeitHTML(data);
       // Pre-render into hidden container so preview can read it
       let container = document.getElementById('_pdfRenderContainer');
@@ -1865,6 +1866,7 @@ function _openContract(type, roomId) {
       const mieterAdr   = document.getElementById('mv-adr')?.value.trim();
       const mieterDob   = document.getElementById('mv-dob')?.value.trim();
       const mieterEmail = document.getElementById('mv-email')?.value.trim();
+      const mieterTel   = document.getElementById('mv-tel')?.value.trim();
       const startVal    = document.getElementById('mv-start')?.value;
       const sigVal      = document.getElementById('mv-sig')?.value;
       const befristet   = document.getElementById('mv-befristung-btn')?.dataset.mode === 'befristet';
@@ -1875,13 +1877,9 @@ function _openContract(type, roomId) {
       if (befristet && grundVal === 'eigenbedarf' && !eigenbedarfPerson) {
         alert('Bitte Eigenbedarfsperson angeben (gesetzliche Pflicht).'); return;
       }
-      const energieklasse     = document.getElementById('mv-energieklasse')?.value.trim();
-      const endenergiebedarf  = document.getElementById('mv-endenergiebedarf')?.value.trim();
-      const energieausweisart = document.getElementById('mv-energieausweisart')?.value.trim();
       const data = _buildMietvertragOnlyData(room2, appSettings, {
-        mieterName, mieterAdr, mieterDob, mieterEmail, startVal, sigVal,
+        mieterName, mieterAdr, mieterDob, mieterEmail, mieterTel, startVal, sigVal,
         befristet, endVal, grundVal, eigenbedarfPerson,
-        energieklasse, endenergiebedarf, energieausweisart,
       });
       const html = _renderMietvertragHTML(data);
       let container = document.getElementById('_pdfRenderContainer');
@@ -2189,6 +2187,7 @@ function _contractBodyKurzzeit(room) {
     <div class="rm-field"><label>Mieter Adresse</label><input class="rm-input" id="cm-adr" placeholder="Current address…"/></div>
     <div class="rm-field"><label>Geburtsdatum</label><input class="rm-input" id="cm-dob" placeholder="TT.MM.JJJJ" oninput="_autoFormatGermanDate(event)"/></div>
     <div class="rm-field"><label>E-Mail</label><input class="rm-input" id="cm-email" type="email" placeholder="mieter@beispiel.de"/></div>
+    <div class="rm-field"><label>Telefon <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label><input class="rm-input" id="cm-tel" type="tel" placeholder="+49 …"/></div>
     <div class="rm-field-row">
       <div class="rm-field"><label>Mietbeginn</label><input class="rm-input" id="cm-start" type="date"/></div>
       <div class="rm-field"><label>Mietende</label><input class="rm-input" id="cm-end" type="date"/></div>
@@ -2246,6 +2245,7 @@ async function _generateKurzzeitPDF() {
   const mieterAdr  = document.getElementById('cm-adr')?.value.trim();
   const mieterDob  = document.getElementById('cm-dob')?.value.trim();
   const mieterEmail= document.getElementById('cm-email')?.value.trim();
+  const mieterTel  = document.getElementById('cm-tel')?.value.trim();
   const startVal   = document.getElementById('cm-start')?.value;
   const endVal     = document.getElementById('cm-end')?.value;
   const sigVal     = document.getElementById('cm-sig')?.value;
@@ -2263,7 +2263,7 @@ async function _generateKurzzeitPDF() {
   if (pdfBtn) { pdfBtn.innerHTML = '<i class="ti ti-loader"></i> Generating…'; pdfBtn.disabled = true; }
 
   const s    = appSettings;
-  const data = _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, mieterEmail, startVal, endVal, sigVal, ersterMonatVoll, letzterMonatVoll });
+  const data = _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, mieterEmail, mieterTel, startVal, endVal, sigVal, ersterMonatVoll, letzterMonatVoll });
   const html = _renderKurzzeitHTML(data);
 
   // Render template in hidden div
@@ -2352,7 +2352,7 @@ async function _generateKurzzeitPDF() {
 
 
 /* ── BUILD MIETVERTRAG DATA ──────────────────────────────── */
-function _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, mieterEmail, startVal, endVal, sigVal, ersterMonatVoll = false, letzterMonatVoll = false }) {
+function _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, mieterEmail, mieterTel = '', startVal, endVal, sigVal, ersterMonatVoll = false, letzterMonatVoll = false }) {
   const fmt = d => {
     const dt = new Date(d);
     return String(dt.getDate()).padStart(2,'0') + '.' +
@@ -2481,6 +2481,7 @@ function _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, miet
     mieterAdresse:      mieterAdr,
     mieterGeburtsdatum: mieterDob,
     mieterEmail:        mieterEmail || '',
+    mieterTelefon:      mieterTel   || '',
     // Zimmer
     zimmerName:       room.name,
     zimmerFlaeche:    room.flaeche_m2 || 0,
@@ -2521,9 +2522,10 @@ function _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, miet
     inventar: Array.isArray(room.inventar) ? room.inventar : [],
     // Signing
     unterzeichnungsDatum: sigVal ? fmt(new Date(sigVal)) : '',
-    energieklasse:     energieklasse     || '___',
-    endenergiebedarf:  endenergiebedarf  || '___',
-    energieausweisart: energieausweisart || 'Verbrauchsausweis',
+    // Energieausweis — house-level, from appSettings
+    energieklasse:     s.energieklasse     || '',
+    endenergiebedarf:  s.endenergiebedarf  || '',
+    energieausweisart: s.energieausweisart || '',
   };
 }
 
@@ -2857,6 +2859,7 @@ function _renderKurzzeitHTML(d) {
     ${kv('Adresse', d.mieterAdresse)}
     ${kv('Geburtsdatum', d.mieterGeburtsdatum)}
     ${d.mieterEmail ? kv('E-Mail', d.mieterEmail) : ''}
+    ${d.mieterTelefon ? kv('Telefon', d.mieterTelefon) : ''}
 
     ${sec('Mietobjekt', false, false)}
     ${kv('Adresse', d.objektAdresse)}
@@ -2923,6 +2926,10 @@ function _renderKurzzeitHTML(d) {
         ${d.inventar.map(i => `<tr><td>${i.gegenstand}</td><td>${i.anzahl}</td></tr>`).join('')}
       </tbody>
     </table>
+
+    ${(d.energieklasse || d.endenergiebedarf || d.energieausweisart) ? `
+    <div class="comment-label" style="margin-top:18px;">Energieausweis (\u00a7\u00a016a GEG)</div>
+    <p class="nutzung" style="margin-top:6px;font-size:10.5px;line-height:1.55;color:#3a3530;">Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Effizienzklasse: ${d.energieklasse||'\u2014'}. Endenergiebedarf: ${d.endenergiebedarf ? d.endenergiebedarf+' kWh/(m\u00b2\u00b7a)' : '\u2014'}. Art: ${d.energieausweisart||'\u2014'}.</p>` : ''}
 
     <div class="comment-label">Sonstige Anmerkungen</div>
     <div class="comment-line"></div>
@@ -3470,11 +3477,10 @@ function _initSortable() {
 /* ── DATA BUILDER ─────────────────────────────────────────────────────────── */
 
 function _buildMietvertragOnlyData(room, s, {
-  mieterName, mieterAdr, mieterDob, mieterEmail,
+  mieterName, mieterAdr, mieterDob, mieterEmail, mieterTel = '',
   startVal, sigVal,
   befristet = false, endVal = null,
   grundVal = '', eigenbedarfPerson = '',
-  energieklasse = '', endenergiebedarf = '', energieausweisart = '',
 }) {
   const fmt = d => {
     const dt = new Date(d);
@@ -3525,6 +3531,7 @@ function _buildMietvertragOnlyData(room, s, {
     mieterAdresse:      mieterAdr   || '',
     mieterGeburtsdatum: mieterDob   || '',
     mieterEmail:        mieterEmail || '',
+    mieterTelefon:      mieterTel   || '',
     zimmerName:          room.name,
     zimmerFlaeche:       room.flaeche_m2 || 0,
     gemeinschaftsraeume: gemStr,
@@ -3542,6 +3549,10 @@ function _buildMietvertragOnlyData(room, s, {
     zimmerschluessel:    room.zimmerschluessel    || 1,
     inventar: Array.isArray(room.inventar) ? room.inventar : [],
     unterzeichnungsDatum: sigVal ? fmt(new Date(sigVal)) : '',
+    // Energieausweis — house-level, from appSettings
+    energieklasse:     s.energieklasse     || '',
+    endenergiebedarf:  s.endenergiebedarf  || '',
+    energieausweisart: s.energieausweisart || '',
   };
 }
 
@@ -3617,6 +3628,10 @@ function _contractBodyMietvertrag(room) {
       <label>E-Mail</label>
       <input class="rm-input" id="mv-email" type="email" value="${esc(tenantEmail)}" placeholder="mieter@beispiel.de"/>
     </div>
+    <div class="rm-field">
+      <label>Telefon <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label>
+      <input class="rm-input" id="mv-tel" type="tel" placeholder="+49 …"/>
+    </div>
 
     <div class="rm-fields-title" style="margin-top:6px;">Mietzeit</div>
 
@@ -3674,14 +3689,7 @@ function _contractBodyMietvertrag(room) {
     <div class="rm-field" style="margin-top:4px;">
       <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label>
       <input class="rm-input" id="mv-sig" type="date"/>
-    </div>
-
-    <div class="rm-fields-title" style="margin-top:6px;">Energieausweis <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(§ 16a GEG)</span></div>
-    <div class="rm-field-row">
-      <div class="rm-field"><label>Effizienzklasse</label><input class="rm-input" id="mv-energieklasse" placeholder="z. B. D"/></div>
-      <div class="rm-field"><label>Art des Ausweises</label><input class="rm-input" id="mv-energieausweisart" placeholder="Verbrauchsausweis"/></div>
-    </div>
-    <div class="rm-field"><label>Endenergiebedarf</label><input class="rm-input" id="mv-endenergiebedarf" placeholder="z. B. 142 kWh/(m²·a)"/></div>`;
+    </div>`;
 }
 
 function _toggleMvBefristung() {
@@ -3802,6 +3810,7 @@ function _renderMietvertragHTML(d) {
     ${kv('Name',d.mieterName)}${kv('Adresse',d.mieterAdresse)}
     ${kv('Geburtsdatum',d.mieterGeburtsdatum)}
     ${d.mieterEmail?kv('E-Mail',d.mieterEmail):''}
+    ${d.mieterTelefon?kv('Telefon',d.mieterTelefon):''}
     ${sec('Mietobjekt',false,false)}
     ${kv('Adresse',d.objektAdresse)}${kv('Bezeichnung',d.zimmerName)}
     ${kv('Zimmergröße','ca.\u00a0'+d.zimmerFlaeche+'\u00a0m\u00b2')}
@@ -3875,7 +3884,7 @@ function _renderMietvertragHTML(d) {
     ${cl('14','Sonstige Vereinbarungen',
       'Mündliche Nebenabreden bestehen nicht. Änderungen bedürfen der Schriftform. Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam. Gerichtsstand ist '+d.gerichtsstand+'.')}
     ${cl('15','Energieausweis (\u00a7\u00a016a GEG)',
-      'Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Energieeffizienzklasse: '+(d.energieklasse||'___')+'. Endenergiebedarf: '+(d.endenergiebedarf||'___')+' kWh/(m\u00b2\u00b7a). Art: '+(d.energieausweisart||'Verbrauchsausweis')+'.')}
+      'Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Energieeffizienzklasse: '+(d.energieklasse||'—')+'. Endenergiebedarf: '+(d.endenergiebedarf ? d.endenergiebedarf+' kWh/(m\u00b2\u00b7a)' : '—')+'. Art des Ausweises: '+(d.energieausweisart||'—')+'.')}
     ${sec('Anlage A \u2014 Inventar',true,false)}
     <table class="inv-table">
       <thead><tr><th>Gegenstand</th><th>Anzahl</th></tr></thead>
