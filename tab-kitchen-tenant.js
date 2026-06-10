@@ -322,8 +322,8 @@ function _kTenWizRender() {
       + (hasPhoto && preview
           ? `<img src="${preview}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="${slot.label}"/>
              <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);padding:6px 0;text-align:center;font-size:9px;color:#fff;letter-spacing:0.06em;text-transform:uppercase;">↺ retake</div>`
-          : `<i class="ti ti-camera" style="font-size:36px;color:var(--cc-stone);" aria-hidden="true"></i>
-             <span style="font-size:11px;color:var(--cc-taupe);margin-top:8px;">Tap to take photo</span>`)
+          : `<i class="${window.innerWidth <= 700 ? 'ti ti-camera' : 'ti ti-upload'}" style="font-size:36px;color:var(--cc-stone);" aria-hidden="true"></i>
+             <span style="font-size:11px;color:var(--cc-taupe);margin-top:8px;">${window.innerWidth <= 700 ? 'Tap to take photo' : 'Click to upload photo'}</span>`)
       + `</div>`;
   }
 
@@ -460,13 +460,11 @@ function _kTenRenderActBtnToEl(el, state, freshRow) {
   if (state !== 'now') { el.innerHTML = ''; return; }
   const dbStatus = freshRow ? freshRow.status : null;
   if (dbStatus === 'flagged') {
-    // Landlord flagged — tenant must re-upload
     el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
-      <i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
+      <i class="ti ti-${window.innerWidth <= 700 ? 'camera-plus' : 'upload'}"></i><span>Re-upload</span></button>`;
   } else if (!dbStatus || dbStatus === 'pending') {
-    // No row yet or explicitly pending — first upload
     el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
-      <i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
+      <i class="ti ti-${window.innerWidth <= 700 ? 'camera-plus' : 'upload'}"></i><span>Proof</span></button>`;
   } else {
     // submitted, approved, missed — no button needed
     el.innerHTML = '';
