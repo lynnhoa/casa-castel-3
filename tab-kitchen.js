@@ -1071,6 +1071,8 @@ async function initKitchenMobile() {
 
   // Load kitchen room config from Supabase
   await loadKitchenRoomsFromSupabase();
+  // Re-render room buttons now that kitchenRooms is loaded
+  _kRefreshNudgeRoomButtons();
 
   // Step 2: fetch weekRow + rotation in parallel
   const [, weekRowFresh] = await Promise.all([
@@ -1100,6 +1102,8 @@ async function initKitchenMobile() {
 async function initKitchen() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
   await loadKitchenRoomsFromSupabase();
+  // Re-render room buttons now that kitchenRooms is loaded from Supabase
+  _kRefreshNudgeRoomButtons();
 
   const idx  = kWeekIdx(new Date());
   const info = _kWeekInfo(Math.max(0, idx));
@@ -1296,6 +1300,55 @@ function _kSubscribe(idx) {
 }
 
 /* ── NUDGE PANEL WIRING ─────────────────────────────────── */
+
+// Re-renders room buttons in nudge panel after kitchenRooms loads from Supabase.
+// Called from initKitchen() after loadKitchenRoomsFromSupabase().
+function _kRefreshNudgeRoomButtons() {
+  const rooms = getKitchenRooms();
+  const toGrid = document.getElementById('k-to-grid');
+  if (toGrid) {
+    // Keep the "All rooms" button, replace the rest
+    const allBtn = toGrid.querySelector('.issue-to-btn[data-to="All"]');
+    toGrid.innerHTML = '';
+    if (allBtn) toGrid.appendChild(allBtn);
+    rooms.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'issue-to-btn';
+      btn.dataset.to = r;
+      btn.textContent = r;
+      toGrid.appendChild(btn);
+    });
+    // Re-attach listeners
+    toGrid.querySelectorAll('.issue-to-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toGrid.querySelectorAll('.issue-to-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected'); _kSelTo = btn.dataset.to; _kUpdateNudgeEmailBtn();
+      });
+    });
+  }
+  // Also refresh mobile nudge modal room row
+  const mobToRow = document.getElementById('k-mob-nudge-to-row');
+  if (mobToRow) {
+    const allMob = mobToRow.querySelector('.k-mob-n-chip[data-to="All"]');
+    mobToRow.innerHTML = '';
+    if (allMob) mobToRow.appendChild(allMob);
+    rooms.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'k-mob-n-chip';
+      btn.style.cssText = 'padding:10px 0;text-align:center;';
+      btn.dataset.to = r;
+      btn.textContent = r;
+      mobToRow.appendChild(btn);
+    });
+    mobToRow.querySelectorAll('.k-mob-n-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        mobToRow.querySelectorAll('.k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+  }
+}
+
 (function _wireNudgePanel() {
   // Desktop nudge panel
   document.querySelectorAll('#k-type-grid .issue-type-btn').forEach(btn => {
@@ -1316,7 +1369,7 @@ function _kSubscribe(idx) {
     if (!sbL) { alert('Supabase not connected.'); return; }
     const note = document.getElementById('k-issue-note').value.trim();
     await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
-    await sbL.from('lounge_data').insert({ type: 'kitchen_nudge', room: _kSelTo, body: _kSelType, title: note || null, dismissed_by: [] });
+    await sbL.from('lounge_data').insert({ type: 'kitchen_nudge', room: _kSelTo, body: _kSelType, title: note || null });
     document.getElementById('k-issue-note').value = '';
     document.querySelectorAll('#k-type-grid .issue-type-btn, #k-to-grid .issue-to-btn').forEach(b => b.classList.remove('selected'));
     _kSelType = null; _kSelTo = null; _kRenderNudgeLog();
@@ -1343,7 +1396,7 @@ function _kSubscribe(idx) {
     if (!sbL) return;
     const note = document.getElementById('k-mob-nudge-note').value.trim();
     await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
-    await sbL.from('lounge_data').insert({ type: 'kitchen_nudge', room: toBtn.dataset.to, body: typeBtn.dataset.type, title: note || null, dismissed_by: [] });
+    await sbL.from('lounge_data').insert({ type: 'kitchen_nudge', room: toBtn.dataset.to, body: typeBtn.dataset.type, title: note || null });
     document.querySelectorAll('#k-mob-nudge-type-row .k-mob-n-chip, #k-mob-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
     document.getElementById('k-mob-nudge-note').value = '';
     kitchenCloseModal('nudge');
