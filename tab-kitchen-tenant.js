@@ -422,7 +422,10 @@ async function _kTenWizSubmit() {
       return;
     }
 
-    const isReupload = _kTenWeekRow.status === 'flagged';
+    // isReupload: was flagged OR already has photos (guards against stale local status)
+    const isReupload = _kTenWeekRow.status === 'flagged'
+                    || !!(_kTenWeekRow.photos && _kTenWeekRow.photos.length)
+                    || !!(_kTenWeekRow.reupload_count);
     const patch = {
       status:       'submitted',
       submitted_at: new Date().toISOString(),
