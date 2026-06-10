@@ -604,22 +604,37 @@ async function _kTenRenderMobRotation() {
 
   el.innerHTML = `<div class="k-mob-rot-line"></div><div class="k-mob-rot-line-done" style="width:${greenPct}"></div><div class="k-mob-rot-items">${items}</div>`;
 
-  // Also render desktop rotation list
+  // Also render desktop rotation list — uses same rot-tl CSS classes as landlord desktop
   const dskRot = document.getElementById('k-ten-dsk-rot');
   if (dskRot) {
-    const stateColors = { done:'#7AC87A', now:'#C89830', missed:'#E24B4A', absent:'#D4A87A', next:'var(--cc-rule)', none:'var(--cc-rule)', skipped:'var(--cc-rule)' };
-    const stateBadge = { done:'✓ Done', now:'Now', missed:'✗ Missed', absent:'Away', next:'Next', none:'—', skipped:'Skipped' };
-    dskRot.innerHTML = rooms.map((room, i) => {
-      const slotIdx = cycleStart + i;
-      const info    = kWeekInfo(Math.max(0, slotIdx));
-      const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
-      const dbRow   = dbRows[i];
-      const state   = _kRotState({ isNow: i === cyclePos, isPast: i < cyclePos, dbStatus: dbRow ? dbRow.status : null, room, weekStart: info ? info.start : null, absenceRows: absData });
-      const dot = `<span style="width:8px;height:8px;border-radius:50%;background:${stateColors[state] || 'var(--cc-rule)'};display:inline-block;flex-shrink:0;"></span>`;
-      const badge = `<span style="font-size:9px;padding:1px 7px;border-radius:10px;font-weight:500;background:var(--cc-surface);color:var(--cc-taupe);border:0.5px solid var(--cc-rule);">${stateBadge[state] || 'Next'}</span>`;
-      const weight = i === cyclePos ? 'font-weight:500;' : '';
-      return `<div class="k-dsk-rot-item">${dot}<span class="k-dsk-rot-room" style="${weight}">${esc(room)}</span>${badge}<span class="k-dsk-rot-date">${dateStr}</span></div>`;
-    }).join('');
+    dskRot.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
+      const slotIdx  = cycleStart + i;
+      const start    = new Date(K_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
+      const end      = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+      const dateStr  = fmt(start) + ' – ' + fmt(end);
+      const dbRow    = dbRows[i];
+      const state    = _kRotState({ isNow: i === cyclePos, isPast: i < cyclePos, dbStatus: dbRow ? dbRow.status : null, room, weekStart: start, absenceRows: absData });
+      const dotClass = { done:'rot-dot--done', now:'rot-dot--now', missed:'rot-dot--missed', skipped:'rot-dot--skipped', absent:'rot-dot--absent' }[state] || 'rot-dot--next';
+      const topLine  = state === 'done' || state === 'now' ? 'rot-line-done'
+                     : state === 'skipped' ? 'rot-line-skipped'
+                     : state === 'absent'  ? 'rot-line-absent'
+                     : state === 'missed'  ? 'rot-line-missed' : 'rot-line-faded';
+      const botLine  = state === 'done' && slotIdx < idx - 1 ? 'rot-line-done' : 'rot-line-faded';
+      const badge    = {
+        done:    '<span class="rot-badge rot-badge--done">Done</span>',
+        now:     '<span class="rot-badge rot-badge--now">Now</span>',
+        missed:  '<span class="rot-badge rot-badge--missed">Missed</span>',
+        skipped: '<span class="rot-badge rot-badge--skipped">Skipped</span>',
+        absent:  '<span class="rot-badge rot-badge--absent">Away</span>',
+      }[state] || '<span class="rot-badge rot-badge--next">Next</span>';
+      const rowClass = 'rot-tl-row'
+        + (state === 'now'     ? ' rot-tl-row--now'
+         : state === 'missed'  ? ' rot-tl-row--missed'
+         : state === 'skipped' ? ' rot-tl-row--skipped'
+         : state === 'absent'  ? ' rot-tl-row--absent'
+         : state === 'next'    ? ' rot-tl-row--next' : '');
+      return `<div class="${rowClass}"><div class="rot-spine"><div class="rot-spine-top ${topLine}"></div><div class="rot-dot ${dotClass}"></div><div class="rot-spine-bot ${botLine}"></div></div><div class="rot-tl-body"><div class="rot-tl-info"><p class="rot-tl-room">${esc(room)}</p><p class="rot-tl-dates">${dateStr}</p></div>${badge}</div></div>`;
+    }).join('') + '</div>';
   }
 
   // Also render compact history for desktop sidebar
