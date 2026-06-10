@@ -527,7 +527,7 @@ async function _kTenRenderWeekCard(overrideRow) {
       _setChip(chip,    'k-mob-status-chip not-your-turn', '— Not your turn');
       _setChip(dskChip, 'k-mob-status-chip not-your-turn', '— Not your turn');
     } else {
-      const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0 && freshRow.status !== 'flagged';
+      const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
       const chipMap = {
         now:     'pending',
         done:    'approved',
@@ -895,19 +895,17 @@ async function _kTenSendPhoto(file, feedId) {
 
 /* ── REALTIME ───────────────────────────────────────────── */
 function _kTenSubscribe(idx) {
-  if (_kTenChannel) return; // subscribe once — channel stays alive for the session
+  if (_kTenChannel) { sbL.removeChannel(_kTenChannel); _kTenChannel = null; }
   _kTenChannel = sbL.channel('kitchen-tenant-rt')
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'kitchen_weeks' }, () => {
-      // Delay 350ms so the read path reflects the committed write before we fetch
-      setTimeout(async () => {
-        if (!_kTenWeekRow) return;
-        const fresh = await _kTenGetWeek(kWeekIdx());
-        if (!fresh) return;
-        _kTenWeekRow = fresh;
-        await _kTenRenderWeekCard();
-        await _kTenRenderFeed();
-        await _kTenRenderMobRotation();
-      }, 350);
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'kitchen_weeks' }, async payload => {
+      if (!_kTenWeekRow) return;
+      const fresh = await _kTenGetWeek(idx);
+      if (!fresh) return;
+      _kTenWeekRow = fresh;
+
+      await _kTenRenderWeekCard();
+      await _kTenRenderFeed();
+      await _kTenRenderMobRotation();
     })
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'kitchen_comments' }, async payload => {
       if (!payload.new || !_kTenWeekRow) return;
