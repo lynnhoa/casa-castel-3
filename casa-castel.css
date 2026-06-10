@@ -275,19 +275,31 @@ img { display: block; max-width: 100%; }
 }
 
 .cc-nav__icon {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--cc-charcoal);
-  font-size: 20px;
+  color: var(--cc-taupe);
+  font-size: 16px;
   border-radius: 50%;
-  transition: background 0.15s;
+  border: 0.5px solid var(--cc-rule);
+  background: var(--cc-surface);
+  transition: background 0.18s, border-color 0.18s, transform 0.12s, color 0.18s;
   -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 .cc-nav__icon:hover,
-.cc-nav__icon:focus { background: var(--cc-surface); outline: none; }
+.cc-nav__icon:focus {
+  background: var(--cc-white);
+  border-color: var(--cc-stone);
+  color: var(--cc-ink);
+  outline: none;
+}
+.cc-nav__icon:active {
+  transform: scale(0.90);
+  background: var(--cc-rule);
+}
 
 
 /* ── TAB BAR ────────────────────────────────────────────────
@@ -766,7 +778,7 @@ img { display: block; max-width: 100%; }
 }
 
 /* ── NAV ACTIONS ────────────────────────────────────────── */
-.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-actions { display: flex; align-items: center; gap: 6px; }
 .nav-role-pill {
   font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--cc-taupe); background: var(--cc-surface); border: 0.5px solid var(--cc-rule);
