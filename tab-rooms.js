@@ -190,19 +190,20 @@ document.getElementById('tab-rooms').innerHTML = `
 }
 .rc-tag--type    { background:var(--cc-surface); color:var(--cc-taupe); border:.5px solid var(--cc-rule); }
 .rc-tag--kitchen { background:#E6F1FB; color:#0C447C; border:.5px solid #85B7EB; }
-.rc-hdr__rent { display:flex; align-items:center; justify-content:space-between; margin-top:9px; padding-top:8px; border-top:0.5px solid var(--cc-rule); }
-.rc-hdr__rent-left { display:flex; align-items:center; gap:6px; }
+.rc-hdr__rent { display:flex; align-items:center; justify-content:space-between; margin-top:9px; padding-top:8px; border-top:0.5px solid var(--cc-rule); gap:10px; }
+.rc-hdr__rent-left { display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
+.rc-hdr__rent-top { display:flex; align-items:center; gap:6px; }
 .rc-rent-badge { font-size:9px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; padding:2px 8px; border-radius:var(--cc-r-pill); white-space:nowrap; }
 .rc-rent-badge--mietvertrag { background:#EFF6FF; color:#1E40AF; border:.5px solid #93C5FD; }
 .rc-rent-badge--kurzzeit    { background:#FFF7ED; color:#92400E; border:.5px solid #F6C177; }
 .rc-rent-badge--none        { background:var(--cc-surface); color:var(--cc-stone); border:.5px solid var(--cc-rule); }
-.rc-rent-amount { font-size:14px; font-weight:500; color:var(--cc-charcoal); letter-spacing:-.01em; }
+.rc-rent-amount { font-size:14px; font-weight:500; color:var(--cc-charcoal); letter-spacing:-.01em; flex-shrink:0; white-space:nowrap; align-self:center; }
 .rc-rent-detail { font-size:10px; font-weight:300; color:var(--cc-stone); }
 .rc-price-toggle { display:flex; align-items:center; background:var(--cc-surface); border-radius:var(--cc-r-pill); padding:2px; border:.5px solid var(--cc-rule); flex-shrink:0; }
 .rc-price-toggle__opt { font-size:9px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:var(--cc-r-pill); border:none; background:none; cursor:pointer; color:var(--cc-stone); font-family:inherit; transition:all .15s; white-space:nowrap; }
 .rc-price-toggle__opt.active--mietvertrag { background:#EFF6FF; color:#1E40AF; }
 .rc-price-toggle__opt.active--kurzzeit    { background:#FFF7ED; color:#92400E; }
-.rc-hdr__rent-info { display:flex; align-items:baseline; gap:6px; margin-left:8px; min-width:0; }
+.rc-hdr__rent-info { min-width:0; }
 .rp-summary { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; margin-bottom:4px; background:var(--cc-white); border:var(--cc-border); border-radius:var(--cc-r-lg); }
 .rp-summary__label { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--cc-taupe); margin-bottom:2px; }
 .rp-summary__breakdown { font-size:11px; font-weight:300; color:var(--cc-stone); }
@@ -995,7 +996,7 @@ function _rentRowHTML(r) {
   const info = activeType ? _getRentInfo(r, activeType) : null;
 
   if (!hasMv && !hasKz) {
-    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><span class="rc-rent-badge rc-rent-badge--none">Nicht gesetzt</span></div><span class="rc-rent-detail" style="font-style:italic;">—</span></div>`;
+    return `<div class="rc-hdr__rent"><div class="rc-hdr__rent-left"><div class="rc-hdr__rent-top"><span class="rc-rent-badge rc-rent-badge--none">Nicht gesetzt</span></div></div></div>`;
   }
 
   const amountHTML = info ? `<span class="rc-rent-amount">${fmtEUR(info.total)}</span>` : '';
@@ -1020,7 +1021,7 @@ function _rentRowHTML(r) {
   const badgeLabel = activeType === 'mietvertrag' ? 'Mietvertrag' : 'Kurzzeit';
   return `<div class="rc-hdr__rent">
     <div class="rc-hdr__rent-left">
-      <span class="rc-rent-badge ${badgeClass}">${badgeLabel}</span>
+      <div class="rc-hdr__rent-top"><span class="rc-rent-badge ${badgeClass}">${badgeLabel}</span></div>
       <div class="rc-hdr__rent-info">${detailHTML}</div>
     </div>
     ${amountHTML}
