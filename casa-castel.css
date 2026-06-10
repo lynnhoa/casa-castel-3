@@ -1347,3 +1347,33 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   /* Notice strip scoped */
   #tab-lounge .l-notice-strip { flex-shrink: 0; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   IPAD + TOUCH DEVICE FIXES
+   @media(hover:none) targets any device that can't hover —
+   iPad, iPhone, Android. On these devices, delete/action
+   buttons that are hover-only must always be visible.
+═══════════════════════════════════════════════════════════ */
+
+@media(hover:none) {
+  /* Lounge chat delete button — always visible on touch */
+  .msg-del {
+    opacity: 0.35;
+  }
+  .msg-row:hover .msg-del {
+    opacity: 0.35; /* override hover rule — no hover on touch */
+  }
+
+  /* Kitchen chat delete buttons — always visible on touch */
+  .k-chat-row .k-delete-btn,
+  .k-sys-event .k-delete-btn {
+    display: flex;
+    opacity: 0.35;
+  }
+
+  /* Rooms tab drag handle — slightly more visible on touch */
+  .rc-drag {
+    opacity: 0.6;
+  }
+}
