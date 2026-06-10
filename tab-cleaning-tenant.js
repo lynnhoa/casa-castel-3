@@ -320,6 +320,8 @@ async function loadHouseCleaning(room) {
   const curWStart = curInfo ? curInfo.start.toISOString().slice(0,10) : null;
   const curWEnd   = curInfo ? curInfo.end.toISOString().slice(0,10)   : null;
   const weekAbsences = curWStart ? absRows.filter(a => a.from_date <= curWEnd && a.to_date >= curWStart) : [];
+  // Is the current week's assigned room itself absent?
+  const isCurrentRoomAbsent = curInfo ? weekAbsences.some(a => a.room === curInfo.room) : false;
 
   /* ── "Your next turn" lookahead ── */
   let nextTurnHtml = '';
@@ -347,60 +349,39 @@ async function loadHouseCleaning(room) {
   if (!curInfo) {
     cwEl.innerHTML = '<p class="cc-note">Not started yet.</p>';
   } else {
-    // Compute pill vars before template literal — same pattern as landlord cleaning tab
-    const curState = _hcRotState({
-      isNow: true, isPast: false, isNext: false,
-      slotDone: wDone, room: curInfo.room,
-      weekStart: curInfo.start, absRows
-    });
-    const pillClass = curState === 'done'    ? 'k-pill--done'
-                    : curState === 'skipped' ? 'k-pill--skipped'
-                    : curState === 'absent'  ? 'k-pill--skipped'
-                    : 'k-pill--pending';
-    const dotClass  = curState === 'done'    ? 'k-dot--done'
-                    : curState === 'skipped' ? 'k-dot--skipped'
-                    : curState === 'absent'  ? 'k-dot--skipped'
-                    : 'k-dot--pending';
-    const pillLabel = curState === 'done'    ? 'Done'
-                    : curState === 'skipped' ? 'Skipped'
-                    : curState === 'absent'  ? 'Away'
-                    : 'Pending';
-    const bodyHtml = curState === 'done'
-      ? `<div class="hc-done-confirm" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-           <span class="k-pill k-pill--done" style="font-size:10px;padding:3px 8px;">
-             <span class="k-dot k-dot--done"></span>
-             Marked done by ${esc(wDone.room)}
-           </span>
-           <span class="hc-done-ts">${fmtTs(wDone.ts)}</span>
-         </div>`
-      : curState === 'skipped'
-        ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is vacant this week — skipped.</p>`
-        : curState === 'absent'
-          ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is away this week.</p>`
-          : isMyTurn
-            ? `<div class="hc-your-turn-bar" style="margin:8px 0;padding:8px 12px;background:var(--cc-gold-lt);border:0.5px solid var(--cc-gold);border-radius:var(--cc-r-sm);font-size:12px;font-weight:500;color:#7A5A2A;">
-                 It's your turn this week, ${esc(room)} 🧹
-               </div>
-               <button class="cc-btn cc-btn--primary" id="hc-done-btn" style="margin-top:8px;">Mark as done ✓</button>`
-            : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`;
-
     cwEl.innerHTML = `
-      <div class="hc-current-card${curState === 'done' ? ' hc-current-card--done' : ''}">
+      <div class="hc-current-card${isDone ? ' hc-current-card--done' : ''}">
         <div class="hc-current-top">
-          <div><p class="hc-current-kw">${esc(curInfo.room)}</p></div>
-          <span class="k-pill ${pillClass}" style="font-size:10px;padding:3px 8px;">
-            <span class="k-dot ${dotClass}"></span>
-            ${pillLabel}
+          <div>
+            <p class="hc-current-kw">${esc(curInfo.room)}</p>
+          </div>
+          <span class="k-pill ${isDone ? 'k-pill--done' : isCurrentRoomAbsent ? 'k-pill--skipped' : 'k-pill--pending'}" style="font-size:10px;padding:3px 8px;">
+            <span class="k-dot ${isDone ? 'k-dot--done' : isCurrentRoomAbsent ? 'k-dot--skipped' : 'k-dot--pending'}"></span>
+            ${isDone ? 'Done' : isCurrentRoomAbsent ? '— Away' : 'Pending'}
           </span>
         </div>
         <p class="hc-current-dates">${curInfo.dateRange} · ${curInfo.daysLeft} day${curInfo.daysLeft !== 1 ? 's' : ''} left</p>
-        ${bodyHtml}
+        ${isMyTurn && !isDone
+          ? `<div class="hc-your-turn-bar" style="margin:8px 0;padding:8px 12px;background:var(--cc-gold-lt);border:0.5px solid var(--cc-gold);border-radius:var(--cc-r-sm);font-size:12px;font-weight:500;color:#7A5A2A;">
+               It's your turn this week, ${esc(room)} 🧹
+             </div>
+             <button class="cc-btn cc-btn--primary" id="hc-done-btn" style="margin-top:8px;">Mark as done ✓</button>`
+          : isDone
+            ? `<div class="hc-done-confirm" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                 <span class="k-pill k-pill--done" style="font-size:10px;padding:3px 8px;">
+                   <span class="k-dot k-dot--done"></span>
+                   Marked done by ${esc(wDone.room)}
+                 </span>
+                 <span class="hc-done-ts">${fmtTs(wDone.ts)}</span>
+               </div>`
+            : isCurrentRoomAbsent ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is away this week.</p>` : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`
+        }
       </div>
 
-      <!-- "Your next turn" callout -->
+      <!-- "Your next turn" callout — shown when it's not the tenant's turn this week -->
       ${nextTurnHtml}
 
-      <!-- Action strip -->
+      <!-- Action strip: always-visible absence buttons outside the card -->
       <div style="margin-top:8px;display:flex;gap:6px;">
         <button onclick="absOpenModal('register')" style="flex:1;height:34px;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);color:var(--cc-notice-text);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;">
           <i class="ti ti-calendar-plus" style="font-size:13px;" aria-hidden="true"></i>
@@ -412,21 +393,23 @@ async function loadHouseCleaning(room) {
         </button>
       </div>
 
-      ${weekAbsences.length ? weekAbsences.map(a => {
-        const note = a.note ? ' · ' + esc(a.note) : '';
-        return '<div style="margin-top:6px;"><button onclick="absOpenModal(\'list\')" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);margin-bottom:6px;cursor:pointer;font-family:inherit;text-align:left;">'
-          + '<i class="ti ti-calendar-off" style="font-size:14px;color:#8C5A30;flex-shrink:0;" aria-hidden="true"></i>'
-          + '<span style="flex:1;font-size:11px;color:#8C5A30;">' + esc(a.room) + ' is away this week' + note + '</span>'
-          + '<i class="ti ti-chevron-right" style="font-size:13px;color:#8C5A30;flex-shrink:0;" aria-hidden="true"></i>'
-          + '</button></div>';
-      }).join('') : ''}`;
+      <!-- Week-absence notices below action strip -->
+      ${weekAbsences.length ? `<div style="margin-top:6px;">` + weekAbsences.map(a => {
+        const note = a.note ? ` · ${esc(a.note)}` : '';
+        return `<button onclick="absOpenModal('list')" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);margin-bottom:6px;cursor:pointer;font-family:inherit;text-align:left;">
+          <i class="ti ti-calendar-off" style="font-size:14px;color:#8C5A30;flex-shrink:0;" aria-hidden="true"></i>
+          <span style="flex:1;font-size:11px;color:#8C5A30;">${esc(a.room)} is away this week${note}</span>
+          <i class="ti ti-chevron-right" style="font-size:13px;color:#8C5A30;flex-shrink:0;" aria-hidden="true"></i>
+        </button>`;
+      }).join('') + `</div>` : ''}`;
 
     /* Wire mark-done button */
-    if (isMyTurn && curState !== 'done' && curState !== 'skipped' && curState !== 'absent') {
+    if (isMyTurn && !isDone) {
       document.getElementById('hc-done-btn')?.addEventListener('click', async () => {
         const ts = Date.now();
         const btn = document.getElementById('hc-done-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+        // Persist to Supabase first — realtime will re-render for all
         if (sbL) {
           await sbL.from('lounge_data').insert({
             type: 'hc_done',
@@ -434,7 +417,9 @@ async function loadHouseCleaning(room) {
             body: JSON.stringify({ week_index: curIdx, ts })
           });
         }
+        // Also write locally for offline fallback
         S.set('hc_done_' + curIdx, { room, ts });
+        // Re-render immediately so this tenant sees update without waiting for realtime
         await loadHouseCleaning(room);
       });
     }

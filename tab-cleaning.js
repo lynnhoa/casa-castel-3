@@ -323,43 +323,27 @@ async function loadHouseCleaning() {
   const curWStart = curInfo ? curInfo.start.toISOString().slice(0,10) : null;
   const curWEnd   = curInfo ? curInfo.end.toISOString().slice(0,10)   : null;
   const weekAbsences = curWStart ? absRows.filter(a => a.from_date <= curWEnd && a.to_date >= curWStart) : [];
+  // Is the current week's assigned room itself absent?
+  const isCurrentRoomAbsent = curInfo ? weekAbsences.some(a => a.room === curInfo.room) : false;
 
   /* ── This week card ── */
   const cwEl = document.getElementById('hc-current-week');
   if (!curInfo) {
     cwEl.innerHTML = '<p class="cc-note">Not started yet.</p>';
   } else {
-    // Derive pill state using same _hcRotState as rotation strip
-    const curState = _hcRotState({
-      isNow: true, isPast: false, isNext: false,
-      slotDone: wDone, room: curInfo.room,
-      weekStart: curInfo.start, absRows
-    });
-    const pillClass = curState === 'done'    ? 'k-pill--done'
-                    : curState === 'skipped' ? 'k-pill--skipped'
-                    : curState === 'absent'  ? 'k-pill--skipped'
-                    : 'k-pill--pending';
-    const dotClass  = curState === 'done'    ? 'k-dot--done'
-                    : curState === 'skipped' ? 'k-dot--skipped'
-                    : curState === 'absent'  ? 'k-dot--skipped'
-                    : 'k-dot--pending';
-    const pillLabel = curState === 'done'    ? 'Done'
-                    : curState === 'skipped' ? 'Skipped'
-                    : curState === 'absent'  ? 'Away'
-                    : 'Pending';
     cwEl.innerHTML = `
-      <div class="hc-current-card${curState === 'done' ? ' hc-current-card--done' : ''}">
+      <div class="hc-current-card${isDone ? ' hc-current-card--done' : ''}">
         <div class="hc-current-top">
           <div>
             <p class="hc-current-kw">${esc(curInfo.room)}</p>
           </div>
-          <span class="k-pill ${pillClass}" style="font-size:10px;padding:3px 8px;">
-            <span class="k-dot ${dotClass}"></span>
-            ${pillLabel}
+          <span class="k-pill ${isDone ? 'k-pill--done' : isCurrentRoomAbsent ? 'k-pill--skipped' : 'k-pill--pending'}" style="font-size:10px;padding:3px 8px;">
+            <span class="k-dot ${isDone ? 'k-dot--done' : isCurrentRoomAbsent ? 'k-dot--skipped' : 'k-dot--pending'}"></span>
+            ${isDone ? 'Done' : isCurrentRoomAbsent ? '— Away' : 'Pending'}
           </span>
         </div>
         <p class="hc-current-dates">${curInfo.dateRange} · ${curInfo.daysLeft} days left</p>
-        ${curState === 'done'
+        ${isDone
           ? `<div class="hc-done-confirm visible">
                <span class="k-pill k-pill--done" style="font-size:10px;padding:3px 8px;">
                  <span class="k-dot k-dot--done"></span>
@@ -367,11 +351,7 @@ async function loadHouseCleaning() {
                </span>
                <span class="hc-done-ts">${fmtTs(wDone.ts)}</span>
              </div>`
-          : curState === 'skipped'
-            ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is vacant this week — skipped.</p>`
-            : curState === 'absent'
-              ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is away this week.</p>`
-              : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`
+          : isCurrentRoomAbsent ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is away this week.</p>` : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`
         }
       </div>
 
