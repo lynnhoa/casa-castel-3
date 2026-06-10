@@ -91,23 +91,23 @@ document.getElementById('tab-kitchen').innerHTML = `
     <div class="k-desktop-left">
 
       <div class="k-dsk-section">
-        <div class="k-dsk-section-hdr">
-          <span class="k-dsk-section-lbl">This week</span>
-          <span class="kc-week-badge" id="k-week-label">Awaiting proof</span>
+        <div class="k-mob-week-top-row" style="margin-bottom:10px;">
+          <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
+          <div class="k-mob-week-corner-links">
+            <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('history')">history</button>
+          </div>
         </div>
-        <p class="k-dsk-week-room" id="k-current-room">—</p>
-        <p class="k-dsk-week-dates" id="k-dates">—</p>
-        <div class="k-nudge-notice" id="k-nudge-notice" style="display:none;">
+        <div class="k-mob-week-body">
+          <div class="k-mob-week-left">
+            <span class="k-mob-week-room" id="k-mob-room-name">—</span>
+            <span class="k-mob-week-dates-sm" id="k-mob-dates">—</span>
+            <span class="k-mob-week-absent-note" id="k-mob-absent-note" style="display:none;"></span>
+          </div>
+          <div class="k-mob-week-acts" id="k-mob-actions"></div>
+        </div>
+        <div class="k-nudge-notice" id="k-nudge-notice" style="display:none;margin-top:8px;">
           <span class="k-nudge-notice__icon">⚑</span>
           <span id="k-nudge-notice-text">A house nudge was sent this week.</span>
-        </div>
-        <p class="kc-proof-meta" id="k-proof-meta" style="font-size:11px;color:var(--cc-taupe);margin-bottom:4px;"></p>
-        <div class="k-dsk-act-row">
-          <button class="cc-btn cc-btn--primary k-flag-btn" id="k-approve-btn"   style="display:none;">✓ Approve</button>
-          <button class="k-flag-btn"                        id="k-unapprove-btn" style="display:none;background:var(--cc-surface);color:var(--cc-taupe);border-color:var(--cc-rule);">↩ Undo</button>
-          <button class="k-flag-btn"                        id="k-flag-btn">⚑ Flag</button>
-          <button class="k-flag-btn"                        id="k-reminder-btn" style="background:var(--cc-surface);color:var(--cc-taupe);border-color:var(--cc-rule);">✉ Remind</button>
-          <button class="k-flag-btn"                        id="k-reset-btn"    style="background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">↺ Reset</button>
         </div>
       </div>
 
@@ -458,73 +458,6 @@ async function _kRenderFeed(feedId, weekRow, forMobile) {
   });
   // v2: use scrollToBottom with rAF retry instead of setTimeout
   scrollToBottom(el);
-}
-
-/* ── LANDLORD BUTTONS (desktop) ─────────────────────────── */
-async function _kRenderLandlordButtons() {
-  const metaEl      = document.getElementById('k-proof-meta');
-  const approveBtn  = document.getElementById('k-approve-btn');
-  const unapproveBtn= document.getElementById('k-unapprove-btn');
-  const fBtn        = document.getElementById('k-flag-btn');
-  const reminderBtn = document.getElementById('k-reminder-btn');
-  const resetBtn    = document.getElementById('k-reset-btn');
-  const badgeEl     = document.getElementById('k-week-label');
-
-  const idx = kWeekIdx();
-  const wi  = _kWeekInfo(idx);
-  if (!wi) return;
-
-  const [freshRow, absRes] = await Promise.all([
-    _kGetWeek(idx),
-    sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
-  ]);
-
-  const state = _kRotState({
-    isNow: true, isPast: false,
-    dbStatus:    freshRow ? freshRow.status : null,
-    room:        wi.room,
-    weekStart:   wi.start,
-    absenceRows: absRes,
-  });
-
-  approveBtn.style.display   = 'none';
-  unapproveBtn.style.display = 'none';
-  fBtn.classList.remove('flagged');
-  fBtn.textContent   = '⚑ Flag — needs redo';
-  fBtn.style.display = '';
-  reminderBtn.style.display = '';
-  resetBtn.style.display    = '';
-  resetBtn.textContent      = '↺ Reset — mark missed';
-
-  if (state === 'skipped') {
-    metaEl.textContent = 'Room is vacant this week.'; badgeEl.textContent = 'Skipped';
-    approveBtn.style.display = 'none'; unapproveBtn.style.display = 'none';
-    fBtn.style.display = 'none'; reminderBtn.style.display = 'none';
-    resetBtn.style.display = 'none';
-  } else if (state === 'absent') {
-    metaEl.textContent = 'Room is away this week.'; badgeEl.textContent = 'Away';
-    fBtn.style.display = 'none'; reminderBtn.style.display = 'none';
-    resetBtn.style.display = 'none'; approveBtn.style.display = 'none';
-    unapproveBtn.style.display = 'none';
-  } else if (state === 'done') {
-    metaEl.textContent = '✓ Approved'; badgeEl.textContent = 'Approved';
-    unapproveBtn.style.display = ''; fBtn.style.display = 'none'; reminderBtn.style.display = 'none';
-  } else if (freshRow && freshRow.status === 'missed') {
-    metaEl.textContent = 'No proof submitted. Week closed.'; badgeEl.textContent = 'Missed';
-    fBtn.style.display = 'none'; reminderBtn.style.display = 'none';
-    resetBtn.textContent = '↺ Reopen week — give another chance';
-  } else if (freshRow && freshRow.status === 'flagged') {
-    metaEl.textContent = '⚑ Flagged — awaiting re-upload'; badgeEl.textContent = 'Redo requested';
-    fBtn.classList.add('flagged'); fBtn.textContent = '✓ Flagged — tap to unflag';
-  } else if (freshRow && freshRow.status === 'submitted') {
-    const label = (freshRow.reupload_count > 0) ? 'Re-submitted' : 'Submitted';
-    metaEl.textContent = label + ' · ' + fmtTs(new Date(freshRow.submitted_at).getTime());
-    badgeEl.textContent = (freshRow.reupload_count > 0) ? 'Re-uploaded' : 'Ready to review';
-    approveBtn.style.display = ''; approveBtn.textContent = '✓ Approve week';
-  } else {
-    metaEl.textContent = 'No proof submitted yet'; badgeEl.textContent = 'Awaiting proof';
-    fBtn.style.display = 'none';
-  }
 }
 
 /* ── MOBILE WEEK CARD ───────────────────────────────────── */
@@ -1133,8 +1066,8 @@ async function initKitchen() {
   const pad  = n => String(n).padStart(2, '0');
   const fmtDt = dt => `${pad(dt.getDate())}.${pad(dt.getMonth() + 1)}.${dt.getFullYear()}`;
 
-  document.getElementById('k-current-room').textContent = info.room;
-  document.getElementById('k-dates').textContent = idx < 0
+  document.getElementById('k-mob-room-name').textContent = info ? info.room : '—';
+  document.getElementById('k-mob-dates').textContent = idx < 0
     ? 'Starts ' + fmtDt(info.start)
     : fmtDt(info.start) + ' – ' + fmtDt(info.end);
 
@@ -1163,56 +1096,19 @@ async function initKitchen() {
     _kGetComments(weekRow.id),
     _kRenderDesktopHistory(idx)
   ]);
-  await _kRenderLandlordButtons();
+  await _kRenderMobWeekCard();
   await _kRenderFeed('k-feed', weekRow, false);
   _kRenderNudgeLog();
 
   // Check active nudge notice in week card
   await _kRefreshNudgeNotice();
 
-  // Wire desktop action buttons (clone to remove stale listeners)
+  // Wire desktop message send (action buttons now use same kMob* functions as mobile)
   const rewire = (id, fn) => {
     const old = document.getElementById(id); if (!old) return;
     const fresh = old.cloneNode(true); old.parentNode.replaceChild(fresh, old);
     fresh.addEventListener('click', fn);
   };
-  rewire('k-approve-btn', async () => {
-    if (!confirm('Approve this week?')) return;
-    await _kUpdateWeek(idx, { status:'approved', flagged:false, approved_at:new Date().toISOString() });
-    await _kAddComment(_kWeekRow.id, 'Casa Castel', '✓ Approved by landlord.', false);
-    _kWeekRow = await _kGetWeek(idx); await _kRenderLandlordButtons(); await _kRenderFeed('k-feed', _kWeekRow, false); _kRenderDesktopHistory(idx);
-  });
-  rewire('k-unapprove-btn', async () => {
-    if (!confirm('Undo approval? Tenant keeps their photos.')) return;
-    await _kUpdateWeek(idx, { status:'submitted', flagged:false, approved_at:null });
-    await _kAddComment(_kWeekRow.id, 'Casa Castel', '↩ Approval undone — week back under review.', false);
-    _kWeekRow = await _kGetWeek(idx); await _kRenderLandlordButtons(); await _kRenderFeed('k-feed', _kWeekRow, false); _kRenderDesktopHistory(idx);
-  });
-  rewire('k-flag-btn', async () => {
-    const nowFlagged = _kWeekRow.status !== 'flagged';
-    const patch = nowFlagged ? { flagged:true, status:'flagged' } : { flagged:false, status:'submitted' };
-    await _kUpdateWeek(idx, patch);
-    if (nowFlagged) await _kAddComment(_kWeekRow.id, 'Casa Castel', '⚑ Flagged by landlord — please re-upload your photos.', true);
-    _kWeekRow = await _kGetWeek(idx); await _kRenderLandlordButtons(); await _kRenderFeed('k-feed', _kWeekRow, false);
-  });
-  rewire('k-reminder-btn', async () => {
-    const email = tenantEmail(_kWeekRow.room);
-    const name  = S.get('room_profile_' + _kWeekRow.room, {}).firstName || _kWeekRow.room;
-    window.location.href = buildMailto(email, 'Casa Castel Kitchen — Proof required',
-      `Hi ${name},\n\nWe noticed no proof photo was uploaded for your kitchen cleaning week.\n\nPlease clean and upload your proof in the app.\n\nCasa Castel`);
-    await _kUpdateWeek(idx, { reminder_sent: true });
-  });
-  rewire('k-reset-btn', async () => {
-    if (_kWeekRow.status === 'missed') {
-      if (!confirm(`Reopen week for ${_kWeekRow.room}?`)) return;
-      await _kUpdateWeek(idx, { status:'pending', flagged:false, closed_at:null });
-    } else {
-      if (!confirm(`Reset week for ${_kWeekRow.room}? Marks as Missed and clears all proof.`)) return;
-      await _kDeleteComments(_kWeekRow.id);
-      await _kUpdateWeek(idx, { status:'missed', photos:null, photo_path:null, photo_url:null, flagged:false, closed_at:new Date().toISOString() });
-    }
-    _kWeekRow = await _kGetWeek(idx); await _kRenderLandlordButtons(); await _kRenderFeed('k-feed', _kWeekRow, false); _kRenderDesktopHistory(idx);
-  });
   rewire('k-msg-send', () => _kSendDesktopMsg());
   const kMsgInput = document.getElementById('k-msg-input');
   if (kMsgInput) {
@@ -1243,7 +1139,7 @@ function _kSubscribe(idx) {
         await _kRenderFeed('k-feed-mob', _kWeekRow, true);
         _kRenderMobRotation();
       } else {
-        await _kRenderLandlordButtons();
+        await _kRenderMobWeekCard();
         await _kRenderFeed('k-feed', _kWeekRow, false);
         _kRenderDesktopHistory(idx);
         _kRenderDesktopRotation(idx, kWeekInfo(Math.max(0, idx)));
@@ -1275,7 +1171,7 @@ function _kSubscribe(idx) {
         if (mobile) {
           await _kRenderMobWeekCard(_kWeekRow);
         } else {
-          await _kRenderLandlordButtons();
+          await _kRenderMobWeekCard();
         }
       }
 
@@ -1314,7 +1210,7 @@ function _kSubscribe(idx) {
         await _kRenderMobWeekCard(_kWeekRow);
         await _kRenderMobRotation();
       } else {
-        await _kRenderLandlordButtons();
+        await _kRenderMobWeekCard();
         _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
       }
     })

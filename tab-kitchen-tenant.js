@@ -101,13 +101,20 @@ document.getElementById('tab-kitchen').innerHTML = `
     <div class="k-desktop-left">
 
       <div class="k-dsk-section">
-        <div class="k-dsk-section-hdr">
-          <span class="k-dsk-section-lbl">This week</span>
+        <div class="k-mob-week-top-row" style="margin-bottom:10px;">
+          <span class="k-mob-status-chip pending" id="k-ten-dsk-chip"></span>
+          <div class="k-mob-week-corner-links">
+            <button class="k-mob-week-corner-link" onclick="kitchenTenantOpenModal('history')">history</button>
+          </div>
         </div>
-        <p class="k-dsk-week-room" id="k-ten-dsk-room">—</p>
-        <p class="k-dsk-week-dates" id="k-ten-dsk-dates">—</p>
-        <span class="k-mob-status-chip pending" id="k-ten-dsk-chip" style="display:inline-block;margin-bottom:10px;"></span>
-        <div id="k-ten-dsk-act"></div>
+        <div class="k-mob-week-body">
+          <div class="k-mob-week-left">
+            <span class="k-mob-week-room" id="k-ten-dsk-room">—</span>
+            <span class="k-mob-week-dates-sm" id="k-ten-dsk-dates">—</span>
+            <span class="k-mob-week-absent-note" id="k-ten-dsk-absent-note" style="display:none;"></span>
+          </div>
+          <div id="k-ten-dsk-act"></div>
+        </div>
       </div>
 
       <div class="k-dsk-section">
@@ -565,9 +572,14 @@ async function _kTenRenderWeekCard(overrideRow) {
   _setAct(dskActEl);
 
   const absNote = document.getElementById('k-mob-absent-note');
-  if (absNote) {
-    if (freshRow && freshRow.is_absent) { absNote.textContent = '📅 ' + wi.room + ' is absent — no proof required'; absNote.style.display = ''; }
-    else { absNote.style.display = 'none'; }
+  const dskAbsNote = document.getElementById('k-ten-dsk-absent-note');
+  if (freshRow && freshRow.is_absent) {
+    const txt = '📅 ' + wi.room + ' is absent — no proof required';
+    if (absNote) { absNote.textContent = txt; absNote.style.display = ''; }
+    if (dskAbsNote) { dskAbsNote.textContent = txt; dskAbsNote.style.display = ''; }
+  } else {
+    if (absNote) absNote.style.display = 'none';
+    if (dskAbsNote) dskAbsNote.style.display = 'none';
   }
 }
 
