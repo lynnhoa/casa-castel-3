@@ -373,11 +373,13 @@ function _kBuildFeedHtml(comments, weekRow, forMobile) {
     if (ev._type === 'submission') {
       const isRe = flagSeen; flagSeen = false;
       const photoStrip = ev.photos && ev.photos.length
-        ? '<div class="k-chat-photos" style="margin-top:8px;">'
+        ? '<div style="display:flex;gap:4px;margin-top:8px;">'
           + ev.photos.filter(p => p.url).map(p =>
-            `<div class="k-chat-photo-thumb" onclick="openPhotoModal('${p.url}','${lbl(p.type)}')">`
-            + `<img src="${p.url}" alt="${p.type}" onerror="this.style.display='none'"/><span>${lbl(p.type)}</span></div>`
-          ).join('') + '</div>'
+              `<div style="flex:1;min-width:0;aspect-ratio:3/4;border-radius:6px;overflow:hidden;border:0.5px solid var(--cc-rule);position:relative;cursor:pointer;" onclick="openPhotoModal('${p.url}','${lbl(p.type)}')">` 
+              + `<img src="${p.url}" alt="${p.type}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'"/>` 
+              + `<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);font-size:8px;font-weight:500;color:#fff;letter-spacing:0.05em;text-transform:uppercase;padding:3px 4px;text-align:center;">${lbl(p.type)}</span>`
+              + `</div>`
+            ).join('') + '</div>'
         : '';
       const badge = isRe
         ? '<span class="k-reupload-badge">↑ Re-uploaded</span>'
