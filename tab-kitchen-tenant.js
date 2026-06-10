@@ -51,22 +51,25 @@ document.getElementById('tab-kitchen').innerHTML = `
     </div>
 
     <!-- Proof wizard overlay — 3-slot single screen -->
-    <div id="k-ten-wizard" style="display:none;position:fixed;inset:0;background:var(--cc-bg);z-index:200;flex-direction:column;">
-      <!-- Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;">
-        <span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);">Kitchen proof</span>
-        <button onclick="_kTenWizCancel()" style="font-size:14px;color:var(--cc-stone);background:none;border:none;cursor:pointer;padding:4px 8px;">✕</button>
-      </div>
-      <!-- 3 photo slots -->
-      <div style="flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px;">
-        <p style="font-size:12px;color:var(--cc-taupe);text-align:center;margin:0 0 4px;">Tap each slot to take a photo. Tap again to retake.</p>
-        <div id="k-ten-wiz-slots" style="display:flex;gap:10px;"></div>
-      </div>
-      <!-- Hidden file input — shared, tracks which slot -->
-      <input type="file" id="k-ten-wiz-file" accept="image/*" capture="environment" style="display:none;"/>
-      <!-- Submit -->
-      <div style="padding:16px 20px;padding-bottom:max(16px,env(safe-area-inset-bottom,16px));border-top:0.5px solid var(--cc-rule);flex-shrink:0;">
-        <button id="k-ten-wiz-submit-btn" class="cc-btn" style="width:100%;opacity:0.4;pointer-events:none;" onclick="_kTenWizSubmit()">↑ Submit proof</button>
+    <div id="k-ten-wizard" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+      <!-- Modal sheet — full-screen on mobile, centered card on desktop -->
+      <div style="background:var(--cc-bg);display:flex;flex-direction:column;width:100%;height:100%;max-width:480px;max-height:100%;border-radius:0;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;">
+          <span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);">Kitchen proof</span>
+          <button onclick="_kTenWizCancel()" style="font-size:14px;color:var(--cc-stone);background:none;border:none;cursor:pointer;padding:4px 8px;">✕</button>
+        </div>
+        <!-- 3 photo slots -->
+        <div style="flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px;">
+          <p style="font-size:12px;color:var(--cc-taupe);text-align:center;margin:0 0 4px;">Click each slot to add a photo. Click again to retake.</p>
+          <div id="k-ten-wiz-slots" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+        <!-- Hidden file input — no capture on desktop, camera on mobile -->
+        <input type="file" id="k-ten-wiz-file" accept="image/*" style="display:none;"/>
+        <!-- Submit -->
+        <div style="padding:16px 20px;padding-bottom:max(16px,env(safe-area-inset-bottom,16px));border-top:0.5px solid var(--cc-rule);flex-shrink:0;">
+          <button id="k-ten-wiz-submit-btn" class="cc-btn" style="width:100%;opacity:0.4;pointer-events:none;" onclick="_kTenWizSubmit()">↑ Submit proof</button>
+        </div>
       </div>
     </div>
 
@@ -274,6 +277,12 @@ function _kTenWizOpen() {
   _kWizPreviews   = [null, null, null];
   _kWizSubmitting = false;
   _kWizActiveSlot = 0;
+  // Mobile: use camera directly. Desktop: normal file picker.
+  const fileInput = document.getElementById('k-ten-wiz-file');
+  if (fileInput) {
+    if (window.innerWidth <= 700) fileInput.setAttribute('capture', 'environment');
+    else fileInput.removeAttribute('capture');
+  }
   _kTenWizRenderSlots();
   document.getElementById('k-ten-wizard').style.display = 'flex';
 }
