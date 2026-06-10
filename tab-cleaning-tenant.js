@@ -222,6 +222,7 @@ document.getElementById('tab-cleaning').innerHTML = `
 
   <div class="cc-section" style="padding-top:0;">
     <p class="hc-section-title">This week</p>
+    <div id="hc-next-turn"></div>
     <div id="hc-current-week"></div>
   </div>
 
@@ -340,7 +341,7 @@ async function loadHouseCleaning(room) {
         const fmtD = dt => pad(dt.getDate()) + '.' + pad(dt.getMonth() + 1);
         const rangeStr = fmtD(futureInfo.start) + ' – ' + fmtD(futureInfo.end) + '.' + futureInfo.end.getFullYear();
         const weeksLabel = offset === 1 ? 'next week' : `in ${offset} week${offset !== 1 ? 's' : ''}`;
-        nextTurnHtml = `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#EBF4FF;border:0.5px solid #90C2F5;border-radius:var(--cc-r-sm);margin-top:8px;">
+        nextTurnHtml = `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#EBF4FF;border:0.5px solid #90C2F5;border-radius:var(--cc-r-sm);margin-bottom:8px;">
           <i class="ti ti-calendar-due" style="font-size:14px;color:#185FA5;flex-shrink:0;" aria-hidden="true"></i>
           <span style="font-size:11px;color:#1A5896;">Your turn ${weeksLabel} · ${rangeStr}</span>
         </div>`;
@@ -349,9 +350,14 @@ async function loadHouseCleaning(room) {
     }
   }
 
+  /* ── "Your next turn" callout — rendered above the card ── */
+  const ntEl = document.getElementById('hc-next-turn');
+  if (ntEl) ntEl.innerHTML = nextTurnHtml;
+
   /* ── This week card ── */
   const cwEl = document.getElementById('hc-current-week');
   if (!curInfo) {
+    if (ntEl) ntEl.innerHTML = '';
     cwEl.innerHTML = '<p class="cc-note">Not started yet.</p>';
   } else {
     cwEl.innerHTML = `
@@ -382,9 +388,6 @@ async function loadHouseCleaning(room) {
             : isCurrentRoomAbsent ? `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is away this week.</p>` : `<p class="cc-note" style="margin-top:4px;">${esc(curInfo.room)} is responsible this week.</p>`
         }
       </div>
-
-      <!-- "Your next turn" callout — shown when it's not the tenant's turn this week -->
-      ${nextTurnHtml}
 
       <!-- Action strip: always-visible absence buttons outside the card -->
       <div style="margin-top:8px;display:flex;gap:6px;">
