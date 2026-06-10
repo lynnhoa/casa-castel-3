@@ -92,18 +92,18 @@ document.getElementById('tab-kitchen').innerHTML = `
 
       <div class="k-dsk-section">
         <div class="k-mob-week-top-row" style="margin-bottom:10px;">
-          <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
+          <span class="k-mob-status-chip pending" id="k-dsk-status-chip"></span>
           <div class="k-mob-week-corner-links">
             <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('history')">history</button>
           </div>
         </div>
         <div class="k-mob-week-body">
           <div class="k-mob-week-left">
-            <span class="k-mob-week-room" id="k-mob-room-name">—</span>
-            <span class="k-mob-week-dates-sm" id="k-mob-dates">—</span>
-            <span class="k-mob-week-absent-note" id="k-mob-absent-note" style="display:none;"></span>
+            <span class="k-mob-week-room" id="k-dsk-room-name">—</span>
+            <span class="k-mob-week-dates-sm" id="k-dsk-dates">—</span>
+            <span class="k-mob-week-absent-note" id="k-dsk-absent-note" style="display:none;"></span>
           </div>
-          <div class="k-mob-week-acts" id="k-mob-actions"></div>
+          <div class="k-mob-week-acts" id="k-dsk-actions"></div>
         </div>
         <div class="k-nudge-notice" id="k-nudge-notice" style="display:none;margin-top:8px;">
           <span class="k-nudge-notice__icon">⚑</span>
@@ -464,11 +464,12 @@ async function _kRenderFeed(feedId, weekRow, forMobile) {
 async function _kRenderMobWeekCard(overrideRow) {
   const idx = kWeekIdx();
   const wi  = _kWeekInfo(idx); if (!wi) return;
-  document.getElementById('k-mob-room-name').textContent = wi.room;
   const pad = n => String(n).padStart(2, '0');
   const fmt = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
-  document.getElementById('k-mob-dates').textContent =
-    fmt(wi.start) + ' – ' + fmt(wi.end) + (wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : ' · ends today');
+  const dateStr = fmt(wi.start) + ' – ' + fmt(wi.end) + (wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : ' · ends today');
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('k-mob-room-name', wi.room); setTxt('k-dsk-room-name', wi.room);
+  setTxt('k-mob-dates', dateStr);     setTxt('k-dsk-dates', dateStr);
 
   // If caller passes overrideRow (optimistic patch), use it directly — no race.
   // Otherwise fetch fresh from Supabase. Realtime always calls without arg → authoritative re-sync.
@@ -486,34 +487,28 @@ async function _kRenderMobWeekCard(overrideRow) {
   });
   const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
 
-  const chip = document.getElementById('k-mob-status-chip');
-  if (chip) {
-    const chipMap = {
-      now:      'pending',
-      done:     'approved',
-      missed:   'missed',
-      flagged:  'flagged',
-      absent:   'skipped',
-      skipped:  'skipped',
-      next:     'pending',
-    };
-      const dbStatusNow = freshRow ? freshRow.status : null;
-      const chipClsNow = isResub              ? 'resubmitted'
-                       : state === 'done'     ? 'approved'
-                       : state === 'missed'   ? 'missed'
-                       : state === 'absent'   ? 'skipped'
-                       : state === 'skipped'  ? 'skipped'
-                       : dbStatusNow === 'flagged'   ? 'flagged'
-                       : dbStatusNow === 'submitted' ? 'submitted'
-                       : 'pending';
-      chip.className   = 'k-mob-status-chip ' + chipClsNow;
-      chip.textContent = state !== 'now'
-        ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
-        : isResub                        ? '↑↑ Re-submitted'
-        : dbStatusNow === 'submitted'    ? '↑ Submitted'
-        : dbStatusNow === 'flagged'      ? '⚑ Redo'
-        : 'Pending';
-  }
+  const chip    = document.getElementById('k-mob-status-chip');
+  const dskChip = document.getElementById('k-dsk-status-chip');
+  const setChip = (el) => {
+    if (!el) return;
+    const dbStatusNow = freshRow ? freshRow.status : null;
+    const chipClsNow = isResub              ? 'resubmitted'
+                     : state === 'done'     ? 'approved'
+                     : state === 'missed'   ? 'missed'
+                     : state === 'absent'   ? 'skipped'
+                     : state === 'skipped'  ? 'skipped'
+                     : dbStatusNow === 'flagged'   ? 'flagged'
+                     : dbStatusNow === 'submitted' ? 'submitted'
+                     : 'pending';
+    el.className   = 'k-mob-status-chip ' + chipClsNow;
+    el.textContent = state !== 'now'
+      ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
+      : isResub                        ? '↑↑ Re-submitted'
+      : dbStatusNow === 'submitted'    ? '↑ Submitted'
+      : dbStatusNow === 'flagged'      ? '⚑ Redo'
+      : 'Pending';
+  };
+  setChip(chip); setChip(dskChip);
 
   // Action buttons — same state, no separate fetch
   _kRenderMobActionsFromState(state, freshRow);
@@ -522,7 +517,9 @@ async function _kRenderMobWeekCard(overrideRow) {
 /* ── MOBILE ACTION BUTTONS ──────────────────────────────── */
 // Called from _kRenderMobWeekCard with state+freshRow already derived — no extra fetch.
 function _kRenderMobActionsFromState(state, freshRow) {
-  const el = document.getElementById('k-mob-actions'); if (!el) return;
+  const el    = document.getElementById('k-mob-actions');
+  const dskEl = document.getElementById('k-dsk-actions');
+  if (!el && !dskEl) return;
   const dbStatus = freshRow ? freshRow.status : null;
   let items = [];
   if (state === 'skipped' || state === 'absent') {
@@ -541,7 +538,9 @@ function _kRenderMobActionsFromState(state, freshRow) {
     items.push(`<button class="k-mob-wact blue"  onclick="kMobReminder()" aria-label="Remind"><i class="ti ti-mail"></i><span>Remind</span></button>`);
     items.push(`<button class="k-mob-wact red"   onclick="kMobReset()"   aria-label="Missed"><i class="ti ti-rotate"></i><span>Missed</span></button>`);
   }
-  el.innerHTML = items.join('');
+  const html = items.join('');
+  if (el)    el.innerHTML    = html;
+  if (dskEl) dskEl.innerHTML = html;
 }
 
 /* ── MOBILE ROTATION STRIP ──────────────────────────────── */
@@ -1067,7 +1066,11 @@ async function initKitchen() {
   const fmtDt = dt => `${pad(dt.getDate())}.${pad(dt.getMonth() + 1)}.${dt.getFullYear()}`;
 
   document.getElementById('k-mob-room-name').textContent = info ? info.room : '—';
+  if (document.getElementById('k-dsk-room-name')) document.getElementById('k-dsk-room-name').textContent = info ? info.room : '—';
   document.getElementById('k-mob-dates').textContent = idx < 0
+    ? 'Starts ' + fmtDt(info.start)
+    : fmtDt(info.start) + ' – ' + fmtDt(info.end);
+  if (document.getElementById('k-dsk-dates')) document.getElementById('k-dsk-dates').textContent = idx < 0
     ? 'Starts ' + fmtDt(info.start)
     : fmtDt(info.start) + ' – ' + fmtDt(info.end);
 
