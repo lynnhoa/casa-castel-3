@@ -59,6 +59,73 @@ document.getElementById('tab-kitchen').innerHTML = `
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════
+       TENANT DESKTOP GRID — hidden on mobile, shown ≥701px
+       Same data as mobile — rendered by same functions.
+       ═══════════════════════════════════════════════════════ -->
+  <div class="k-desktop-grid">
+
+    <!-- Left column: week card + rotation -->
+    <div class="k-desktop-left">
+
+      <!-- This week -->
+      <div class="k-dsk-section">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">This week</span>
+          <span class="k-mob-status-chip pending" id="k-dsk-status-chip"></span>
+        </div>
+        <div class="k-mob-week-body" style="margin-top:0;">
+          <div class="k-mob-week-left">
+            <span class="k-mob-week-room" id="k-dsk-room-name">—</span>
+            <span class="k-mob-week-dates-sm" id="k-dsk-dates">—</span>
+          </div>
+          <div id="k-dsk-ten-act"></div>
+        </div>
+      </div>
+
+      <!-- Rotation list -->
+      <div class="k-dsk-section" style="border-bottom:none;">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">Rotation</span>
+          <button class="k-dsk-section-link" onclick="kitchenTenantOpenModal('history')">history ›</button>
+        </div>
+        <div id="k-dsk-rot-list"></div>
+      </div>
+
+    </div><!-- /.k-desktop-left -->
+
+    <!-- Right column: nudge banner + feed + compose -->
+    <div class="k-desktop-right">
+
+      <div class="k-dsk-chat-hdr">
+        <span class="k-dsk-chat-lbl">Proof &amp; chat</span>
+        <button class="k-dsk-chat-link" onclick="loadKitchenTenant()">↺ Refresh</button>
+      </div>
+
+      <!-- Nudge banner (desktop) -->
+      <div id="k-dsk-ten-nudge-banner" style="display:none;flex-shrink:0;padding:7px 14px;background:#FEFCE8;border-bottom:0.5px solid #EAD96B;align-items:center;gap:8px;">
+        <span style="font-size:12px;flex-shrink:0;">⚑</span>
+        <span id="k-dsk-ten-nudge-banner-text" style="flex:1;font-size:11px;color:#78640A;font-weight:400;"></span>
+        <button onclick="_kTenMarkNudgeDoneDsk()" style="flex-shrink:0;background:#FEF9C3;border:0.5px solid #EAD96B;border-radius:6px;font-size:10px;font-weight:500;color:#78640A;cursor:pointer;padding:4px 10px;font-family:inherit;white-space:nowrap;">✓ Done</button>
+        <button onclick="_kTenDismissNudgeBannerDsk()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+      </div>
+
+      <!-- Feed -->
+      <div class="k-dsk-feed" id="k-feed-dsk"></div>
+
+      <!-- Compose bar -->
+      <div class="k-mob-compose" style="padding-bottom:10px!important;">
+        <input class="k-mob-compose-input" id="k-dsk-msg-input" type="text" placeholder="Write to kitchen group…"/>
+        <input type="file" id="k-dsk-photo-file" accept="image/*" style="display:none;"/>
+        <button class="k-mob-camera-btn" id="k-dsk-photo-btn" aria-label="Send photo">
+          <i class="ti ti-camera" style="font-size:18px;"></i>
+        </button>
+      </div>
+
+    </div><!-- /.k-desktop-right -->
+
+  </div><!-- /.k-desktop-grid -->
+
   <!-- History modal -->
   <div class="cc-modal-overlay" id="kitchen-tenant-modal-history" onclick="if(event.target===this)kitchenTenantCloseModal('history')">
     <div class="cc-modal-sheet" style="max-height:70vh;">
@@ -397,13 +464,23 @@ function _kTenBuildFeedHtml(comments, weekRow) {
 /* ── FEED RENDER ────────────────────────────────────────── */
 async function _kTenRenderFeed(weekRow) {
   const elMob = document.getElementById('k-feed-mob');
+  const elDsk = document.getElementById('k-feed-dsk');
   const empty  = '<p class="cc-note" style="padding:8px 0;">No data.</p>';
   const missed = '<p class="cc-note" style="padding:8px 0;">Week reset — marked as missed.</p>';
-  if (!weekRow) { if (elMob) elMob.innerHTML = empty; return; }
-  if (weekRow.status === 'missed') { if (elMob) elMob.innerHTML = missed; return; }
+  if (!weekRow) {
+    if (elMob) elMob.innerHTML = empty;
+    if (elDsk) elDsk.innerHTML = empty;
+    return;
+  }
+  if (weekRow.status === 'missed') {
+    if (elMob) elMob.innerHTML = missed;
+    if (elDsk) elDsk.innerHTML = missed;
+    return;
+  }
   const comments = await _kTenGetComments(weekRow.id);
   const html = _kTenBuildFeedHtml(comments, weekRow);
   if (elMob) { elMob.innerHTML = html; scrollToBottom(elMob); }
+  if (elDsk) { elDsk.innerHTML = html; scrollToBottom(elDsk); }
 }
 
 /* ── ROTATION STRIP ─────────────────────────────────────── */
@@ -444,6 +521,27 @@ async function _kTenRenderRotation(absData) {
   }).join('');
 
   el.innerHTML = `<div class="k-mob-rot-line"></div><div class="k-mob-rot-line-done" style="width:${greenPct}"></div><div class="k-mob-rot-items">${items}</div>`;
+
+  // Desktop: vertical list
+  const elDsk = document.getElementById('k-dsk-rot-list');
+  if (elDsk) {
+    const dotColor = { done:'#9AC87A', now:'#E8C97A', next:'#90C2F5', missed:'#F5A8A5', skipped:'#C4B5FD', absent:'#D4A87A', upcoming:'var(--cc-rule)', none:'var(--cc-rule)' };
+    const statusLabel = { done:'✓ Done', missed:'✗ Missed', skipped:'— Skip', absent:'Away', now:'Now', next:'Next', upcoming:'', none:'' };
+    const statusCls   = { done:'rs-done', missed:'rs-missed', now:'rs-now', next:'rs-next' };
+    elDsk.innerHTML = rooms.map((room, i) => {
+      const slotIdx = cycleStart + i;
+      const info    = kWeekInfo(Math.max(0, slotIdx));
+      const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
+      const dbRow   = dbRows[i];
+      const state   = _kRotState({ isNow:i===cyclePos, isPast:i<cyclePos, isNext:i===trueNextI, dbStatus:dbRow?dbRow.status:null, room, weekStart:info?info.start:null, absenceRows:absData });
+      const dot  = dotColor[state] || 'var(--cc-rule)';
+      const lbl  = statusLabel[state] || '';
+      const cls  = statusCls[state] || '';
+      const roomStyle = state === 'now' ? 'font-weight:500;color:#633806;' : '';
+      const badge = lbl ? `<span class="k-dsk-rot-status ${cls}">${lbl}</span>` : '';
+      return `<div class="k-dsk-rot-item"><div class="k-dsk-rot-dot" style="background:${dot};"></div><span class="k-dsk-rot-room" style="${roomStyle}">${esc(room)}</span><span class="k-dsk-rot-date">${dateStr}</span>${badge}</div>`;
+    }).join('');
+  }
 }
 
 /* ── WEEK CARD ──────────────────────────────────────────── */
@@ -457,11 +555,16 @@ function _kTenRenderWeekCard(weekRow, absData) {
   const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   setTxt('k-mob-room-name', wi.room);
   setTxt('k-mob-dates', dateStr);
+  setTxt('k-dsk-room-name', wi.room);
+  setTxt('k-dsk-dates', dateStr);
 
   const chip = document.getElementById('k-mob-status-chip');
+  const chipDsk = document.getElementById('k-dsk-status-chip');
   if (!isAssigned) {
-    if (chip) { chip.className = 'k-mob-status-chip not-your-turn'; chip.textContent = '— Not your turn'; }
-    const actEl = document.getElementById('k-ten-act'); if (actEl) actEl.innerHTML = '';
+    if (chip)    { chip.className    = 'k-mob-status-chip not-your-turn'; chip.textContent    = '— Not your turn'; }
+    if (chipDsk) { chipDsk.className = 'k-mob-status-chip not-your-turn'; chipDsk.textContent = '— Not your turn'; }
+    const actEl    = document.getElementById('k-ten-act');    if (actEl)    actEl.innerHTML = '';
+    const actElDsk = document.getElementById('k-dsk-ten-act'); if (actElDsk) actElDsk.innerHTML = '';
     return;
   }
 
@@ -476,18 +579,25 @@ function _kTenRenderWeekCard(weekRow, absData) {
   const chipTxt = state !== 'now'
     ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
     : isResub ? '↑↑ Re-submitted' : dbStatus==='submitted' ? '↑ Submitted' : dbStatus==='flagged' ? '⚑ Redo' : 'Pending';
-  if (chip) { chip.className = 'k-mob-status-chip ' + chipCls; chip.textContent = chipTxt; }
+  if (chip)    { chip.className    = 'k-mob-status-chip ' + chipCls; chip.textContent    = chipTxt; }
+  if (chipDsk) { chipDsk.className = 'k-mob-status-chip ' + chipCls; chipDsk.textContent = chipTxt; }
 
   // Action button
-  const actEl = document.getElementById('k-ten-act'); if (!actEl) return;
-  if (state !== 'now') { actEl.innerHTML = ''; return; }
-  if (dbStatus === 'flagged') {
-    actEl.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof"><i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
-  } else if (!dbStatus || dbStatus === 'pending') {
-    actEl.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof"><i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
-  } else {
+  const actEl    = document.getElementById('k-ten-act');    if (!actEl) return;
+  const actElDsk = document.getElementById('k-dsk-ten-act');
+  if (state !== 'now') {
     actEl.innerHTML = '';
+    if (actElDsk) actElDsk.innerHTML = '';
+    return;
   }
+  let btnHtml = '';
+  if (dbStatus === 'flagged') {
+    btnHtml = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof"><i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
+  } else if (!dbStatus || dbStatus === 'pending') {
+    btnHtml = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof"><i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
+  }
+  actEl.innerHTML = btnHtml;
+  if (actElDsk) actElDsk.innerHTML = btnHtml;
 }
 
 /* ── NUDGE BANNER ───────────────────────────────────────── */
@@ -496,20 +606,34 @@ async function _kTenLoadNudgeBanner() {
   if (!sbL || _kTenNudgeBusy) return;
   const myRoom = (typeof currentRoom !== 'undefined' ? currentRoom : '') || localStorage.getItem('cc_room') || '';
   const { data } = await sbL.from('lounge_data').select('*').eq('type','kitchen_nudge').order('created_at',{ascending:false}).limit(5);
-  const banner = document.getElementById('k-ten-nudge-banner');
-  const text   = document.getElementById('k-ten-nudge-banner-text');
+  const banner    = document.getElementById('k-ten-nudge-banner');
+  const text      = document.getElementById('k-ten-nudge-banner-text');
+  const bannerDsk = document.getElementById('k-dsk-ten-nudge-banner');
+  const textDsk   = document.getElementById('k-dsk-ten-nudge-banner-text');
   if (!banner || !text) return;
   const nudge = (data||[]).find(n => {
     if (n.room !== myRoom && n.room !== 'All') return false;
     const acked = Array.isArray(n.dismissed_by) ? n.dismissed_by : [];
     return !acked.includes(myRoom);
   });
-  if (!nudge) { banner.style.display = 'none'; return; }
+  if (!nudge) {
+    banner.style.display = 'none';
+    if (bannerDsk) bannerDsk.style.display = 'none';
+    return;
+  }
   const note = nudge.title ? ` · ${nudge.title}` : '';
-  text.textContent = `${nudge.body}${note}`;
+  const bannerText = `${nudge.body}${note}`;
+  text.textContent = bannerText;
+  if (textDsk) textDsk.textContent = bannerText;
   banner.dataset.nudgeBody = nudge.body;
   banner.dataset.nudgeId   = nudge.id;
   banner.dataset.nudgeRoom = nudge.room;
+  if (bannerDsk) {
+    bannerDsk.dataset.nudgeBody = nudge.body;
+    bannerDsk.dataset.nudgeId   = nudge.id;
+    bannerDsk.dataset.nudgeRoom = nudge.room;
+    bannerDsk.style.display = 'flex';
+  }
   banner.style.display = 'flex';
 }
 async function _kTenMarkNudgeDone() {
@@ -537,6 +661,8 @@ async function _kTenDismissNudgeBanner() {
     const nudgeId   = banner?.dataset.nudgeId   || '';
     const nudgeRoom = banner?.dataset.nudgeRoom || '';
     if (banner) { banner.style.display = 'none'; banner.dataset.nudgeId = ''; }
+    const bannerDsk = document.getElementById('k-dsk-ten-nudge-banner');
+    if (bannerDsk) { bannerDsk.style.display = 'none'; bannerDsk.dataset.nudgeId = ''; }
     if (sbL && nudgeId) {
       if (nudgeRoom !== 'All') { await sbL.from('lounge_data').delete().eq('id', nudgeId); }
       else {
@@ -546,6 +672,22 @@ async function _kTenDismissNudgeBanner() {
       }
     }
   } finally { _kTenNudgeBusy = false; }
+}
+// Desktop nudge banner buttons delegate to same logic using desktop banner's dataset
+async function _kTenMarkNudgeDoneDsk() {
+  const bannerDsk = document.getElementById('k-dsk-ten-nudge-banner');
+  if (!bannerDsk) return;
+  // Copy dataset to mobile banner so existing handler works
+  const mob = document.getElementById('k-ten-nudge-banner');
+  if (mob) { mob.dataset.nudgeBody = bannerDsk.dataset.nudgeBody; mob.dataset.nudgeId = bannerDsk.dataset.nudgeId; mob.dataset.nudgeRoom = bannerDsk.dataset.nudgeRoom; }
+  await _kTenMarkNudgeDone();
+}
+async function _kTenDismissNudgeBannerDsk() {
+  const bannerDsk = document.getElementById('k-dsk-ten-nudge-banner');
+  if (!bannerDsk) return;
+  const mob = document.getElementById('k-ten-nudge-banner');
+  if (mob) { mob.dataset.nudgeBody = bannerDsk.dataset.nudgeBody; mob.dataset.nudgeId = bannerDsk.dataset.nudgeId; mob.dataset.nudgeRoom = bannerDsk.dataset.nudgeRoom; }
+  await _kTenDismissNudgeBanner();
 }
 
 /* ── HISTORY MODAL ──────────────────────────────────────── */
@@ -570,8 +712,10 @@ let _kTenChannel    = null;
 let _kTenMobSending = false;
 
 async function _kTenSendMsg() {
-  const inp  = document.getElementById('k-mob-msg-input');
-  const text = inp.value.trim(); if (!text || !_kTenWeekRow || _kTenMobSending) return;
+  const mobInp = document.getElementById('k-mob-msg-input');
+  const dskInp = document.getElementById('k-dsk-msg-input');
+  const inp  = (dskInp && dskInp.value.trim()) ? dskInp : mobInp;
+  const text = inp ? inp.value.trim() : ''; if (!text || !_kTenWeekRow || _kTenMobSending) return;
   _kTenMobSending = true; inp.value = '';
   const room = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
   const feed = document.getElementById('k-feed-mob');
@@ -686,8 +830,12 @@ var initKitchenMobExtend = loadKitchenTenant;
   const mobInput = document.getElementById('k-mob-msg-input');
   const mobPhoto = document.getElementById('k-mob-photo-btn');
   const mobFile  = document.getElementById('k-mob-photo-file');
+  const dskInput = document.getElementById('k-dsk-msg-input');
+  const dskPhoto = document.getElementById('k-dsk-photo-btn');
+  const dskFile  = document.getElementById('k-dsk-photo-file');
 
   mobInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _kTenSendMsg(); } });
+  dskInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _kTenSendMsg(); } });
 
   mobPhoto?.addEventListener('click', () => mobFile?.click());
   mobFile?.addEventListener('change', async e => {
@@ -697,5 +845,14 @@ var initKitchenMobExtend = loadKitchenTenant;
     mobPhoto.style.opacity = '';
   });
 
+  dskPhoto?.addEventListener('click', () => dskFile?.click());
+  dskFile?.addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    dskFile.value = ''; dskPhoto.style.opacity = '0.5';
+    await _kTenSendPhoto(file);
+    dskPhoto.style.opacity = '';
+  });
+
+  // PWA keyboard fix — mobile only
   wireComposeBlur(mobInput);
 })();
