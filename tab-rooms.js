@@ -1090,18 +1090,22 @@ async function _toggleVacant(roomId, btn) {
   btn.disabled = true;
   const result = await toggleRoomVacant(roomId);
   if (result.ok) {
-    // Re-render just this card
-    const card = document.querySelector(`.rc[data-id="${roomId}"]`);
     const room = getRoomById(roomId);
+    const card = document.querySelector(`.rc[data-id="${roomId}"]`);
     if (card && room) {
       const wasExpanded = card.classList.contains('rc--expanded');
-      card.outerHTML = _roomCardHTML(room);
-      if (wasExpanded) {
-        const newCard = document.querySelector(`.rc[data-id="${roomId}"]`);
-        newCard?.classList.add('rc--expanded');
-      }
+      // Insert new card before old one, then remove old — more reliable than outerHTML on iOS
+      const newDiv = document.createElement('div');
+      newDiv.innerHTML = _roomCardHTML(room);
+      const newCard = newDiv.firstElementChild;
+      card.parentNode.insertBefore(newCard, card);
+      card.remove();
+      if (wasExpanded) newCard.classList.add('rc--expanded');
       _bindAllCards();
       _initSortable();
+    } else {
+      // Fallback: full re-render
+      _renderRoomsList();
     }
   } else {
     btn.disabled = false;
