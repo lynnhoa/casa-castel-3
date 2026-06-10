@@ -2506,6 +2506,7 @@ function _renderKurzzeitHTML(d) {
       font-size: 9px;
       font-weight: 300;
       color: #aaa59e;
+      margin-bottom: 4px;
     }
     .sig-write-gap { height: 60px; }
     .sig-line { border: none; border-top: 0.6px solid #3a3530; margin-bottom: 7px; }
@@ -2653,18 +2654,16 @@ function _renderKurzzeitHTML(d) {
 
     <div class="sig-block">
       <div class="sig-col">
-        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : ''}
+        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-write-gap"></div>
         <hr class="sig-line"/>
-        ${d.unterzeichnungsDatum ? '' : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-role">Vermieter</div>
         <div class="sig-name">${d.vermieterName}</div>
       </div>
       <div class="sig-col">
-        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : ''}
+        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-write-gap"></div>
         <hr class="sig-line"/>
-        ${d.unterzeichnungsDatum ? '' : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-role">Mieter</div>
         <div class="sig-name">${d.mieterName}</div>
       </div>
@@ -2965,7 +2964,7 @@ function _renderUebergHTML(d) {
     .sig-col { width:44%; }
     .sig-top-line { border:none; border-top:0.5px solid #b8b3ac; margin-bottom:7px; }
     .sig-prefill { font-family:'Lato',Georgia,serif; font-size:10px; font-style:italic; font-weight:300; color:#8a7a66; margin-bottom:4px; line-height:1.4; }
-    .sig-date-label { font-family:'Lato',sans-serif; font-size:9px; font-weight:300; color:#aaa59e; }
+    .sig-date-label { font-family:'Lato',sans-serif; font-size:9px; font-weight:300; color:#aaa59e; margin-bottom:4px; }
     .sig-write-gap { height:60px; }
     .sig-line { border:none; border-top:0.5px solid #b8b3ac; margin-bottom:7px; }
     .sig-role { font-family:'Lato',sans-serif; font-size:9px; font-weight:400; color:#888780; }
@@ -3085,18 +3084,16 @@ function _renderUebergHTML(d) {
 
     <div class="sig-block">
       <div class="sig-col">
-        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : ''}
+        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-write-gap"></div>
         <hr class="sig-line"/>
-        ${d.unterzeichnungsDatum ? '' : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-role">Vermieter</div>
         <div class="sig-name">${d.vermieter}</div>
       </div>
       <div class="sig-col">
-        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : ''}
+        ${d.unterzeichnungsDatum ? `<div class="sig-prefill">${d.unterschriftOrt}, ${d.unterzeichnungsDatum}</div>` : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-write-gap"></div>
         <hr class="sig-line"/>
-        ${d.unterzeichnungsDatum ? '' : '<div class="sig-date-label">Datum, Ort</div>'}
         <div class="sig-role">Mieter</div>
         <div class="sig-name">${esc(d.mieterName)}</div>
       </div>
