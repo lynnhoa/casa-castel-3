@@ -641,11 +641,11 @@ async function _kTenRenderMobRotation() {
 
   // Find the one true next room — first future slot that isn't absent or skipped
   let trueNextI = -1;
-  for (let offset = 1; offset < rooms.length; offset++) {
-    const ni = cyclePos + offset;
-    if (ni >= rooms.length) break;
+  for (let offset = 1; offset <= rooms.length; offset++) {
+    const ni     = (cyclePos + offset) % rooms.length;
+    const slot   = cycleStart + cyclePos + offset;
     const nRoom  = rooms[ni];
-    const nStart = new Date(K_START.getTime() + (cycleStart + ni) * 7 * 24 * 60 * 60 * 1000);
+    const nStart = new Date(K_START.getTime() + slot * 7 * 24 * 60 * 60 * 1000);
     const nEnd   = new Date(nStart.getTime() + 6 * 24 * 60 * 60 * 1000);
     const nWs = nStart.toISOString().slice(0,10);
     const nWe = nEnd.toISOString().slice(0,10);
@@ -934,6 +934,7 @@ function _kTenSubscribe(idx) {
       if (!payload.new || !_kTenWeekRow) return;
       if (payload.new.week_id && payload.new.week_id !== _kTenWeekRow.id) return;
       document.getElementById('k-mob-optimistic')?.remove();
+      document.getElementById('k-ten-dsk-optimistic')?.remove();
       await _kTenRenderFeed();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'lounge_data' }, async payload => {
@@ -998,8 +999,12 @@ async function _kTenLoadNudgeBanner() {
   // Find nudge for this room or all — skip if this room already acked it
   const nudge = (data || []).find(n => {
     if (n.room !== myRoom && n.room !== 'All') return false;
-    const acked = Array.isArray(n.dismissed_by) ? n.dismissed_by : [];
-    return !acked.includes(myRoom);
+    // For all-rooms nudges, check localStorage dismissal
+    if (n.room === 'All') {
+      const dismissed = localStorage.getItem('cc_nudge_dismissed_' + n.id);
+      return !dismissed;
+    }
+    return true;
   });
   const dskBanner = document.getElementById('k-ten-dsk-nudge-banner');
   const dskText   = document.getElementById('k-ten-dsk-nudge-text');
@@ -1076,12 +1081,9 @@ async function _kTenDismissNudgeBanner() {
         // Specific room nudge — delete entirely on dismiss too
         await sbL.from('lounge_data').delete().eq('id', nudgeId);
       } else {
-        // All-rooms nudge — add to dismissed_by so it doesn't reappear for this room
-        const { data: fresh } = await sbL.from('lounge_data').select('dismissed_by').eq('id', nudgeId).maybeSingle();
-        const existing = Array.isArray(fresh?.dismissed_by) ? fresh.dismissed_by : [];
-        if (!existing.includes(myRoom)) {
-          await sbL.from('lounge_data').update({ dismissed_by: [...existing, myRoom] }).eq('id', nudgeId);
-        }
+        // All-rooms nudge — store dismissal in localStorage so it doesn't reappear for this room
+        const key = 'cc_nudge_dismissed_' + nudgeId;
+        localStorage.setItem(key, '1');
       }
     }
   } finally { _kTenNudgeBusy = false; }
@@ -1125,10 +1127,21 @@ async function _kTenDismissNudgeBanner() {
 async function _kTenDskSendMsg() {
   const inp  = document.getElementById('k-ten-dsk-msg-input');
   const text = inp ? inp.value.trim() : '';
-  if (!text || !_kTenWeekRow) return;
-  inp.value = '';
+  if (!text || !_kTenWeekRow || _kTenMobSending) return;
+  _kTenMobSending = true; inp.value = '';
   const room = (typeof currentRoom !== 'undefined' ? currentRoom : '') || '';
-  await _kTenAddComment(_kTenWeekRow.id, room, text, false);
+  const feed = document.getElementById('k-ten-dsk-feed');
+  if (feed) {
+    const tmp = document.createElement('div'); tmp.className = 'k-chat-row'; tmp.id = 'k-ten-dsk-optimistic';
+    tmp.innerHTML = `<div class="k-chat-avatar">${_kTenRoomInitials(room)}</div>`
+      + `<div style="flex:1;min-width:0;"><div class="k-chat-meta">`
+      + `<span class="k-chat-name">${esc(room)}</span>`
+      + `<span class="k-chat-time" style="opacity:0.5;">sending…</span></div>`
+      + `<p class="k-chat-text">${esc(text)}</p></div>`;
+    feed.appendChild(tmp); scrollToBottom(feed);
+  }
+  _kTenAddComment(_kTenWeekRow.id, room, text, false)
+    .finally(() => { _kTenMobSending = false; });
 }
 
 /* ── SHOW KITCHEN TAB IN NAV ────────────────────────────── */

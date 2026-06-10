@@ -243,8 +243,7 @@ async function _kGetComments(weekId) {
 async function _kAddComment(weekId, room, text, isFlag) {
   if (!sbL) return;
   await sbL.from('kitchen_comments').insert({ week_id: weekId, room, text, is_flag: !!isFlag });
-  const w = await sbL.from('kitchen_weeks').select('comment_count').eq('id', weekId).single();
-  if (w.data) await sbL.from('kitchen_weeks').update({ comment_count: (w.data.comment_count || 0) + 1 }).eq('id', weekId);
+  // comment_count increment removed — history modal counts from kitchen_comments directly
 }
 async function _kDeleteComment(commentId) {
   if (!sbL) return;
@@ -471,11 +470,11 @@ async function _kRenderRotation(weekRow, absData) {
   const greenPct = approvedCount > 0 ? ((approvedCount / rooms.length) * 100).toFixed(1) + '%' : '0%';
 
   let trueNextI = -1;
-  for (let offset = 1; offset < rooms.length; offset++) {
-    const ni = cyclePos + offset;
-    if (ni >= rooms.length) break;
+  for (let offset = 1; offset <= rooms.length; offset++) {
+    const ni     = (cyclePos + offset) % rooms.length;
+    const slot   = cycleStart + cyclePos + offset;
     const nRoom  = rooms[ni];
-    const nStart = new Date(K_START.getTime() + (cycleStart + ni) * 7 * 24 * 60 * 60 * 1000);
+    const nStart = new Date(K_START.getTime() + slot * 7 * 24 * 60 * 60 * 1000);
     const nEnd   = new Date(nStart.getTime() + 6 * 24 * 60 * 60 * 1000);
     const nWs = nStart.toISOString().slice(0, 10);
     const nWe = nEnd.toISOString().slice(0, 10);
@@ -646,8 +645,7 @@ async function _populateKHistory() {
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note">No past weeks yet.</p>'; return; }
   el.innerHTML = data.map(w => {
     const dateStr = kWeekDateRange(w.week_index);
-    const c = w.comment_count ? ` · ${w.comment_count} comment${w.comment_count !== 1 ? 's' : ''}` : '';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--cc-rule);"><div><p style="font-size:13px;font-weight:500;color:var(--cc-ink);">${esc(w.room)}</p><p style="font-size:11px;color:var(--cc-taupe);">${dateStr}${c}</p></div>${kHistPill(w.status)}</div>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--cc-rule);"><div><p style="font-size:13px;font-weight:500;color:var(--cc-ink);">${esc(w.room)}</p><p style="font-size:11px;color:var(--cc-taupe);">${dateStr}</p></div>${kHistPill(w.status)}</div>`;
   }).join('');
 }
 async function _populateKNudgeLog() {
@@ -876,7 +874,7 @@ function _kSubscribe() {
       if (_kWeekRow) await _kRenderFeed(_kWeekRow);
     })
     .on('postgres_changes', { event: '*',      schema: 'public', table: 'kitchen_absences' }, async () => { await loadKitchen(); })
-    .on('postgres_changes', { event: '*',      schema: 'public', table: 'lounge_data' },      async () => { await loadKitchen(); })
+    .on('postgres_changes', { event: '*',      schema: 'public', table: 'lounge_data' },      async payload => { const t = payload.new?.type || payload.old?.type; if (t === 'kitchen_nudge' || t === 'hc_done') await loadKitchen(); })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async () => {
       if (typeof loadRoomsData === 'function') await loadRoomsData();
       await loadKitchen();
@@ -932,7 +930,7 @@ async function loadKitchen() {
   if (!_kChannel) _kSubscribe();
 
   // Rooms change hook
-  if (typeof onRoomsChange === 'function') onRoomsChange(() => loadKitchen());
+  if (typeof onRoomsChange === 'function' && !loadKitchen._roomsWired) { loadKitchen._roomsWired = true; onRoomsChange(() => loadKitchen()); }
 }
 
 /* aliases — layout.js calls both */
