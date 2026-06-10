@@ -441,6 +441,12 @@ async function _kTenWizSubmit() {
     const commentPayload = JSON.stringify({ photos: uploaded, isReupload });
     await _kTenAddComment(_kTenWeekRow.id, room, '[submission] ' + commentPayload, false);
 
+    // Post a visible system message on resubmit so landlord sees it in the feed
+    // even if the realtime UPDATE on kitchen_weeks arrives before the row propagates
+    if (isReupload) {
+      await _kTenAddComment(_kTenWeekRow.id, room, '[system] ' + room + ' has resubmitted.', false);
+    }
+
     // Close wizard
     document.getElementById('k-ten-wizard').style.display = 'none';
     _kWizSubmitting = false;
@@ -732,6 +738,8 @@ function _kTenBuildFeedHtml(comments, weekRow) {
         const p = JSON.parse(c.text.slice(13));
         events.push({ _type:'submission', _ts:new Date(c.created_at).getTime(), room:c.room, photos:p.photos||[], isReupload:!!p.isReupload });
       } catch(e) {}
+    } else if (c.text && c.text.startsWith('[system] ')) {
+      events.push({ _type:'system', _ts:new Date(c.created_at).getTime(), text:c.text.slice(9) });
     } else {
       events.push({ _type:'comment', _ts:new Date(c.created_at).getTime(), ...c });
     }
@@ -764,6 +772,13 @@ function _kTenBuildFeedHtml(comments, weekRow) {
         </div>${photoStrip}</div>`;
     }
 
+    if (ev._type === 'system') {
+      return `<div style="padding:6px 0;border-bottom:0.5px solid var(--cc-rule);display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:var(--cc-taupe);">↑↑</span>
+        <span style="font-size:11px;color:var(--cc-ink);flex:1;">${esc(ev.text)}</span>
+        <span style="font-size:10px;color:var(--cc-stone);">${fmtTs(ev._ts)}</span>
+      </div>`;
+    }
     if (ev.is_flag) {
       flagSeen = true;
       return `<div class="k-sys-event"><div class="k-sys-event__line"></div>

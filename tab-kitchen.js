@@ -331,6 +331,8 @@ function _kBuildFeedHtml(comments, weekRow) {
         const p = JSON.parse(c.text.slice(13));
         events.push({ _type:'submission', _ts:new Date(c.created_at).getTime(), room:c.room, photos:p.photos||[], isReupload:!!p.isReupload });
       } catch(e) {}
+    } else if (c.text && c.text.startsWith('[system] ')) {
+      events.push({ _type:'system', _ts:new Date(c.created_at).getTime(), text:c.text.slice(9) });
     } else {
       events.push({ _type:'comment', _ts:new Date(c.created_at).getTime(), ...c });
     }
@@ -359,6 +361,13 @@ function _kBuildFeedHtml(comments, weekRow) {
           <span style="font-size:11px;font-weight:500;color:var(--cc-ink);background:var(--cc-surface);border:0.5px solid var(--cc-rule);border-radius:var(--cc-r-pill);padding:2px 9px;">${esc(ev.room)}</span>
           ${badge}<span style="font-size:10px;color:var(--cc-stone);">${fmtTs(ev._ts)}</span>
         </div>${photoStrip}</div>`;
+    }
+    if (ev._type === 'system') {
+      return `<div style="padding:6px 0;border-bottom:0.5px solid var(--cc-rule);display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:var(--cc-taupe);">↑↑</span>
+        <span style="font-size:11px;color:var(--cc-ink);flex:1;">${esc(ev.text)}</span>
+        <span style="font-size:10px;color:var(--cc-stone);">${fmtTs(ev._ts)}</span>
+      </div>`;
     }
     if (ev.is_flag) {
       flagSeen = true;
