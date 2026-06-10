@@ -356,9 +356,9 @@ document.getElementById('tab-rooms').innerHTML = `
 }
 .rm-btn--delete:active { background:#FBF0EE; }
 
-/* Desktop: cards cap at reasonable width so they don't stretch on large screens */
+/* Desktop: cards use full cc-main width */
 @media(min-width:701px) {
-  .rp-list { max-width:860px; margin:0 auto; }
+  .rp-list { max-width:none; margin:0; }
   .rc-hdr { padding:18px 18px 16px 14px; }
   .rc-actions { padding:10px 16px; }
   .rc-doc-row:hover { background:var(--cc-surface); }
