@@ -131,6 +131,7 @@ document.getElementById('tab-kitchen').innerHTML = `
           <div class="issue-type-grid" id="k-type-grid" style="margin-bottom:8px;">
             <button class="issue-type-btn" data-type="Trash not taken out"><span class="icon">🗑</span>Trash</button>
             <button class="issue-type-btn" data-type="Dishes not clean"><span class="icon">🍽</span>Dishes</button>
+            <button class="issue-type-btn" data-type="Fridge not clean"><span class="icon">🧊</span>Fridge</button>
           </div>
           <p class="issue-to-label" style="margin-bottom:6px;">Send to</p>
           <div class="issue-to-grid" id="k-to-grid" style="margin-bottom:8px;">
@@ -816,6 +817,25 @@ async function _kDeleteNudge(id, btn) {
   btn.closest('div[style]')?.remove();
 }
 
+/* ── DESKTOP NUDGE LOG (sidebar #k-issues-log) ──────────── */
+async function _kRenderNudgeLog() {
+  const el = document.getElementById('k-issues-log');
+  if (!el) return;
+  if (!sbL) { el.innerHTML = '<p class="cc-note">No nudges sent yet.</p>'; return; }
+  const { data } = await sbL.from('lounge_data').select('*').eq('type', 'kitchen_nudge').order('created_at', { ascending: false }).limit(20);
+  if (!data || !data.length) { el.innerHTML = '<p class="cc-note" style="font-size:10px;">No nudges sent yet.</p>'; return; }
+  el.innerHTML = data.map(n => {
+    const to = n.room === 'All' ? 'All rooms' : n.room;
+    return `<div class="k-dsk-hist-row" style="align-items:flex-start;">
+      <div style="flex:1;min-width:0;">
+        <div class="k-dsk-hist-room">${esc(n.body)}</div>
+        <div class="k-dsk-hist-date">→ ${esc(to)} · ${fmtTs(new Date(n.created_at).getTime())}</div>
+      </div>
+      <button onclick="_kDeleteNudge('${n.id}',this)" style="font-size:10px;color:var(--cc-stone);background:none;border:none;cursor:pointer;flex-shrink:0;padding:0 0 0 8px;">✕</button>
+    </div>`;
+  }).join('');
+}
+
 /* ── NUDGE BANNER (mobile) ──────────────────────────────── */
 async function _kLoadNudgeBanner() {
   if (!sbL) return;
@@ -1279,9 +1299,9 @@ function _kSubscribe(idx) {
       }
       const isNudge = t === 'kitchen_nudge' || isDelete;
       if (isNudge) {
+        _kLoadNudgeBanner();
         const mobile = window.innerWidth <= 700;
-        if (mobile) _kLoadNudgeBanner();
-        else _kLoadNudgeBanner();
+        if (!mobile) _kRenderNudgeLog();
       }
     })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async payload => {
