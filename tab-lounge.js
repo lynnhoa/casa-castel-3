@@ -473,17 +473,23 @@ function _msgHtml(m, canDelete) {
   </div>`;
 }
 
+// Appends a single message to both feeds (deduplicates by id)
 function _appendMsg(m) {
   [document.getElementById('lounge-feed'), document.getElementById('lounge-feed-desktop')].forEach(feed => {
     if (!feed) return;
+    // Skip if this exact id is already rendered (prevents optimistic + realtime duplicate)
+    if (m.id && feed.querySelector(`.msg-row[data-id="${m.id}"]`)) return;
     feed.querySelector('.cc-note')?.remove();
-    const div = document.createElement('div');
-    div.className = 'msg-row';
-    div.dataset.id = m.id;
-    div.innerHTML = _msgHtml(m, true).replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
-    // Re-wrap since innerHTML strips the outer div — just set it directly
     feed.insertAdjacentHTML('beforeend', _msgHtml(m, true));
     scrollToBottom(feed);
+  });
+}
+
+// Removes optimistic placeholder rows (id starts with _tmp_) from both feeds
+function _removeOptimistic() {
+  [document.getElementById('lounge-feed'), document.getElementById('lounge-feed-desktop')].forEach(feed => {
+    if (!feed) return;
+    feed.querySelectorAll('.msg-row[data-id^="_tmp_"]').forEach(el => el.remove());
   });
 }
 
@@ -492,10 +498,14 @@ async function sendLounge() {
   const input = document.getElementById('lounge-input');
   const text  = input.value.trim(); if (!text) return;
   input.value = '';
-  // Optimistic
-  const opt = { id: '_tmp_' + Date.now(), room:'Casa Castel', body:text, created_at: new Date().toISOString(), type:'message' };
+  const tmpId = '_tmp_' + Date.now();
+  const opt = { id: tmpId, room:'Casa Castel', body:text, created_at: new Date().toISOString(), type:'message' };
   _appendMsg(opt);
-  await sbL.from('lounge_data').insert({ type:'message', room:'Casa Castel', body:text });
+  const { data } = await sbL.from('lounge_data').insert({ type:'message', room:'Casa Castel', body:text }).select().maybeSingle();
+  // Remove optimistic row — realtime subscription will append the real one,
+  // or we append it directly if realtime is slow
+  _removeOptimistic();
+  if (data) _appendMsg(data);
 }
 
 async function sendLoungeDesktop() {
@@ -503,9 +513,12 @@ async function sendLoungeDesktop() {
   const input = document.getElementById('lounge-input-desktop');
   const text  = input.value.trim(); if (!text) return;
   input.value = '';
-  const opt = { id: '_tmp_' + Date.now(), room:'Casa Castel', body:text, created_at: new Date().toISOString(), type:'message' };
+  const tmpId = '_tmp_' + Date.now();
+  const opt = { id: tmpId, room:'Casa Castel', body:text, created_at: new Date().toISOString(), type:'message' };
   _appendMsg(opt);
-  await sbL.from('lounge_data').insert({ type:'message', room:'Casa Castel', body:text });
+  const { data } = await sbL.from('lounge_data').insert({ type:'message', room:'Casa Castel', body:text }).select().maybeSingle();
+  _removeOptimistic();
+  if (data) _appendMsg(data);
 }
 
 async function deleteMsg(id) {
