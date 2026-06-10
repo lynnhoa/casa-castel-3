@@ -218,32 +218,37 @@ document.getElementById('tab-rooms').innerHTML = `
 
 /* Action strip — one row, two buttons */
 .rc-actions {
-  display:flex; gap:8px; padding:10px 14px;
-  background:var(--cc-surface); border-bottom:var(--cc-border);
+  display:flex; gap:6px; padding:8px 14px;
+  background:var(--cc-white); border-bottom:var(--cc-border);
 }
 .rc-act {
-  flex:1; height:36px; display:flex; align-items:center; justify-content:center; gap:5px;
-  border-radius:var(--cc-r-sm); font-size:10px; font-weight:600;
-  letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
-  font-family:inherit; transition:opacity .15s; -webkit-tap-highlight-color:transparent;
+  height:28px; display:flex; align-items:center; justify-content:center; gap:4px;
+  padding:0 12px; border-radius:var(--cc-r-pill); font-size:9px; font-weight:600;
+  letter-spacing:.07em; text-transform:uppercase; cursor:pointer;
+  font-family:inherit; background:none; transition:opacity .15s; -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
 }
-.rc-act:active { opacity:.75; }
-.rc-act--mark-vacant   { background:#F5F0EB; color:#8C6A3A; border:.5px solid #D4A87A; }
-.rc-act--mark-occupied { background:#EAF3DE; color:#27500A; border:.5px solid #9AC87A; }
-.rc-act--kitchen-on    { background:#E6F1FB; color:#0C447C; border:.5px solid #85B7EB; }
-.rc-act--kitchen-off   { background:var(--cc-surface); color:var(--cc-stone); border:.5px solid var(--cc-rule); }
+.rc-act:active { opacity:.7; }
+.rc-act--mark-vacant   { color:#8C6A3A; border:.5px solid #D4A87A; }
+.rc-act--mark-occupied { color:#27500A; border:.5px solid #9AC87A; }
+.rc-act--kitchen-on    { color:#0C447C; border:.5px solid #85B7EB; }
+.rc-act--kitchen-off   { color:var(--cc-stone); border:.5px solid var(--cc-rule); }
 
-/* Sections — no internal row dividers */
-.rc-section { padding:13px 16px; border-bottom:var(--cc-border); }
-.rc-section:last-of-type { border-bottom:none; }
+/* Sections */
+.rc-section { padding:11px 14px; border-bottom:var(--cc-border); }
+.rc-section--miete { padding:11px 14px 11px 12px; border-bottom:var(--cc-border); border-left:3px solid var(--cc-gold); }
 .rc-stitle {
   font-size:9px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
-  color:var(--cc-stone); margin-bottom:8px;
+  color:var(--cc-stone); margin-bottom:7px;
 }
 .rc-rows { display:flex; flex-direction:column; }
 .rc-row { display:flex; gap:10px; padding:3px 0; align-items:baseline; }
-.rc-row__k { font-size:11px; color:var(--cc-taupe); min-width:90px; flex-shrink:0; }
+.rc-row__k { font-size:11px; color:var(--cc-taupe); min-width:88px; flex-shrink:0; }
 .rc-row__v { font-size:12px; color:var(--cc-charcoal); flex:1; }
+/* Keys inline */
+.rc-keys { display:flex; gap:14px; flex-wrap:wrap; }
+.rc-key  { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--cc-charcoal); }
+.rc-key i{ font-size:11px; color:var(--cc-stone); }
 
 /* Inventar row */
 .rc-inv-row {
@@ -258,37 +263,36 @@ document.getElementById('tab-rooms').innerHTML = `
   border-radius:var(--cc-r-sm); padding:5px 12px; cursor:pointer; font-family:inherit;
 }
 
-/* Contracts — document rows */
-.rc-contracts { padding:13px 16px; }
+/* Contracts — button rows */
+.rc-contracts { padding:11px 14px; }
 .rc-contracts-title {
   font-size:9px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
-  color:var(--cc-stone); margin-bottom:9px;
+  color:var(--cc-stone); margin-bottom:8px;
 }
-.rc-doc-row {
-  display:flex; align-items:center; gap:12px;
-  padding:10px 12px; border-radius:var(--cc-r-md);
-  border:.5px solid var(--cc-rule); background:var(--cc-white);
-  margin-bottom:7px; cursor:pointer; transition:background .12s;
-  -webkit-tap-highlight-color:transparent;
-}
+.rc-doc-row { display:flex; align-items:center; gap:7px; margin-bottom:6px; }
 .rc-doc-row:last-child { margin-bottom:0; }
-.rc-doc-row:active { background:var(--cc-surface); }
-.rc-doc-icon { font-size:18px; flex-shrink:0; opacity:.75; }
-.rc-doc-body { flex:1; min-width:0; }
-.rc-doc-name { font-size:12px; font-weight:500; color:var(--cc-ink); }
-.rc-doc-desc { font-size:10px; color:var(--cc-taupe); margin-top:1px; }
-.rc-doc-arrow { font-size:16px; color:var(--cc-stone); flex-shrink:0; }
+.rc-doc-btn {
+  flex:1; height:40px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 13px; background:#F5EFE6; color:#5C3D1E;
+  border:.5px solid #D4B896; border-radius:var(--cc-r-md);
+  font-family:inherit; font-size:13px; font-weight:500;
+  cursor:pointer; transition:background .12s; -webkit-tap-highlight-color:transparent;
+}
+.rc-doc-btn:active { background:#EDE3D6; }
+.rc-doc-btn i { font-size:13px; color:#B8956A; opacity:.8; }
 .rc-doc-toggle {
-  display:flex; border:.5px solid var(--cc-rule);
-  border-radius:var(--cc-r-sm); overflow:hidden; flex-shrink:0;
+  display:flex; background:var(--cc-surface); border:.5px solid var(--cc-rule);
+  border-radius:var(--cc-r-pill); padding:3px; gap:2px;
+  height:40px; align-items:center; flex-shrink:0;
 }
 .rc-doc-toggle button {
-  font-size:9px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
-  padding:5px 9px; background:var(--cc-white); color:var(--cc-stone);
+  height:100%; padding:0 10px;
+  font-size:9px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
   border:none; cursor:pointer; font-family:inherit;
-  transition:background .15s,color .15s;
+  color:var(--cc-taupe); background:none; border-radius:var(--cc-r-pill);
+  transition:all .15s; white-space:nowrap;
 }
-.rc-doc-toggle button.active { background:var(--cc-ink); color:var(--cc-white); }
+.rc-doc-toggle button.active { background:var(--cc-white); color:var(--cc-charcoal); box-shadow:0 1px 3px rgba(30,27,24,.10); }
 
 /* Card footer — edit button */
 .rc-card-footer {
@@ -1102,45 +1106,47 @@ function _roomCardHTML(r) {
     <!-- ── READ MODE ── -->
     <div class="rc-read">
 
-      <!-- Action strip: vacant + kitchen in one row -->
+      <!-- Actions — slim ghost pills -->
       <div class="rc-actions">
         <button class="rc-act ${vacant ? 'rc-act--mark-occupied' : 'rc-act--mark-vacant'}"
           data-vacantbtn="${r.id}"
           onclick="_toggleVacant('${r.id}',this)">
+          <i class="ti ${vacant ? 'ti-door-enter' : 'ti-door-exit'}" style="font-size:11px;"></i>
           ${vacant ? t('rooms_mark_occupied') : t('rooms_mark_vacant')}
         </button>
         <button class="rc-act ${hasKitchen ? 'rc-act--kitchen-on' : 'rc-act--kitchen-off'}"
           data-kitchenbtn="${esc(r.name)}"
           onclick="_toggleKitchenRoom('${esc(r.name)}',this)">
+          <i class="ti ti-tool-kitchen-2" style="font-size:11px;"></i>
           ${hasKitchen ? 'Kitchen: On' : 'Kitchen: Off'}
         </button>
       </div>
 
-      <!-- Mietobjekt — no row dividers -->
+      <!-- Mietobjekt -->
       <div class="rc-section">
         <div class="rc-stitle">Mietobjekt</div>
         <div class="rc-rows">
-          <div class="rc-row"><span class="rc-row__k">Kitchen</span><span class="rc-row__v">${esc(r.kitchen_type||'—')}</span></div>
-          <div class="rc-row"><span class="rc-row__k">Bathroom</span><span class="rc-row__v">${esc(badStr)}</span></div>
-          <div class="rc-row"><span class="rc-row__k">Shared spaces</span><span class="rc-row__v">${esc(gemStr)}</span></div>
+          <div class="rc-row"><span class="rc-row__k">Küche</span><span class="rc-row__v">${esc(r.kitchen_type||'—')}</span></div>
+          <div class="rc-row"><span class="rc-row__k">Bad</span><span class="rc-row__v">${esc(badStr)}</span></div>
+          <div class="rc-row"><span class="rc-row__k">Shared Spaces</span><span class="rc-row__v">${esc(gemStr)}</span></div>
         </div>
       </div>
 
-      <!-- Miete — no row dividers, Kaution removed -->
-      <div class="rc-section">
+      <!-- Miete — gold left border accent -->
+      <div class="rc-section--miete">
         <div class="rc-stitle">Miete</div>
         <div class="rc-rows">
           ${rentRead || '<div class="rc-row"><span class="rc-row__v" style="color:var(--cc-stone);font-style:italic;">Not set</span></div>'}
         </div>
       </div>
 
-      <!-- Schlüssel — no row dividers -->
+      <!-- Schlüssel — inline icons -->
       <div class="rc-section">
         <div class="rc-stitle">Schlüssel</div>
-        <div class="rc-rows">
-          <div class="rc-row"><span class="rc-row__k">Haustür</span><span class="rc-row__v">×${r.haustuerschluessel||1}</span></div>
-          <div class="rc-row"><span class="rc-row__k">Zimmer</span><span class="rc-row__v">×${r.zimmerschluessel||1}</span></div>
-          ${r.briefkastenschluessel ? `<div class="rc-row"><span class="rc-row__k">Briefkasten</span><span class="rc-row__v">×${r.briefkastenschluessel}</span></div>` : ''}
+        <div class="rc-keys">
+          <div class="rc-key"><i class="ti ti-home"></i> Haustür ×${r.haustuerschluessel||1}</div>
+          <div class="rc-key"><i class="ti ti-key"></i> Zimmer ×${r.zimmerschluessel||1}</div>
+          ${r.briefkastenschluessel ? `<div class="rc-key"><i class="ti ti-mail"></i> Briefkasten ×${r.briefkastenschluessel}</div>` : ''}
         </div>
       </div>
 
@@ -1155,44 +1161,35 @@ function _roomCardHTML(r) {
         </button>
       </div>
 
-      <!-- Contracts — document rows -->
+      <!-- Contracts — proper buttons -->
       <div class="rc-contracts">
         <div class="rc-contracts-title">Contracts</div>
 
-        <div class="rc-doc-row" onclick="_openContract('kurzzeit','${r.id}')">
-          <span class="rc-doc-icon">📄</span>
-          <div class="rc-doc-body">
-            <div class="rc-doc-name">Kurzzeitmiete</div>
-            <div class="rc-doc-desc">Kurzzeitmietvertrag generieren</div>
-          </div>
-          <i class="ti ti-chevron-right rc-doc-arrow"></i>
+        <div class="rc-doc-row">
+          <button class="rc-doc-btn" onclick="_openContract('kurzzeit','${r.id}')">
+            Kurzzeitmiete <i class="ti ti-chevron-right"></i>
+          </button>
         </div>
 
-        <div class="rc-doc-row" onclick="_openContract('mietvertrag','${r.id}')">
-          <span class="rc-doc-icon">📄</span>
-          <div class="rc-doc-body">
-            <div class="rc-doc-name">Mietvertrag</div>
-            <div class="rc-doc-desc">Standardmietvertrag generieren</div>
-          </div>
-          <i class="ti ti-chevron-right rc-doc-arrow"></i>
+        <div class="rc-doc-row">
+          <button class="rc-doc-btn" onclick="_openContract('mietvertrag','${r.id}')">
+            Mietvertrag <i class="ti ti-chevron-right"></i>
+          </button>
         </div>
 
-        <div class="rc-doc-row" onclick="_openContract('ueberg','${r.id}')">
-          <span class="rc-doc-icon">📋</span>
-          <div class="rc-doc-body">
-            <div class="rc-doc-name">Übergabeprotokoll</div>
-            <div class="rc-doc-desc">Protokoll für Einzug oder Auszug</div>
-          </div>
+        <div class="rc-doc-row">
+          <button class="rc-doc-btn" onclick="_openContract('ueberg','${r.id}')">
+            Übergabeprotokoll <i class="ti ti-chevron-right"></i>
+          </button>
           <div class="rc-doc-toggle" id="eu-${r.id}" onclick="event.stopPropagation()">
             <button class="active" onclick="_setEU('${r.id}',0,this)">Einzug</button>
             <button onclick="_setEU('${r.id}',1,this)">Auszug</button>
           </div>
-          <i class="ti ti-chevron-right rc-doc-arrow"></i>
         </div>
 
       </div>
 
-      <!-- Card footer: edit button -->
+      <!-- Footer: edit -->
       <div class="rc-card-footer">
         <button class="rc-edit-open-btn" onclick="_enterEdit(this.closest('.rc'))">
           <i class="ti ti-pencil"></i> Edit room details
