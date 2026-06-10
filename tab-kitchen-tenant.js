@@ -50,29 +50,7 @@ document.getElementById('tab-kitchen').innerHTML = `
       <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
     </div>
 
-    <!-- Proof wizard overlay — one slide at a time -->
-    <div id="k-ten-wizard" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:0;">
-      <div style="background:var(--cc-bg);display:flex;flex-direction:column;width:100%;height:100%;max-width:480px;max-height:100%;border-radius:0;">
-        <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;">
-          <span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);">Kitchen proof</span>
-          <button onclick="_kTenWizCancel()" style="font-size:14px;color:var(--cc-stone);background:none;border:none;cursor:pointer;padding:4px 8px;">✕</button>
-        </div>
-        <!-- Step dots -->
-        <div id="k-ten-wiz-dots" style="display:flex;gap:6px;justify-content:center;padding:12px 0 4px;flex-shrink:0;"></div>
-        <!-- Slide body -->
-        <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;">
-          <div id="k-ten-wiz-slide"></div>
-        </div>
-        <!-- Hidden file input -->
-        <input type="file" id="k-ten-wiz-file" accept="image/*" style="display:none;"/>
-        <!-- Back / Next / Submit -->
-        <div style="padding:16px 20px;padding-bottom:max(16px,env(safe-area-inset-bottom,16px));border-top:0.5px solid var(--cc-rule);flex-shrink:0;display:flex;gap:10px;">
-          <button id="k-ten-wiz-back-btn" onclick="_kTenWizBack()" style="height:44px;padding:0 18px;background:none;border:0.5px solid var(--cc-rule);border-radius:var(--cc-r-sm);color:var(--cc-taupe);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">← Back</button>
-          <button id="k-ten-wiz-next-btn" onclick="_kTenWizNext()" style="flex:1;height:44px;background:var(--cc-ink);border:none;border-radius:var(--cc-r-sm);color:var(--cc-white);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;opacity:0.4;pointer-events:none;">Next →</button>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Chat -->
     <div class="k-mob-chat">
@@ -165,6 +143,30 @@ document.getElementById('tab-kitchen').innerHTML = `
     </div>
   </div>
 `;
+
+/* ── INJECT WIZARD INTO BODY (escapes overflow:hidden on kitchen tab) ── */
+(function() {
+  const wiz = document.createElement('div');
+  wiz.id = 'k-ten-wizard';
+  wiz.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:0;';
+  wiz.innerHTML = `
+    <div style="background:var(--cc-bg);display:flex;flex-direction:column;width:100%;height:100%;max-width:480px;max-height:100%;border-radius:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--cc-rule);flex-shrink:0;">
+        <span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);">Kitchen proof</span>
+        <button onclick="_kTenWizCancel()" style="font-size:14px;color:var(--cc-stone);background:none;border:none;cursor:pointer;padding:4px 8px;">✕</button>
+      </div>
+      <div id="k-ten-wiz-dots" style="display:flex;gap:6px;justify-content:center;padding:12px 0 4px;flex-shrink:0;"></div>
+      <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;">
+        <div id="k-ten-wiz-slide"></div>
+      </div>
+      <input type="file" id="k-ten-wiz-file" accept="image/*" style="display:none;"/>
+      <div style="padding:16px 20px;padding-bottom:max(16px,env(safe-area-inset-bottom,16px));border-top:0.5px solid var(--cc-rule);flex-shrink:0;display:flex;gap:10px;">
+        <button id="k-ten-wiz-back-btn" onclick="_kTenWizBack()" style="height:44px;padding:0 18px;background:none;border:0.5px solid var(--cc-rule);border-radius:var(--cc-r-sm);color:var(--cc-taupe);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">← Back</button>
+        <button id="k-ten-wiz-next-btn" onclick="_kTenWizNext()" style="flex:1;height:44px;background:var(--cc-ink);border:none;border-radius:var(--cc-r-sm);color:var(--cc-white);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;opacity:0.4;pointer-events:none;">Next →</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wiz);
+})();
 
 /* ── MODAL HELPERS ──────────────────────────────────────── */
 function kitchenTenantOpenModal(name) {
