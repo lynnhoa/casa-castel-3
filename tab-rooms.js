@@ -892,8 +892,8 @@ function _updateRoomsSummary(rooms) {
     nk   += info.nk;
   });
   bar.style.display = 'flex';
-  bd.textContent  = occupied + ' / ' + rooms.length + ' belegt · ' + fmtEUR(kalt) + ' kalt' + (nk ? ' + ' + fmtEUR(nk) + ' NK' : '');
-  tot.textContent = fmtEUR(kalt + nk);
+  bd.textContent  = occupied + ' / ' + rooms.length + ' belegt' + (nk ? ' · ' + fmtEUR(nk) + ' NK nicht inkl.' : '');
+  tot.textContent = fmtEUR(kalt);
 }
 
 function _renderRoomsList() {
