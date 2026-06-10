@@ -364,7 +364,7 @@ async function loadHouseCleaning() {
       <div style="margin-top:8px;display:flex;gap:6px;">
         <button onclick="absOpenModal('list')" style="flex:1;height:34px;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);color:var(--cc-notice-text);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;">
           <i class="ti ti-calendar-off" style="font-size:13px;" aria-hidden="true"></i>
-          View absences${weekAbsences.length ? ' (' + weekAbsences.length + ')' : ''}
+          View absences
         </button>
       </div>
       ${weekAbsences.length ? `<div style="margin-top:6px;">` + weekAbsences.map(a => {
