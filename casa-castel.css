@@ -1348,14 +1348,16 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   background: var(--cc-bg);
 }
 
-.k-desktop-right .k-feed-compose {
+.k-desktop-right .k-feed-compose,
+.k-desktop-right .k-mob-compose {
   flex-shrink: 0;
   background: var(--cc-white);
   border-top: 0.5px solid var(--cc-rule);
-  padding: 10px 14px;
+  padding: 10px 14px !important;
+  padding-bottom: 10px !important;
   display: flex;
   gap: 8px;
-  align-items: flex-end;
+  align-items: center;
 }
 
 /* Override global max-height so feed flex-fills the right column */
