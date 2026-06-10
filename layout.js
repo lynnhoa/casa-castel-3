@@ -17,10 +17,12 @@ function switchTab(tabName) {
   // Hide all tabs
   document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
 
-  // Show requested tab — chat tabs need display:flex on mobile for column layout
+  // Show requested tab — chat tabs need display:flex on mobile for column layout;
+  // tenant lounge also needs flex on desktop (no landlord desktop layout for lounge)
   const tabEl = document.getElementById('tab-' + tabName);
   if (tabEl) {
-    tabEl.style.display = ((isLounge || isKitchen) && mobile) ? 'flex' : 'block';
+    const isTenantLounge = isLounge && !document.body.classList.contains('is-landlord');
+    tabEl.style.display = ((isLounge || isKitchen) && mobile) || isTenantLounge ? 'flex' : 'block';
   }
 
   // Active state on nav tabs
@@ -55,7 +57,7 @@ function switchTab(tabName) {
   const _room = typeof currentRoom !== 'undefined' ? currentRoom : undefined;
   if (tabName === 'lounge')   loadLoungeAll?.();
   if (tabName === 'cleaning') loadHouseCleaning?.(_room);
-  if (tabName === 'kitchen')  mobile ? initKitchenMobile?.(_room) : initKitchen?.(_room);
+  if (tabName === 'kitchen')  (mobile || typeof initKitchen === 'undefined') ? initKitchenMobile?.(_room) : initKitchen?.(_room);
   if (tabName === 'rooms')    loadRooms?.();
   if (tabName === 'tenants')  loadTenants?.();
 }

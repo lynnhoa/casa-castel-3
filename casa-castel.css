@@ -1022,9 +1022,45 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   .l-ann-strip .ann-card--pinned{background:transparent;}
   .l-ann-strip #ann-list{margin:0;}
 }
+/* Landlord desktop: lounge chat and ann strip hidden — landlord has its own desktop layout.
+   Tenant desktop: keep both visible (tenant has no separate desktop lounge layout). */
 @media(min-width:701px){
-  .l-chat{display:none!important;}
-  .l-ann-strip{display:none!important;}
+  body.is-landlord .l-chat{display:none!important;}
+  body.is-landlord .l-ann-strip{display:none!important;}
+
+  /* Tenant desktop lounge: constrain width, give chat a fixed height so feed scrolls */
+  body:not(.is-landlord) #tab-lounge {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 0 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  body:not(.is-landlord) #tab-lounge .l-chat {
+    display: flex;
+    border: 0.5px solid var(--cc-rule);
+    border-radius: var(--cc-r-lg);
+    overflow: hidden;
+    height: 520px;
+    background: var(--cc-white);
+  }
+  body:not(.is-landlord) #tab-lounge .l-feed {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 16px;
+    background: var(--cc-bg);
+  }
+  body:not(.is-landlord) #tab-lounge .l-ann-strip {
+    border: 0.5px solid var(--cc-rule);
+    border-radius: var(--cc-r-lg);
+    background: var(--cc-white);
+    padding: 14px 16px;
+  }
+  body:not(.is-landlord) #tab-lounge .l-notice-strip.visible {
+    border-radius: var(--cc-r-md);
+  }
 }
 
 /* ── MESSAGES ────────────────────────────────────────────── */
