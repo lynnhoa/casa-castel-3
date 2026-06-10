@@ -257,11 +257,14 @@ async function loadAnnouncements() {
 function _renderAnn(data) {
   const emptyHtml = '<p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p>';
   const annHtml = !data ? emptyHtml : `<div class="ann-card${data.pinned ? ' ann-card--pinned' : ''}">
-    <div class="ann-top">${data.pinned ? '<span class="ann-pin">Pinned</span>' : '<span></span>'}
-      <span class="ann-date">${fmtTs(new Date(data.created_at).getTime())}</span></div>
+    <div class="ann-top">
+      <span class="ann-top-lbl">Announcement</span>
+      ${data.pinned ? '<span class="ann-pin">Pinned</span>' : ''}
+      <span class="ann-date">${fmtTs(new Date(data.created_at).getTime())}</span>
+    </div>
     ${data.title ? `<p class="ann-title-text">${esc(data.title)}</p>` : ''}
     <p class="ann-body-text">${esc(data.body)}</p>
-    <div class="ann-actions"><button class="ann-del" onclick="deleteAnn('${data.id}')">Delete</button></div>
+    <div class="ann-actions"><button class="ann-del" onclick="deleteAnn('${data.id}')">Delete announcement</button></div>
   </div>`;
   const el    = document.getElementById('ann-list');
   const elDsk = document.getElementById('ann-list-desktop');
@@ -285,7 +288,11 @@ async function _populateAnnModal() {
     .eq('type','announcement').order('created_at',{ascending:false}).limit(1).maybeSingle();
   if (!data) { el.innerHTML = '<p class="cc-note" style="padding:4px 0;">No announcement posted yet.</p>'; return; }
   el.innerHTML = `<div class="ann-card${data.pinned ? ' ann-card--pinned' : ''}">
-    <div class="ann-top"><span class="ann-from">Casa Castel</span><span class="ann-date">${fmtTs(new Date(data.created_at).getTime())}</span></div>
+    <div class="ann-top">
+      <span class="ann-top-lbl">Announcement</span>
+      ${data.pinned ? '<span class="ann-pin">Pinned</span>' : ''}
+      <span class="ann-date">${fmtTs(new Date(data.created_at).getTime())}</span>
+    </div>
     ${data.title ? `<p class="ann-title-text">${esc(data.title)}</p>` : ''}
     <p class="ann-body-text">${esc(data.body)}</p>
     <button onclick="deleteAnn('${data.id}')" style="font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#9F1239;background:none;border:none;cursor:pointer;margin-top:10px;padding:0;font-family:inherit;">Delete announcement</button>
