@@ -391,7 +391,7 @@ async function loadHouseCleaning(room) {
 
       <!-- Action strip: always-visible absence buttons outside the card -->
       <div style="margin-top:8px;display:flex;gap:6px;">
-        <button onclick="absOpenModal('register')" style="flex:1;height:34px;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);color:var(--cc-notice-text);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;">
+        <button onclick="absOpenModal('register')" style="flex:1;height:34px;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--cc-gold);border:none;border-radius:var(--cc-r-sm);color:#fff;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;">
           <i class="ti ti-calendar-plus" style="font-size:13px;" aria-hidden="true"></i>
           Mark absence
         </button>
