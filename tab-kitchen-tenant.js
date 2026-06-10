@@ -646,11 +646,13 @@ async function _kTenRenderMobRotation() {
                      : state === 'missed'  ? 'rot-line-missed' : 'rot-line-faded';
       const botLine  = state === 'done' && slotIdx < idx - 1 ? 'rot-line-done' : 'rot-line-faded';
       const badge    = {
-        done:    '<span class="rot-badge rot-badge--done">Done</span>',
-        now:     '<span class="rot-badge rot-badge--now">Now</span>',
-        missed:  '<span class="rot-badge rot-badge--missed">Missed</span>',
-        skipped: '<span class="rot-badge rot-badge--skipped">Skipped</span>',
-        absent:  '<span class="rot-badge rot-badge--absent">Away</span>',
+        done:     '<span class="rot-badge rot-badge--done">Done</span>',
+        now:      '<span class="rot-badge rot-badge--now">Now</span>',
+        next:     '<span class="rot-badge rot-badge--next">Next</span>',
+        missed:   '<span class="rot-badge rot-badge--missed">Missed</span>',
+        skipped:  '<span class="rot-badge rot-badge--skipped">Skipped</span>',
+        absent:   '<span class="rot-badge rot-badge--absent">Away</span>',
+        upcoming: '<span class="rot-badge rot-badge--none">—</span>',
       }[state] || '<span class="rot-badge rot-badge--none">—</span>';
       const rowClass = 'rot-tl-row'
         + (state === 'now'     ? ' rot-tl-row--now'

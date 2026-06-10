@@ -1576,7 +1576,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   .k-mob-rot-badge{height:18px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;font-size:9px;font-weight:600;padding:0 7px;letter-spacing:0.03em;white-space:nowrap;flex-shrink:0;margin-bottom:6px;}
   .k-mob-rot-badge.done{background:#EAF3DE;color:#27500A;border:0.5px solid #97C459;}
   .k-mob-rot-badge.now{background:#FDF5E8;color:#633806;border:1px solid #E8C97A;box-shadow:0 0 0 2.5px var(--cc-white),0 0 0 4px #E8C97A;}
-  .k-mob-rot-badge.next{background:var(--cc-surface);color:var(--cc-stone);border:0.5px solid var(--cc-rule);}
+  .k-mob-rot-badge.next{background:#EBF4FF;color:#1A5896;border:0.5px solid #90C2F5;}
   .k-mob-rot-badge.missed{background:#FDEEED;color:#7A2020;border:0.5px solid #F5A8A5;}
   .k-mob-rot-badge.skipped{background:#F5F3FF;color:#5B21B6;border:0.5px solid #C4B5FD;}
   .k-mob-rot-badge.absent{background:#F5EEE8;color:#8C5A30;border:0.5px solid #D4A87A;}

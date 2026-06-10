@@ -747,11 +747,13 @@ async function _kRenderDesktopRotation(currentIdx, currentInfo) {
                    : state === 'missed'  ? 'rot-line-missed' : 'rot-line-faded';
     const botLine  = state === 'done' && weekIdx < idx - 1 ? 'rot-line-done' : 'rot-line-faded';
     const badge    = {
-      done:    '<span class="rot-badge rot-badge--done">Done</span>',
-      now:     '<span class="rot-badge rot-badge--now">Now</span>',
-      missed:  '<span class="rot-badge rot-badge--missed">Missed</span>',
-      skipped: '<span class="rot-badge rot-badge--skipped">Skipped</span>',
-      absent:  '<span class="rot-badge rot-badge--absent">Away</span>',
+      done:     '<span class="rot-badge rot-badge--done">Done</span>',
+      now:      '<span class="rot-badge rot-badge--now">Now</span>',
+      next:     '<span class="rot-badge rot-badge--next">Next</span>',
+      missed:   '<span class="rot-badge rot-badge--missed">Missed</span>',
+      skipped:  '<span class="rot-badge rot-badge--skipped">Skipped</span>',
+      absent:   '<span class="rot-badge rot-badge--absent">Away</span>',
+      upcoming: '<span class="rot-badge rot-badge--none">—</span>',
     }[state] || '<span class="rot-badge rot-badge--none">—</span>';
     return `<div class="${rowClass}"><div class="rot-spine"><div class="rot-spine-top ${topLine}"></div><div class="rot-dot ${dotClass}"></div><div class="rot-spine-bot ${botLine}"></div></div><div class="rot-tl-body"><div class="rot-tl-info"><p class="rot-tl-room">${esc(room)}</p><p class="rot-tl-dates">${dateStr}</p></div>${badge}</div></div>`;
   }).join('') + '</div>';
