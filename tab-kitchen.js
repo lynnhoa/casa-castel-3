@@ -846,7 +846,7 @@ async function kClearChat() {
   await _kDeleteComments(_kWeekRow.id);
 
   const mobile = window.innerWidth <= 700;
-  if (mobile) await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+  if (mobile) await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   else        await _kRenderFeed('k-feed',     _kWeekRow, false);
 }
 
@@ -913,7 +913,7 @@ async function _kSendPhoto(file, feedId) {
   const { data } = sbL.storage.from('kitchen-proofs').getPublicUrl(path);
   await _kAddComment(_kWeekRow.id, 'Casa Castel', '[photo] ' + data.publicUrl, false);
   await _kRenderFeed('k-feed',     _kWeekRow, false);
-  await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+  await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
 }
 
 /* ── MOBILE ACTION HANDLERS ─────────────────────────────── */
@@ -923,7 +923,8 @@ async function _kMobApplyPatch(patch) {
   _kWeekRow = { ..._kWeekRow, ...patch };
   // Pass patched row directly — no re-fetch race. Realtime fires later for authoritative sync.
   await _kRenderMobWeekCard(_kWeekRow);
-  _kRenderMobRotation();
+  if (window.innerWidth <= 700) _kRenderMobRotation();
+  else _kRenderDesktopRotation(kWeekIdx(), kWeekInfo(Math.max(0, kWeekIdx())));
 }
 
 async function kMobApprove() {
@@ -934,7 +935,7 @@ async function kMobApprove() {
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '✓ Approved by landlord.', false);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   } finally { _kActionBusy = false; }
 }
 async function kMobFlag() {
@@ -945,7 +946,7 @@ async function kMobFlag() {
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '⚑ Flagged by landlord — please re-upload your photos.', true);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   } finally { _kActionBusy = false; }
 }
 async function kMobUnapprove() {
@@ -956,7 +957,7 @@ async function kMobUnapprove() {
     await _kUpdateWeek(idx, patch);
     await _kAddComment(_kWeekRow.id, 'Casa Castel', '↩ Approval undone — week back under review.', false);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   } finally { _kActionBusy = false; }
 }
 async function kMobUnflag() {
@@ -966,7 +967,7 @@ async function kMobUnflag() {
     const patch = { flagged:false, status:'submitted' };
     await _kUpdateWeek(idx, patch);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   } finally { _kActionBusy = false; }
 }
 async function kMobReset() {
@@ -978,7 +979,7 @@ async function kMobReset() {
     await _kDeleteComments(_kWeekRow.id);
     await _kUpdateWeek(idx, patch);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   } finally { _kActionBusy = false; }
 }
 async function kMobReopen() {
@@ -989,7 +990,7 @@ async function kMobReopen() {
     const patch = { status:'pending', flagged:false, closed_at:null };
     await _kUpdateWeek(idx, patch);
     await _kMobApplyPatch(patch);
-    await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+    await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
   } finally { _kActionBusy = false; }
 }
 function kMobReminder() {
@@ -1041,7 +1042,7 @@ async function initKitchenMobile() {
   await _kRenderMobWeekCard(_kWeekRow);
 
   // Step 3: feed
-  await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+  await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
 
   // Step 4: nudge banner
   await _kLoadNudgeBanner();
@@ -1051,35 +1052,28 @@ async function initKitchenMobile() {
 }
 
 /* ── MAIN INIT — DESKTOP ────────────────────────────────── */
+/* Identical flow to initKitchenMobile + desktop-only extras  */
 async function initKitchen() {
   if (typeof loadRoomsData === 'function') await loadRoomsData();
-  await loadKitchenRoomsFromSupabase();
-  // Re-render room buttons now that kitchenRooms is loaded from Supabase
-  _kRefreshNudgeRoomButtons();
 
   const idx  = kWeekIdx(new Date());
   const info = _kWeekInfo(Math.max(0, idx));
-  const pad  = n => String(n).padStart(2, '0');
-  const fmtDt = dt => `${pad(dt.getDate())}.${pad(dt.getMonth() + 1)}.${dt.getFullYear()}`;
 
-  document.getElementById('k-mob-room-name').textContent = info ? info.room : '—';
-  if (document.getElementById('k-dsk-room-name')) document.getElementById('k-dsk-room-name').textContent = info ? info.room : '—';
-  document.getElementById('k-mob-dates').textContent = idx < 0
-    ? 'Starts ' + fmtDt(info.start)
-    : fmtDt(info.start) + ' – ' + fmtDt(info.end);
-  if (document.getElementById('k-dsk-dates')) document.getElementById('k-dsk-dates').textContent = idx < 0
-    ? 'Starts ' + fmtDt(info.start)
-    : fmtDt(info.start) + ' – ' + fmtDt(info.end);
+  await loadKitchenRoomsFromSupabase();
+  _kRefreshNudgeRoomButtons();
+
+  // Step 1: instant skeleton
+  await _kRenderMobWeekCard(_kWeekRow);
 
   if (!sbL) {
     document.getElementById('k-feed').innerHTML = '<p class="cc-note">Connect Supabase to see proof feed.</p>';
-    document.getElementById('k-history').innerHTML = '<p class="cc-note">History available once Supabase is connected.</p>';
     return;
   }
   if (idx < 0) { _kRenderDesktopRotation(0, info); return; }
 
   _kAutoReset(idx);
 
+  // Step 2: fetch weekRow + rotation in parallel
   const [, weekRowRaw] = await Promise.all([
     _kRenderDesktopRotation(idx, info),
     _kGetWeek(idx)
@@ -1092,18 +1086,18 @@ async function initKitchen() {
   }
   _kWeekRow = weekRow;
 
-  const [comments] = await Promise.all([
-    _kGetComments(weekRow.id),
+  // Step 3: render card with fresh row — identical to mobile
+  await _kRenderMobWeekCard(_kWeekRow);
+
+  // Step 4: feed + desktop extras
+  await Promise.all([
+    _kRenderFeed('k-feed', _kWeekRow, false),
     _kRenderDesktopHistory(idx)
   ]);
-  await _kRenderMobWeekCard();
-  await _kRenderFeed('k-feed', weekRow, false);
   _kRenderNudgeLog();
-
-  // Check active nudge notice in week card
   await _kRefreshNudgeNotice();
 
-  // Wire desktop message send (action buttons now use same kMob* functions as mobile)
+  // Step 5: wire message send
   const rewire = (id, fn) => {
     const old = document.getElementById(id); if (!old) return;
     const fresh = old.cloneNode(true); old.parentNode.replaceChild(fresh, old);
@@ -1116,8 +1110,10 @@ async function initKitchen() {
     fi.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _kSendDesktopMsg(); } });
   }
 
+  // Step 6: realtime — same as mobile
   _kSubscribe(idx);
 }
+
 
 /* ── REALTIME SUBSCRIPTION ──────────────────────────────── */
 function _kSubscribe(idx) {
@@ -1137,7 +1133,7 @@ function _kSubscribe(idx) {
       await _kRenderMobWeekCard(_kWeekRow);
       const mobile = window.innerWidth <= 700;
       if (mobile) {
-        await _kRenderFeed('k-feed-mob', _kWeekRow, true);
+        await _kRenderFeed(window.innerWidth <= 700 ? 'k-feed-mob' : 'k-feed', _kWeekRow, window.innerWidth <= 700);
         _kRenderMobRotation();
       } else {
         await _kRenderFeed('k-feed', _kWeekRow, false);
