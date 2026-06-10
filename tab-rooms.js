@@ -321,8 +321,40 @@ document.getElementById('tab-rooms').innerHTML = `
 .cc-sw__t::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:white; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,.15); }
 .cc-sw input:checked+.cc-sw__t { background:var(--cc-ink); }
 .cc-sw input:checked+.cc-sw__t::after { transform:translateX(16px); }
-.rc-edit-footer { padding:14px 16px; border-top:var(--cc-border); }
-.rc-save-row { display:flex; gap:8px; margin-bottom:10px; }
+.rc-edit-footer {
+  padding:12px 14px;
+  padding-bottom:max(14px,env(safe-area-inset-bottom,14px));
+  border-top:var(--cc-border);
+  background:var(--cc-surface);
+}
+.rc-save-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+/* Edit footer Cancel — text link, same Option D style */
+.rm-btn--ghost {
+  flex-shrink:0; height:48px; padding:0 16px;
+  background:none; border:none; color:var(--cc-stone);
+  font-size:13px; font-weight:400; letter-spacing:0; text-transform:none;
+  cursor:pointer; font-family:inherit; -webkit-tap-highlight-color:transparent;
+}
+.rm-btn--ghost:active { opacity:.6; }
+/* Edit footer Save — wide dark pill */
+.rm-btn--primary {
+  flex:1; height:48px; background:var(--cc-ink); color:var(--cc-white); border:none;
+  border-radius:var(--cc-r-md); font-size:13px; font-weight:500;
+  letter-spacing:0; text-transform:none;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.rm-btn--primary:active { opacity:.85; }
+.rm-btn--primary:disabled { opacity:.45; cursor:not-allowed; }
+/* Delete — full width subtle danger link */
+.rm-btn--delete {
+  width:100%; min-height:40px; background:transparent;
+  border:.5px solid #EAC4BB; border-radius:var(--cc-r-sm);
+  color:#C4705A; font-size:11px; font-weight:500;
+  letter-spacing:.06em; text-transform:uppercase;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  cursor:pointer; font-family:inherit;
+}
+.rm-btn--delete:active { background:#FBF0EE; }
 
 /* Desktop: cards cap at reasonable width so they don't stretch on large screens */
 @media(min-width:701px) {
