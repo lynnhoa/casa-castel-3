@@ -93,9 +93,6 @@ document.getElementById('tab-kitchen').innerHTML = `
       <div class="k-dsk-section">
         <div class="k-mob-week-top-row" style="margin-bottom:10px;">
           <span class="k-mob-status-chip pending" id="k-dsk-status-chip"></span>
-          <div class="k-mob-week-corner-links">
-            <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('history')">history</button>
-          </div>
         </div>
         <div class="k-mob-week-body">
           <div class="k-mob-week-left">

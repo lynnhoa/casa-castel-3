@@ -1648,6 +1648,13 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
 }
 
 /* k-mob-wact and k-mob-status-chip available globally (desktop + mobile) */
+.k-mob-week-body{display:flex;align-items:center;gap:10px;}
+.k-mob-week-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.k-mob-week-acts{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.k-mob-week-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.k-mob-week-room{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:300;color:var(--cc-ink);line-height:1;}
+.k-mob-week-dates-sm{font-size:10px;color:var(--cc-taupe);line-height:1;}
+.k-mob-week-absent-note{font-size:10px;color:var(--cc-taupe);}
 .k-mob-wact{display:flex;flex-direction:column;align-items:center;gap:3px;width:54px;padding:8px 6px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;transition:opacity .15s;}
 .k-mob-wact:active{opacity:0.7;}
 .k-mob-wact i{font-size:16px;}
