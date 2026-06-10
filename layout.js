@@ -13,6 +13,8 @@ function switchTab(tabName) {
   const mobile    = kIsMobile();
   const isLounge  = tabName === 'lounge';
   const isKitchen = tabName === 'kitchen';
+  // Persist active tab so page refresh restores it
+  try { localStorage.setItem('cc_last_tab', tabName); } catch(e) {}
 
   // Hide all tabs
   document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
@@ -96,8 +98,9 @@ function showApp(room) {
   // switchTab('lounge') below will call loadLoungeAll which calls loadLounge(room).
   if (room && typeof initLoungeTab === 'function') initLoungeTab(room);
 
-  // Activate first tab
-  switchTab('lounge');
+  // Restore last active tab (falls back to lounge)
+  const _lastTab = (() => { try { return localStorage.getItem('cc_last_tab') || 'lounge'; } catch(e) { return 'lounge'; } })();
+  switchTab(_lastTab);
 }
 
 /* ── WIRE TAB BUTTONS ───────────────────────────────────── */
