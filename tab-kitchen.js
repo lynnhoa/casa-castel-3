@@ -1080,7 +1080,7 @@ async function initKitchenMobile() {
   _kWireDesktopCompose();
 
   // Step 6: realtime subscription
-  _kSubscribe(idx);
+  _kSubscribe();
 }
 
 /* Mobile init is same function — layout.js calls one or the other */
@@ -1106,42 +1106,42 @@ function _kWireDesktopCompose() {
 
 
 /* ── REALTIME SUBSCRIPTION ──────────────────────────────── */
-function _kSubscribe(idx) {
+/* ── FULL RELOAD FROM DB (mirrors cleaning tab pattern) ─────
+   Called by every realtime event that affects week state.
+   No dependency on _kWeekRow, no stale closure idx, no guards.
+   Fetches fresh from DB every time — same approach as
+   loadHouseCleaning() in tab-cleaning.js which is the source
+   of truth for how cross-device sync should work.
+   ─────────────────────────────────────────────────────────── */
+async function _kReloadFromDB() {
+  if (!sbL) return;
+  const liveIdx = kWeekIdx();
+  const info    = _kWeekInfo(Math.max(0, liveIdx));
+  if (!info) return;
+
+  const fresh = await _kGetWeek(liveIdx);
+  if (!fresh) return;           // row doesn't exist yet — init will create it
+  _kWeekRow = fresh;
+
+  // Pass fresh row directly — no second DB fetch inside _kRenderMobWeekCard
+  await _kRenderMobWeekCard(_kWeekRow);
+  await _kRenderBothFeeds(_kWeekRow);
+  _kRenderMobRotation();
+  _kRenderDesktopHistory(liveIdx);
+  _kRenderDesktopRotation(liveIdx, kWeekInfo(Math.max(0, liveIdx)));
+}
+
+function _kSubscribe() {
   if (_kChannel) { sbL.removeChannel(_kChannel); _kChannel = null; }
   _kChannel = sbL.channel('kitchen-landlord-rt')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async payload => {
-      if (!_kWeekRow) return;
-      const fresh = await _kGetWeek(idx);
-      if (!fresh) return;
-      // Always update and re-render — don't skip based on status comparison
-      _kWeekRow = fresh;
-      await _kRenderMobWeekCard(_kWeekRow);
-      await _kRenderBothFeeds(_kWeekRow);
-      _kRenderMobRotation();
-      _kRenderDesktopHistory(idx);
-      _kRenderDesktopRotation(idx, kWeekInfo(Math.max(0, idx)));
+    // Any write to kitchen_weeks (tenant submit, landlord approve/flag, etc.)
+    // → full reload. No _kWeekRow dependency, no stale idx.
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' }, async () => {
+      await _kReloadFromDB();
     })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async payload => {
-      if (!payload.new || !_kWeekRow) return;
-      // Filter: only handle comments for the current week
-      if (payload.new.week_id && _kWeekRow.id && payload.new.week_id !== _kWeekRow.id) return;
-      const text = payload.new.text || '';
-      if (text.startsWith('[submission]')) {
-        let isReupload = false;
-        try {
-          const data = JSON.parse(text.replace('[submission] ', ''));
-          isReupload = !!data.isReupload;
-        } catch(e) {}
-        _kWeekRow = {
-          ..._kWeekRow,
-          status: 'submitted',
-          submitted_at: new Date().toISOString(),
-          flagged: false,
-          ...(isReupload ? { reupload_count: (_kWeekRow.reupload_count || 0) + 1 } : {}),
-        };
-        await _kRenderMobWeekCard(_kWeekRow);
-      }
-      await _kRenderBothFeeds(_kWeekRow);
+    // Any new comment (submission, flag, chat) → full reload so chip + feed always match.
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async () => {
+      await _kReloadFromDB();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'kitchen_absences' }, async () => {
       const i = kWeekIdx();
@@ -1153,9 +1153,7 @@ function _kSubscribe(idx) {
       const isDelete = payload.eventType === 'DELETE' || (!payload.new?.id && payload.old?.id);
       if (t === 'kitchen_config' && payload.new?.body) {
         _applyKitchenConfig(payload.new.body);
-        await _kRenderMobWeekCard(_kWeekRow);
-        _kRenderMobRotation();
-        _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
+        await _kReloadFromDB();
       }
       if (t === 'kitchen_nudge' || isDelete) {
         _kLoadNudgeBanner();
@@ -1163,11 +1161,9 @@ function _kSubscribe(idx) {
         _kRefreshNudgeNotice();
       }
     })
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async payload => {
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async () => {
       if (typeof loadRoomsData === 'function') await loadRoomsData();
-      await _kRenderMobWeekCard(_kWeekRow);
-      _kRenderMobRotation();
-      _kRenderDesktopRotation(idx, _kWeekInfo(Math.max(0, idx)));
+      await _kReloadFromDB();
     })
     .subscribe();
 }
