@@ -92,7 +92,7 @@ function _renderAnn(data) {
   const annHtml = !data ? emptyHtml : `
     <div class="ann-card${data.pinned ? ' ann-card--pinned' : ''}">
       <div class="ann-top">
-        <span class="ann-top-lbl">Announcement</span>
+        <span class="ann-top-lbl">Casa Castel</span>
         ${data.pinned ? '<span class="ann-pin">Pinned</span>' : ''}
         <span class="ann-date">${fmtTs(new Date(data.created_at).getTime())}</span>
       </div>
