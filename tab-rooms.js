@@ -3645,7 +3645,7 @@ function _renderMietvertragHTML(d) {
     ${kv('Mietbeginn',d.mietbeginn||'—')}
     ${d.befristet
       ? ''
-      : kv('Kündigung','3\u00a0Monate (Mieter) / gestaffelt (Vermieter) \u00b7 \u00a7\u00a0573c BGB \u00b7 Schriftform')
+      : kv('Kündigungsfrist','3\u00a0Monate \u00b7 Schriftform (\u00a7\u00a0573c BGB)')
         + kv('\u00a7\u00a0545 BGB','Keine stillschweigende Verlängerung')
     }
     ${sec('Miete &amp; Bankverbindung',true,false)}
