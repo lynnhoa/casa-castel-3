@@ -83,13 +83,14 @@ function buildMailto(to, subject, body) {
 }
 
 /* ── MENTION PARSER ─────────────────────────────────────── */
-function parseMsg(text) {
+function parseMsg(text, currentRoom) {
   let s = esc(text);
   ALL_ROOMS.concat(['Casa Castel']).forEach(r => {
     const tag = '@' + r;
+    const isSelf = currentRoom && r === currentRoom;
     s = s.replace(
       new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
-      `<span class="msg-mention">${tag}</span>`
+      `<span class="msg-mention${isSelf ? ' msg-mention--me' : ''}">${tag}</span>`
     );
   });
   return s;

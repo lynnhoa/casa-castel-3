@@ -385,6 +385,8 @@ function _renderNotice(data) {
 
 function _renderNoticeModalPreview(data) {
   const el = document.getElementById('lounge-notice-preview'); if (!el) return;
+  const clearBtnM = document.getElementById('notice-clear-btn-mob');
+  if (clearBtnM) clearBtnM.style.display = (data && data.body) ? '' : 'none';
   if (!data) { el.innerHTML = '<p class="cc-note" style="padding:4px 0;">No notice posted yet.</p>'; return; }
   const cols = {
     yellow: { bg:'#FEFCE8', bd:'#EAD96B', tx:'#78640A', ic:'#A0860E' },
@@ -403,7 +405,12 @@ function _populateNoticeModal() {
   if (sbL) {
     sbL.from('lounge_data').select('*').eq('type','notice')
       .order('created_at',{ascending:false}).limit(1).maybeSingle()
-      .then(({ data }) => _renderNoticeModalPreview(data));
+      .then(({ data }) => {
+        _renderNoticeModalPreview(data);
+        // Show/hide Clear button based on whether a notice exists
+        const clearBtnM = document.getElementById('notice-clear-btn-mob');
+        if (clearBtnM) clearBtnM.style.display = (data && data.body) ? '' : 'none';
+      });
   }
   // Sync color buttons
   const modal = document.getElementById('lounge-modal-notice');
@@ -428,6 +435,9 @@ function _populateNoticeModal() {
       await sbL.from('lounge_data').delete().eq('type','notice');
       const { data } = await sbL.from('lounge_data').insert({ type:'notice', body:text, color:_noticeColor }).select().maybeSingle();
       document.getElementById('notice-input-mob').value = '';
+      // Sync desktop color picker to match what was just posted
+      document.querySelectorAll('#tab-lounge .l-desktop-grid .notice-color-btn')
+        .forEach(b => b.classList.toggle('active', b.dataset.color === _noticeColor));
       if (data) _renderNotice(data); else loadNotice();
       loungeCloseModal('notice');
     });
@@ -479,7 +489,7 @@ function _msgHtml(m, canDelete) {
         <span class="msg-name${isCC ? ' msg-name--mgmt' : ''}">${esc(m.room)}</span>
         <span class="msg-time">${fmtTs(new Date(m.created_at).getTime())}</span>
       </div>
-      <p class="msg-text">${parseMsg(m.body)}</p>
+      <p class="msg-text">${parseMsg(m.body, 'Casa Castel')}</p>
     </div>
     ${canDelete ? `<button class="msg-del" title="Delete" onclick="deleteMsg('${m.id}')">✕</button>` : ''}
   </div>`;
@@ -553,16 +563,29 @@ function subscribeLounge() {
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'lounge_data' }, payload => {
       const r = payload.new;
       if (r.type === 'message')      _appendMsg(r);
-      if (r.type === 'announcement') _renderAnn(r);
+      if (r.type === 'announcement') { _lastRenderedAnnId = null; _renderAnn(r); }
       if (r.type === 'notice')       _renderNotice(r);
       if (r.type === 'hc_done')      loadHouseCleaning?.();
     })
-    .on('postgres_changes', { event:'DELETE', schema:'public', table:'lounge_data' }, () => {
-      loadLoungeAll();
+    .on('postgres_changes', { event:'DELETE', schema:'public', table:'lounge_data' }, payload => {
+      const old = payload.old || {};
+      if (old.type === 'message') {
+        // Remove just that message row from both feeds
+        if (old.id) {
+          document.querySelectorAll(`.msg-row[data-id="${old.id}"]`).forEach(el => el.remove());
+        }
+      } else if (old.type === 'announcement') {
+        loadAnnouncements();
+      } else if (old.type === 'notice') {
+        _renderNotice(null);
+      } else {
+        // Unknown type — full reload as fallback
+        loadLoungeAll();
+      }
     })
     .on('postgres_changes', { event:'UPDATE', schema:'public', table:'lounge_data' }, payload => {
       const r = payload.new;
-      if (r.type === 'announcement') _renderAnn(r);
+      if (r.type === 'announcement') { _lastRenderedAnnId = null; _renderAnn(r); }
       if (r.type === 'notice')       _renderNotice(r);
     })
     .subscribe();

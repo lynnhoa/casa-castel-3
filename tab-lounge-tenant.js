@@ -107,6 +107,13 @@ function _renderAnn(data) {
 
 /* ── NOTICE ─────────────────────────────────────────────── */
 async function loadNotice() {
+  if (!sbL) { _renderNotice(null); return; }
+  const { data } = await sbL.from('lounge_data').select('*')
+    .eq('type','notice').order('created_at',{ascending:false}).limit(1).maybeSingle();
+  _renderNotice(data || null);
+}
+
+function _renderNotice(data) {
   const strip  = document.getElementById('notice-strip');
   const dskEl  = document.getElementById('notice-display-desktop');
   const cols = {
@@ -114,13 +121,6 @@ async function loadNotice() {
     green:  { bg:'#F0FDF4', bd:'#86EFAC', tx:'#14532D', ic:'#16A34A' },
     red:    { bg:'#FFF1F2', bd:'#FECDD3', tx:'#9F1239', ic:'#E11D48' },
   };
-  if (!sbL) {
-    if (strip) strip.className = 'l-notice-strip';
-    if (dskEl) dskEl.innerHTML = '<p class="cc-note" style="padding:4px 0;">No notice posted.</p>';
-    return;
-  }
-  const { data } = await sbL.from('lounge_data').select('*')
-    .eq('type','notice').order('created_at',{ascending:false}).limit(1).maybeSingle();
   if (data && data.body) {
     if (strip) {
       document.getElementById('notice-strip-text').textContent = data.body;
@@ -178,20 +178,61 @@ async function sendLounge(room, inputId) {
   if (!input) return;
   const text = input.value.trim(); if (!text) return;
   input.value = '';
-  await sbL.from('lounge_data').insert({ type:'message', room, body:text });
-  loadLounge(room);
+  // Optimistic append — no full feed reload
+  const tmpId = '_tmp_' + Date.now();
+  const opt = { id: tmpId, room, body: text, created_at: new Date().toISOString(), type: 'message' };
+  _appendMsg(opt, room);
+  const { data } = await sbL.from('lounge_data').insert({ type:'message', room, body:text }).select().maybeSingle();
+  _removeOptimistic();
+  if (data) _appendMsg(data, room);
+}
+
+// Appends a single message to both feeds (deduplicates by id)
+function _appendMsg(m, currentRoom) {
+  ['lounge-feed', 'lounge-feed-desktop'].forEach(feedId => {
+    const feed = document.getElementById(feedId);
+    if (!feed) return;
+    if (m.id && feed.querySelector(`.msg-row[data-id="${m.id}"]`)) return;
+    feed.querySelector('.cc-note')?.remove();
+    feed.insertAdjacentHTML('beforeend', _msgHtml(m, currentRoom));
+    scrollToBottom(feed);
+  });
+}
+
+// Removes optimistic placeholder rows from both feeds
+function _removeOptimistic() {
+  ['lounge-feed', 'lounge-feed-desktop'].forEach(feedId => {
+    document.getElementById(feedId)
+      ?.querySelectorAll('.msg-row[data-id^="_tmp_"]')
+      .forEach(el => el.remove());
+  });
 }
 
 /* ── REALTIME ───────────────────────────────────────────── */
 function subscribeLounge(room) {
   if (!sbL || _loungeSub) return;
   _loungeSub = sbL.channel('lounge-tenant')
-    .on('postgres_changes', { event:'*', schema:'public', table:'lounge_data' }, payload => {
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'lounge_data' }, payload => {
       const r = payload.new || {};
-      loadLounge(room);
-      loadNotice();
-      loadAnnouncements();
-      if (r.type === 'hc_done') loadHouseCleaning?.(room);
+      if (r.type === 'message')      _appendMsg(r, room);
+      if (r.type === 'announcement') _renderAnn(r);
+      if (r.type === 'notice')       _renderNotice(r);
+      if (r.type === 'hc_done')      loadHouseCleaning?.(room);
+    })
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'lounge_data' }, payload => {
+      const r = payload.new || {};
+      if (r.type === 'announcement') _renderAnn(r);
+      if (r.type === 'notice')       _renderNotice(r);
+    })
+    .on('postgres_changes', { event:'DELETE', schema:'public', table:'lounge_data' }, payload => {
+      const old = payload.old || {};
+      if (old.type === 'message') {
+        if (old.id) document.querySelectorAll(`.msg-row[data-id="${old.id}"]`).forEach(el => el.remove());
+      } else if (old.type === 'announcement') {
+        _renderAnn(null);
+      } else if (old.type === 'notice') {
+        _renderNotice(null);
+      }
     })
     .subscribe();
 }
@@ -225,9 +266,9 @@ function initLoungeTab(room) {
 
 /* ── loadLoungeAll alias — called by switchTab on tab switch ── */
 function loadLoungeAll() {
-  if (typeof currentRoom !== 'undefined' && currentRoom) {
-    loadAnnouncements();
-    loadNotice();
-    loadLounge(currentRoom);
-  }
+  const room = (typeof currentRoom !== 'undefined' && currentRoom) ? currentRoom : null;
+  loadAnnouncements();
+  loadNotice();
+  if (room) loadLounge(room);
+  // If room not yet known, initLoungeTab will load when auth completes
 }
