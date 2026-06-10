@@ -20,118 +20,35 @@ document.addEventListener('click', e => {
   }
 });
 
-/* ── LANGUAGE TOGGLE ────────────────────────────────────── */
-let _currentLang = localStorage.getItem('cc_lang') || 'en';
-
-const LANG = {
-  en: {
-    // Nav / tabs
-    tab_lounge:   'Lounge',
-    tab_cleaning: 'Cleaning',
-    tab_kitchen:  'Kitchen',
-    tab_rooms:    'Rooms',
-    tab_tenants:  'Tenants',
-    lang_btn:     'Deutsch',
-    nav_profile:  'Profile',
-
-    // Profile modal — section titles
-    profile_title:           'Profile',
-    profile_landlord:        'Landlord',
-    profile_property:        'Property',
-    profile_bank:            'Bank details',
-    profile_shared_spaces:   'Shared spaces',
-    profile_bathrooms:       'Bathrooms',
-    profile_meters:          'Utility meters',
-
-    // Profile modal — field labels
-    profile_name:            'Name',
-    profile_address:         'Address',
-    profile_postcode_city:   'Postcode / City',
-    profile_jurisdiction:    'Jurisdiction',
-    profile_signing_location:'Signing location',
-    profile_account_holder:  'Account holder',
-    profile_landlord_name:   'Landlord name',
-    profile_landlord_address:'Landlord address',
-
-    // Profile modal — UI strings
-    profile_none_added:      'None added yet',
-    profile_new_space:       'New space…',
-    profile_new_bathroom:    'e.g. Bathroom 3rd floor…',
-    profile_meter_number:    'Meter number…',
-    profile_meter_number_label: 'Meter number',
-    profile_edit:            'Edit',
-    profile_save:            'Save',
-    profile_cancel:          'Cancel',
-    profile_add:             '+ Add',
-  },
-  de: {
-    // Nav / tabs
-    tab_lounge:   'Lounge',
-    tab_cleaning: 'Reinigung',
-    tab_kitchen:  'Küche',
-    tab_rooms:    'Zimmer',
-    tab_tenants:  'Mieter',
-    lang_btn:     'English',
-    nav_profile:  'Profil',
-
-    // Profile modal — section titles
-    profile_title:           'Profil',
-    profile_landlord:        'Vermieter',
-    profile_property:        'Objekt',
-    profile_bank:            'Bankverbindung',
-    profile_shared_spaces:   'Gemeinschaftsräume',
-    profile_bathrooms:       'Badezimmer',
-    profile_meters:          'Zählerstände',
-
-    // Profile modal — field labels
-    profile_name:            'Name',
-    profile_address:         'Adresse',
-    profile_postcode_city:   'PLZ / Ort',
-    profile_jurisdiction:    'Gerichtsstand',
-    profile_signing_location:'Unterschriftsort',
-    profile_account_holder:  'Kontoinhaber',
-    profile_landlord_name:   'Vermieter Name',
-    profile_landlord_address:'Vermieter Adresse',
-
-    // Profile modal — UI strings
-    profile_none_added:      'Keine eingetragen',
-    profile_new_space:       'Neuer Bereich…',
-    profile_new_bathroom:    'z.B. Bad 3. OG…',
-    profile_meter_number:    'Zählernummer…',
-    profile_meter_number_label: 'Zählernummer',
-    profile_edit:            'Bearbeiten',
-    profile_save:            'Speichern',
-    profile_cancel:          'Abbrechen',
-    profile_add:             '+ Hinzufügen',
-  }
+/* ── LANGUAGE — English only ────────────────────────────── */
+// Translation toggle removed. App is English only.
+// t() kept for rooms tab UI labels.
+const _currentLang = 'en';
+const _EN = {
+  tab_lounge:   'Lounge',     tab_cleaning: 'Cleaning',  tab_kitchen:  'Kitchen',
+  tab_rooms:    'Rooms',      tab_tenants:  'Tenants',   nav_profile:  'Profile',
+  profile_title:'Profile',    profile_landlord:'Landlord', profile_property:'Property',
+  profile_bank: 'Bank details', profile_shared_spaces:'Shared spaces',
+  profile_bathrooms:'Bathrooms', profile_meters:'Utility meters',
+  profile_name: 'Name',       profile_address:'Address', profile_postcode_city:'Postcode / City',
+  profile_jurisdiction:'Jurisdiction', profile_signing_location:'Signing location',
+  profile_account_holder:'Account holder', profile_landlord_name:'Landlord name',
+  profile_landlord_address:'Landlord address', profile_none_added:'None added yet',
+  profile_new_space:'New space…', profile_new_bathroom:'e.g. Bathroom 3rd floor…',
+  profile_meter_number:'Meter number…', profile_meter_number_label:'Meter number',
+  profile_edit: 'Edit',       profile_save: 'Save',      profile_cancel:'Cancel',
+  profile_add:  '+ Add',
+  rooms_title:  'Rooms',      rooms_add:    'Add room',  rooms_inventar:'Inventar',
+  rooms_add_item:'Add item',  rooms_cancel: 'Cancel',    rooms_save:   'Save',
+  rooms_delete: 'Delete room', rooms_contracts:'Contracts', rooms_edit:'Edit room',
+  rooms_vacant: 'Vacant',     rooms_occupied:'Occupied',
+  rooms_mark_vacant:'Mark as vacant', rooms_mark_occupied:'Mark as occupied',
 };
+function t(key) { return _EN[key] || key; }
+function applyLang() {} // no-op — kept so _bindAllCards doesn't error
+function getCurrentLang() { return 'en'; }
 
-function applyLang(lang) {
-  _currentLang = lang;
-  localStorage.setItem('cc_lang', lang);
-  const L = LANG[lang] || LANG.en;
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.dataset.i18n;
-    if (L[key]) el.textContent = L[key];
-  });
-  const btn = document.getElementById('langToggleBtn');
-  if (btn) btn.textContent = L.lang_btn;
 
-  // If profile panel is open, re-render it in the new language
-  const profileOverlay = document.getElementById('profileOverlay');
-  if (profileOverlay?.classList.contains('open')) {
-    if (typeof _renderProfileSections === 'function') _renderProfileSections();
-  }
-}
-
-// Expose current lang for other modules
-function getCurrentLang() { return _currentLang; }
-function t(key) { return (LANG[_currentLang] || LANG.en)[key] || (LANG.en)[key] || key; }
-
-function toggleLang() {
-  applyLang(_currentLang === 'en' ? 'de' : 'en');
-  toggleProfileMenu();
-}
 
 /* ── LOGOUT WIRING ──────────────────────────────────────── */
 function initNavLogout() {
