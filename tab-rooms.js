@@ -1707,9 +1707,13 @@ function _openContract(type, roomId) {
       if (befristet && grundVal === 'eigenbedarf' && !eigenbedarfPerson) {
         alert('Bitte Eigenbedarfsperson angeben (gesetzliche Pflicht).'); return;
       }
+      const energieklasse     = document.getElementById('mv-energieklasse')?.value.trim();
+      const endenergiebedarf  = document.getElementById('mv-endenergiebedarf')?.value.trim();
+      const energieausweisart = document.getElementById('mv-energieausweisart')?.value.trim();
       const data = _buildMietvertragOnlyData(room2, appSettings, {
         mieterName, mieterAdr, mieterDob, mieterEmail, startVal, sigVal,
         befristet, endVal, grundVal, eigenbedarfPerson,
+        energieklasse, endenergiebedarf, energieausweisart,
       });
       const html = _renderMietvertragHTML(data);
       let container = document.getElementById('_pdfRenderContainer');
@@ -2349,7 +2353,9 @@ function _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, miet
     inventar: Array.isArray(room.inventar) ? room.inventar : [],
     // Signing
     unterzeichnungsDatum: sigVal ? fmt(new Date(sigVal)) : '',
-
+    energieklasse:     energieklasse     || '___',
+    endenergiebedarf:  endenergiebedarf  || '___',
+    energieausweisart: energieausweisart || 'Verbrauchsausweis',
   };
 }
 
@@ -3300,6 +3306,7 @@ function _buildMietvertragOnlyData(room, s, {
   startVal, sigVal,
   befristet = false, endVal = null,
   grundVal = '', eigenbedarfPerson = '',
+  energieklasse = '', endenergiebedarf = '', energieausweisart = '',
 }) {
   const fmt = d => {
     const dt = new Date(d);
@@ -3499,7 +3506,14 @@ function _contractBodyMietvertrag(room) {
     <div class="rm-field" style="margin-top:4px;">
       <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label>
       <input class="rm-input" id="mv-sig" type="date"/>
-    </div>`;
+    </div>
+
+    <div class="rm-fields-title" style="margin-top:6px;">Energieausweis <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(§ 16a GEG)</span></div>
+    <div class="rm-field-row">
+      <div class="rm-field"><label>Effizienzklasse</label><input class="rm-input" id="mv-energieklasse" placeholder="z. B. D"/></div>
+      <div class="rm-field"><label>Art des Ausweises</label><input class="rm-input" id="mv-energieausweisart" placeholder="Verbrauchsausweis"/></div>
+    </div>
+    <div class="rm-field"><label>Endenergiebedarf</label><input class="rm-input" id="mv-endenergiebedarf" placeholder="z. B. 142 kWh/(m²·a)"/></div>`;
 }
 
 function _toggleMvBefristung() {
@@ -3606,9 +3620,7 @@ function _renderMietvertragHTML(d) {
     ? d.inventar.map(i => `<tr><td>${i.gegenstand}</td><td>${i.anzahl}</td></tr>`).join('')
     : `<tr><td colspan="2" style="color:#aaa59e;font-size:10px;padding-top:6px;">Kein Inventar hinterlegt</td></tr>`;
 
-  const subtitle = d.befristet
-    ? 'Befristetes Mietverhältnis \u00b7 Zimmervermietung'
-    : 'Unbefristetes Mietverhältnis \u00b7 Zimmervermietung';
+  const subtitle = 'Zimmervermietung';
 
   const page1 = `<div class="pdf-page page">
   ${hdr(d.zimmerName)}${ftr(1)}
@@ -3655,10 +3667,10 @@ function _renderMietvertragHTML(d) {
     ${sec('Betriebskosten gem. \u00a7\u00a71,\u00a02 BetrKV',true,true)}
     <p class="nk-intro">Neben der Kaltmiete trägt der Mieter anteilig folgende Betriebskosten. Umlageschlüssel: Gesamtnutzfläche des Mieters (Zimmer + anteilige Gemeinschaftsfläche) im Verhältnis zur Gesamtnutzfläche aller Zimmer. Heizung und Warmwasser nach HeizkostenV.</p>
     <div class="nk-grid">${nkRows}</div>
-    ${cl('1',d.befristet?'Befristung und Beendigung':'Nutzung des Mietobjekts',
+    ${cl('1',d.befristet?'Befristung und Beendigung':'Mietzeit',
       d.befristet
         ? `Das Mietverhältnis ist gemäß \u00a7\u00a0575 Abs.\u00a01 BGB befristet und endet am ${d.mietende} automatisch ohne Kündigung (\u00a7\u00a0545 BGB findet keine Anwendung). Das Zimmer darf ausschließlich zu Wohnzwecken durch den namentlich genannten Mieter genutzt werden.`
-        : 'Das Zimmer darf ausschließlich zu Wohnzwecken durch den namentlich genannten Mieter genutzt werden. Der Mieter ist verpflichtet, das Zimmer und die Gemeinschaftsflächen schonend, sauber und ordnungsgemäß zu behandeln, ausreichend zu heizen, zu lüften und von Ungeziefer freizuhalten. Mängel sind dem Vermieter unverzüglich in Textform anzuzeigen.',
+        : 'Das Mietverhältnis ist unbefristet. Das Zimmer darf ausschließlich zu Wohnzwecken durch den namentlich genannten Mieter genutzt werden. Der Mieter ist verpflichtet, das Zimmer und die Gemeinschaftsflächen schonend, sauber und ordnungsgemäß zu behandeln, ausreichend zu heizen, zu lüften und von Ungeziefer freizuhalten. Mängel sind dem Vermieter unverzüglich in Textform anzuzeigen.',
       true)}
     ${cl('2','Kündigung',
       d.befristet
@@ -3678,20 +3690,24 @@ function _renderMietvertragHTML(d) {
       'Bei Gefahr im Verzug jederzeit. Zur Vorbereitung von Verkauf oder Weitervermietung werktags 9:00–12:00 und 15:00–19:00\u202fUhr, mind. 2\u00a0Werktage Vorankündigung (Textform).')}
     ${cl('9','Rückgabe bei Vertragsende',
       'Vollständig geräumt, gereinigt, in vertragsgemäßem Zustand, alle Schlüssel. Bauliche Änderungen sind rückzubauen. Ein Übergabeprotokoll wird erstellt und beidseitig unterzeichnet.')}
+    ${cl('10','Aufrechnung &amp; Zurückbehaltungsrecht',
+      'Der Mieter kann gegen Forderungen des Vermieters nur mit unbestrittenen oder rechtskräftig festgestellten Gegenforderungen aufrechnen. Das Zurückbehaltungsrecht ist auf Mängelrechte nach \u00a7\u00a7\u00a0536\u00a0ff. BGB beschränkt und setzt eine mindestens einmonatige vorherige Ankündigung in Textform voraus.')}
   </div>
 </div>`;
 
   const page3 = `<div class="pdf-page page">
   ${hdr(d.zimmerName)}${ftr(3)}
   <div class="content">
-    ${cl('10','Haftpflichtversicherung',
+    ${cl('11','Haftpflichtversicherung',
       'Der Mieter unterhält für die Dauer des Mietverhältnisses eine private Haftpflichtversicherung und weist sie auf Verlangen nach.',true)}
-    ${cl('11','Hausordnung',
+    ${cl('12','Hausordnung',
       'Rauchen ist im gesamten Gebäude nicht gestattet. Nachtruhe gilt von 22:00–07:00\u202fUhr. Die Hausordnung ist Bestandteil dieses Vertrages (Anlage\u00a0B).')}
-    ${cl('12','Datenschutz',
+    ${cl('13','Datenschutz',
       'Personenbezogene Daten werden gem. Art.\u00a06 Abs.\u00a01 lit.\u00a0b DSGVO zur Vertragsabwicklung verarbeitet, nicht an Dritte weitergegeben und 11\u00a0Jahre nach Vertragsende gelöscht.')}
-    ${cl('13','Sonstige Vereinbarungen',
+    ${cl('14','Sonstige Vereinbarungen',
       'Mündliche Nebenabreden bestehen nicht. Änderungen bedürfen der Schriftform. Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam. Gerichtsstand ist '+d.gerichtsstand+'.')}
+    ${cl('15','Energieausweis (\u00a7\u00a016a GEG)',
+      'Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Energieeffizienzklasse: '+(d.energieklasse||'___')+'. Endenergiebedarf: '+(d.endenergiebedarf||'___')+' kWh/(m\u00b2\u00b7a). Art: '+(d.energieausweisart||'Verbrauchsausweis')+'.')}
     ${sec('Anlage A \u2014 Inventar',true,false)}
     <table class="inv-table">
       <thead><tr><th>Gegenstand</th><th>Anzahl</th></tr></thead>
