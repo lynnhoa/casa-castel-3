@@ -84,7 +84,7 @@ document.getElementById('tab-kitchen').innerHTML = `
       <!-- Hidden file input — shared, tracks which slot -->
       <input type="file" id="k-ten-wiz-file" accept="image/*" capture="environment" style="display:none;"/>
       <!-- Submit -->
-      <div style="padding:16px 20px;border-top:0.5px solid var(--cc-rule);flex-shrink:0;">
+      <div style="padding:16px 20px;padding-bottom:max(16px,env(safe-area-inset-bottom,16px));border-top:0.5px solid var(--cc-rule);flex-shrink:0;">
         <button id="k-ten-wiz-submit-btn" class="cc-btn" style="width:100%;opacity:0.4;pointer-events:none;" onclick="_kTenWizSubmit()">↑ Submit proof</button>
       </div>
     </div>
