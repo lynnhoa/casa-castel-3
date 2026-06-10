@@ -250,6 +250,14 @@ function _renderAnn(data) {
 
 async function _populateAnnModal() {
   const el = document.getElementById('ann-list-modal'); if (!el) return;
+
+  // Wire post button unconditionally — must happen even when no announcement exists
+  const btn = document.getElementById('ann-post-btn-mob');
+  if (btn && !btn._wired) {
+    btn.addEventListener('click', () => _postAnn('ann-title-input-mob','ann-body-input-mob','ann-pin-check-mob', true));
+    btn._wired = true;
+  }
+
   if (!sbL) { el.innerHTML = '<p class="cc-note">Connect Supabase.</p>'; return; }
   const { data } = await sbL.from('lounge_data').select('*')
     .eq('type','announcement').order('created_at',{ascending:false}).limit(1).maybeSingle();
@@ -260,12 +268,6 @@ async function _populateAnnModal() {
     <p class="ann-body-text">${esc(data.body)}</p>
     <button onclick="deleteAnn('${data.id}')" style="font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#9F1239;background:none;border:none;cursor:pointer;margin-top:10px;padding:0;font-family:inherit;">Delete announcement</button>
   </div>`;
-  // Lazy-wire post button
-  const btn = document.getElementById('ann-post-btn-mob');
-  if (btn && !btn._wired) {
-    btn.addEventListener('click', () => _postAnn('ann-title-input-mob','ann-body-input-mob','ann-pin-check-mob', true));
-    btn._wired = true;
-  }
 }
 
 async function _postAnn(titleId, bodyId, pinId, closeAfter) {
