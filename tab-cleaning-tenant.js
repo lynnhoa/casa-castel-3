@@ -396,11 +396,10 @@ async function loadHouseCleaning(room) {
       <!-- Week-absence notices below action strip -->
       ${weekAbsences.length ? `<div style="margin-top:6px;">` + weekAbsences.map(a => {
         const note = a.note ? ` · ${esc(a.note)}` : '';
-        return `<button onclick="absOpenModal('list')" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);margin-bottom:6px;cursor:pointer;font-family:inherit;text-align:left;">
+        return `<div style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--cc-notice-bg);border:0.5px solid var(--cc-notice-bdr);border-radius:var(--cc-r-sm);margin-bottom:6px;">
           <i class="ti ti-calendar-off" style="font-size:14px;color:#8C5A30;flex-shrink:0;" aria-hidden="true"></i>
           <span style="flex:1;font-size:11px;color:#8C5A30;">${esc(a.room)} is away this week${note}</span>
-          <i class="ti ti-chevron-right" style="font-size:13px;color:#8C5A30;flex-shrink:0;" aria-hidden="true"></i>
-        </button>`;
+        </div>`;
       }).join('') + `</div>` : ''}`;
 
     /* Wire mark-done button */
