@@ -811,23 +811,13 @@ async function _kTenPopulateHistory() {
   const idx = kWeekIdx();
   const { data } = await sbL.from('kitchen_weeks').select('*').lte('week_index', idx).order('week_index', { ascending: false }).limit(12);
   if (!data || !data.length) { el.innerHTML = '<p class="cc-note">No past weeks yet.</p>'; return; }
-  const base = 'font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;white-space:nowrap;border:0.5px solid;display:inline-block;';
-  const pill = s => {
-    if (s === 'approved')  return `<span style="${base}background:#EDF5E8;color:#3A6A1A;border-color:#9AC87A;">✓ Approved</span>`;
-    if (s === 'submitted') return `<span style="${base}background:#EDF5E8;color:#3A6A1A;border-color:#9AC87A;">✓ Done</span>`;
-    if (s === 'flagged')   return `<span style="${base}background:#FFF7ED;color:#C2410C;border-color:#FDBA74;">⚑ Redo</span>`;
-    if (s === 'missed')    return `<span style="${base}background:#FEF2F2;color:#991B1B;border-color:#FCA5A5;">✗ Missed</span>`;
-    if (s === 'skipped')   return `<span style="${base}background:#F5F3FF;color:#5B21B6;border-color:#C4B5FD;">Skipped</span>`;
-    if (s === 'absent')    return `<span style="${base}background:#F5EEE8;color:#8C5A30;border-color:#D4A87A;">Away</span>`;
-    return `<span style="${base}background:var(--cc-surface);color:var(--cc-stone);border-color:var(--cc-rule);">—</span>`;
-  };
   el.innerHTML = data.map(w => {
     const wi = kWeekInfo(w.week_index); const dateStr = wi ? wi.dateRange : '—';
     const c  = w.comment_count ? ` · ${w.comment_count} comment${w.comment_count !== 1 ? 's' : ''}` : '';
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--cc-rule);">
       <div><p style="font-size:13px;font-weight:500;color:var(--cc-ink);">${esc(w.room)}</p>
       <p style="font-size:11px;color:var(--cc-taupe);">${dateStr}${c}</p></div>
-      ${pill(w.status)}</div>`;
+      ${kHistPill(w.status)}</div>`;
   }).join('');
 }
 
