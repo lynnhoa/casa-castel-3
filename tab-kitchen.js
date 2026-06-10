@@ -1171,7 +1171,7 @@ function _kSubscribe(idx) {
         if (mobile) {
           await _kRenderMobWeekCard(_kWeekRow);
         } else {
-          await _kRenderMobWeekCard();
+          await _kRenderMobWeekCard(_kWeekRow);
         }
       }
 
