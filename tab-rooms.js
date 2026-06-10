@@ -1877,9 +1877,12 @@ function _openContract(type, roomId) {
       if (befristet && grundVal === 'eigenbedarf' && !eigenbedarfPerson) {
         alert('Bitte Eigenbedarfsperson angeben (gesetzliche Pflicht).'); return;
       }
+      if (!startVal) { alert('Bitte Mietbeginn ausfüllen.'); return; }
+      if (befristet && !endVal) { alert('Bitte Mietende ausfüllen.'); return; }
+      const ersterMonatVoll = document.getElementById('mv-erster-btn')?.dataset.mode === 'voll';
       const data = _buildMietvertragOnlyData(room2, appSettings, {
         mieterName, mieterAdr, mieterDob, mieterEmail, mieterTel, startVal, sigVal,
-        befristet, endVal, grundVal, eigenbedarfPerson,
+        befristet, endVal, grundVal, eigenbedarfPerson, ersterMonatVoll,
       });
       const html = _renderMietvertragHTML(data);
       let container = document.getElementById('_pdfRenderContainer');
@@ -2102,6 +2105,32 @@ function _updateMonatToggles() {
   const startVal = document.getElementById('cm-start')?.value;
   const endVal   = document.getElementById('cm-end')?.value;
 
+  // — Kaution display update —
+  const kautionValEl  = document.getElementById('cm-kaution-val');
+  const kautionRuleEl = document.getElementById('cm-kaution-rule');
+  if (kautionValEl && startVal && endVal) {
+    const room = getRoomById(_contractRoomId);
+    if (room) {
+      const rent = Number(room.monatl_miete) || 0;
+      const totalMonths = Math.round(
+        (new Date(endVal) - new Date(startVal)) / (30.44 * 24 * 3600 * 1000)
+      );
+      let kaution, ruleText;
+      if (room.kaution_override && room.kaution_default) {
+        kaution   = Number(room.kaution_default);
+        ruleText  = 'Individuelle Kaution';
+      } else if (totalMonths <= 3) {
+        kaution   = rent;
+        ruleText  = `≤ 3 Monate → 1× (${totalMonths} Mon.)`;
+      } else {
+        kaution   = rent * 3;
+        ruleText  = `> 3 Monate → 3× (${totalMonths} Mon.)`;
+      }
+      kautionValEl.textContent  = fmtEUR(kaution);
+      kautionRuleEl.textContent = ruleText;
+    }
+  }
+
   // — Erster Monat toggle —
   const ersterWrap = document.getElementById('cm-erster-wrap');
   if (ersterWrap) {
@@ -2150,6 +2179,31 @@ function _toggleLetzterMonat() {
   sub.textContent    = isVoll ? 'Voller Monat — pauschal' : 'Anteilig — wird berechnet';
 }
 
+function _updateMvMonatToggle() {
+  const startVal   = document.getElementById('mv-start')?.value;
+  const ersterWrap = document.getElementById('mv-erster-wrap');
+  if (!ersterWrap) return;
+  const show = startVal && new Date(startVal).getDate() !== 1;
+  ersterWrap.style.display = show ? '' : 'none';
+  if (!show) {
+    const btn = document.getElementById('mv-erster-btn');
+    const lbl = document.getElementById('mv-erster-lbl');
+    const sub = document.getElementById('mv-erster-sub');
+    if (btn) { btn.dataset.mode = 'anteilig'; lbl.textContent = 'Anteilig'; sub.textContent = 'Anteilig — wird berechnet'; }
+  }
+}
+
+function _toggleMvErsterMonat() {
+  const btn = document.getElementById('mv-erster-btn');
+  const lbl = document.getElementById('mv-erster-lbl');
+  const sub = document.getElementById('mv-erster-sub');
+  if (!btn) return;
+  const isVoll = btn.dataset.mode === 'anteilig';
+  btn.dataset.mode = isVoll ? 'voll' : 'anteilig';
+  lbl.textContent  = isVoll ? 'Voller Monat' : 'Anteilig';
+  sub.textContent  = isVoll ? 'Voller Monat — pauschal' : 'Anteilig — wird berechnet';
+}
+
 function _contractBodyKurzzeit(room) {
   const s         = appSettings;
   const gemStr    = _parseArr(room.gemeinschaftsraeume).join(', ') || '—';
@@ -2177,9 +2231,9 @@ function _contractBodyKurzzeit(room) {
     <div class="rm-kaution-row">
       <div>
         <div class="rm-kaution-lbl">Kaution (auto)</div>
-        <div class="rm-kaution-rule">${kautionRule}</div>
+        <div class="rm-kaution-rule" id="cm-kaution-rule">${kautionRule}</div>
       </div>
-      <div class="rm-kaution-val">${kautionVal}</div>
+      <div class="rm-kaution-val" id="cm-kaution-val">${kautionVal}</div>
     </div>
 
     <div class="rm-fields-title">Tenant details — enter manually</div>
@@ -3481,6 +3535,7 @@ function _buildMietvertragOnlyData(room, s, {
   startVal, sigVal,
   befristet = false, endVal = null,
   grundVal = '', eigenbedarfPerson = '',
+  ersterMonatVoll = false,
 }) {
   const fmt = d => {
     const dt = new Date(d);
@@ -3490,6 +3545,19 @@ function _buildMietvertragOnlyData(room, s, {
   };
 
   const gemStr = _parseArr(room.gemeinschaftsraeume).join(', ');
+
+  // First partial month note
+  let ersterMonatNote = '';
+  if (startVal) {
+    const start = new Date(startVal);
+    if (start.getDate() !== 1) {
+      const daysInMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+      const tage = daysInMonth - start.getDate() + 1;
+      ersterMonatNote = ersterMonatVoll
+        ? `Erster Monat (${start.toLocaleString('de-DE',{month:'long'})}) wird als voller Monat berechnet.`
+        : `Erster Monat anteilig: ${tage} von ${daysInMonth} Tagen.`;
+    }
+  }
 
   let kaltmiete, nkVorauszahlung, gesamtmiete, pricingMode;
   if (room.mietvertrag_pricing === 'kalt_nk' && room.kaltmiete) {
@@ -3549,6 +3617,7 @@ function _buildMietvertragOnlyData(room, s, {
     zimmerschluessel:    room.zimmerschluessel    || 1,
     inventar: Array.isArray(room.inventar) ? room.inventar : [],
     unterzeichnungsDatum: sigVal ? fmt(new Date(sigVal)) : '',
+    ersterMonatNote,
     // Energieausweis — house-level, from appSettings
     energieklasse:     s.energieklasse     || '',
     endenergiebedarf:  s.endenergiebedarf  || '',
@@ -3563,9 +3632,10 @@ function _contractBodyMietvertrag(room) {
   const s       = appSettings;
   const profile = (typeof _getProfile === 'function') ? _getProfile(room.name) : {};
 
-  const tenantName  = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
-  const tenantEmail = profile.email || '';
-  let   tenantDob   = profile.birthday || '';
+  const tenantName    = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+  const tenantEmail   = profile.email   || '';
+  const tenantAddress = profile.address || '';
+  let   tenantDob     = profile.birthday || '';
   if (tenantDob && tenantDob.includes('-') && tenantDob.length === 10) {
     const [y, m, day] = tenantDob.split('-');
     tenantDob = `${day}.${m}.${y}`;
@@ -3617,8 +3687,8 @@ function _contractBodyMietvertrag(room) {
       <input class="rm-input" id="mv-name" value="${esc(tenantName)}" placeholder="Vor- und Nachname\u2026"/>
     </div>
     <div class="rm-field">
-      <label>Adresse <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(manuell)</span></label>
-      <input class="rm-input" id="mv-adr" placeholder="Aktuelle Adresse\u2026"/>
+      <label>Adresse</label>
+      <input class="rm-input" id="mv-adr" value="${esc(tenantAddress)}" placeholder="Aktuelle Adresse\u2026"/>
     </div>
     <div class="rm-field">
       <label>Geburtsdatum</label>
@@ -3637,7 +3707,20 @@ function _contractBodyMietvertrag(room) {
 
     <div class="rm-field">
       <label>Mietbeginn</label>
-      <input class="rm-input" id="mv-start" type="date"/>
+      <input class="rm-input" id="mv-start" type="date" oninput="_updateMvMonatToggle()"/>
+    </div>
+
+    <div class="rm-field rm-field--toggle" id="mv-erster-wrap" style="display:none">
+      <div class="rm-toggle-row">
+        <div>
+          <div class="rm-toggle-label">Erster Monat</div>
+          <div class="rm-toggle-sub" id="mv-erster-sub">Anteilig — wird berechnet</div>
+        </div>
+        <button type="button" class="rm-pill-toggle" id="mv-erster-btn" data-mode="anteilig" onclick="_toggleMvErsterMonat()">
+          <span class="rm-pill-toggle__track"><span class="rm-pill-toggle__knob"></span></span>
+          <span class="rm-pill-toggle__lbl" id="mv-erster-lbl">Anteilig</span>
+        </button>
+      </div>
     </div>
 
     <div class="rm-field--toggle" style="margin-bottom:10px;">
@@ -3818,6 +3901,7 @@ function _renderMietvertragHTML(d) {
     ${kv('Möblierung','Möbliert\u2002\u00b7\u2002Inventar siehe Anlage\u00a0A')}
     ${sec('Mietzeit',false,false)}
     ${kv('Mietbeginn',d.mietbeginn||'—')}
+    ${d.ersterMonatNote ? kv('Erster Monat',d.ersterMonatNote) : ''}
     ${d.befristet
       ? ''
       : kv('Kündigungsfrist','3\u00a0Monate \u00b7 Schriftform (\u00a7\u00a0573c BGB)')
