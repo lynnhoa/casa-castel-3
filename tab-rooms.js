@@ -1658,11 +1658,6 @@ function _contractBodyUeberg(room, isEinzug) {
       <label>Übergabedatum</label>
       <input class="rm-input" id="ub-datum" type="text" placeholder="TT.MM.JJJJ" oninput="_autoFormatGermanDate(event)"/>
     </div>
-    <div class="rm-field">
-      <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label>
-      <input class="rm-input" id="ub-sig" type="date"/>
-    </div>
-
     ${!isEinzug ? `
     <!-- Neue Adresse — Auszug only -->
     <div class="rm-field">
@@ -1710,6 +1705,12 @@ function _contractBodyUeberg(room, isEinzug) {
     <div class="rm-field" style="margin-top:4px;">
       <label>Allgemeine Bemerkungen</label>
       <textarea class="rm-input" id="ub-bemerkungen" rows="3" style="resize:vertical;line-height:1.5;" placeholder="Sonstige Anmerkungen…"></textarea>
+    </div>
+
+    <!-- Unterzeichnungsdatum — at end -->
+    <div class="rm-field" style="margin-top:4px;">
+      <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <input class="rm-input" id="ub-sig" type="date"/>
     </div>
   `;
 }
