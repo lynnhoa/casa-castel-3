@@ -868,10 +868,11 @@ async function loadRooms() {
   _renderRoomsList();
   _initSortable();
   // Re-render if settings change (bathrooms / shared spaces lists update)
-  onSettingsChange(() => _renderRoomsList());
+  if (!loadRooms._settingsWired) { loadRooms._settingsWired = true; onSettingsChange(() => _renderRoomsList()); }
 
   // Realtime: re-render room cards when kitchen_config changes on another device
-  if (sbL) {
+  if (sbL && !loadRooms._kitchenRtWired) {
+    loadRooms._kitchenRtWired = true;
     sbL.channel('rooms-kitchen-rt')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lounge_data' }, async payload => {
         const type = payload.new?.type || payload.old?.type;
@@ -1542,6 +1543,8 @@ document.getElementById('roomAddBtn')?.addEventListener('click', () => {
     data.badezimmer = [...badChips].map(c => c.dataset.bad);
     const activePrice = card.querySelector('[data-pricetoggle] button.active');
     if (activePrice) data.mietvertrag_pricing = activePrice.textContent.trim() === 'Kalt + NK' ? 'kalt_nk' : 'pauschal';
+    const activePriceType = card.querySelector('.rc-price-toggle__opt.active--mietvertrag, .rc-price-toggle__opt.active--kurzzeit');
+    if (activePriceType) data.active_price_type = activePriceType.dataset.type;
     data.inventar = [];
 
     const result = await saveRoom(data);
@@ -1593,7 +1596,6 @@ document.getElementById('confirmOk')?.addEventListener('click', async () => {
   btn.disabled = false;
 
   if (result.ok) {
-    const card = document.querySelector(`.rc[data-id]`); // already removed from appRooms
     _renderRoomsList();
     _initSortable();
   }
@@ -3142,7 +3144,7 @@ async function _generateUebergPDF(isEinzug) {
   if (container) container.remove();
   container = document.createElement('div');
   container.id = '_pdfRenderContainer';
-  container.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;background:#fff;z-index:-1;';
+  container.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;background:#fff;z-index:-1;font-size:11.33px;';
   container.innerHTML = html;
   document.body.appendChild(container);
 
