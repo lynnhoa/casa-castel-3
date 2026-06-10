@@ -860,7 +860,12 @@ function _kSubscribe() {
   if (_kChannel) { sbL.removeChannel(_kChannel); _kChannel = null; }
   _kChannel = sbL.channel('kitchen-landlord-rt')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' },    () => { setTimeout(() => loadKitchen(), 350); })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async () => { await loadKitchen(); })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async () => {
+      // Only re-render the feed — a new comment does not change the week row.
+      // Full loadKitchen would re-fetch kitchen_weeks prematurely (before the
+      // concurrent UPDATE write is readable) and render stale chip+buttons.
+      if (_kWeekRow) await _kRenderFeed(_kWeekRow);
+    })
     .on('postgres_changes', { event: '*',      schema: 'public', table: 'kitchen_absences' }, async () => { await loadKitchen(); })
     .on('postgres_changes', { event: '*',      schema: 'public', table: 'lounge_data' },      async () => { await loadKitchen(); })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async () => {
