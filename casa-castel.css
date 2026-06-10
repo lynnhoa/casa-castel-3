@@ -1053,6 +1053,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
     background: var(--cc-bg);
   }
   body:not(.is-landlord) #tab-lounge .l-ann-strip {
+    display: block;
     border: 0.5px solid var(--cc-rule);
     border-radius: var(--cc-r-lg);
     background: var(--cc-white);
