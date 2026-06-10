@@ -1589,7 +1589,10 @@ function _openContract(type, roomId) {
     footer.innerHTML     = `
       <button class="rm-btn rm-btn--cancel" id="contractCancelBtn">Cancel</button>
       <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> Generate PDF</button>`;
-    document.getElementById('contractPdfBtn').addEventListener('click', async () => {
+    const _kzRawBtn = document.getElementById('contractPdfBtn');
+    const _kzPdfBtn = _kzRawBtn.cloneNode(true);
+    _kzRawBtn.parentNode.replaceChild(_kzPdfBtn, _kzRawBtn);
+    _kzPdfBtn.addEventListener('click', async () => {
       const room2 = getRoomById(_contractRoomId); if (!room2) return;
       const mieterName = document.getElementById('cm-name')?.value.trim();
       const mieterAdr  = document.getElementById('cm-adr')?.value.trim();
@@ -1630,7 +1633,10 @@ function _openContract(type, roomId) {
     footer.innerHTML     = `
       <button class="rm-btn rm-btn--cancel" id="contractCancelBtn">Cancel</button>
       <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> Generate PDF</button>`;
-    document.getElementById('contractPdfBtn').addEventListener('click', async () => {
+    const _mvRawBtn = document.getElementById('contractPdfBtn');
+    const _mvPdfBtn = _mvRawBtn.cloneNode(true);
+    _mvRawBtn.parentNode.replaceChild(_mvPdfBtn, _mvRawBtn);
+    _mvPdfBtn.addEventListener('click', async () => {
       const room2   = getRoomById(_contractRoomId); if (!room2) return;
       const mieterName  = document.getElementById('mv-name')?.value.trim();
       const mieterAdr   = document.getElementById('mv-adr')?.value.trim();
@@ -1675,7 +1681,10 @@ function _openContract(type, roomId) {
     footer.innerHTML     = `
       <button class="rm-btn rm-btn--cancel" id="contractCancelBtn">Cancel</button>
       <button class="rm-btn rm-btn--pdf" id="contractPdfBtn"><i class="ti ti-printer"></i> Generate PDF</button>`;
-    document.getElementById('contractPdfBtn').addEventListener('click', async () => {
+    const _ubRawBtn = document.getElementById('contractPdfBtn');
+    const _ubPdfBtn = _ubRawBtn.cloneNode(true);
+    _ubRawBtn.parentNode.replaceChild(_ubPdfBtn, _ubRawBtn);
+    _ubPdfBtn.addEventListener('click', async () => {
       // Validate required fields first
       const mieterName2 = document.getElementById('ub-mieter-name')?.value.trim();
       const datum2      = document.getElementById('ub-datum')?.value;
@@ -1693,9 +1702,15 @@ function _openContract(type, roomId) {
     setTimeout(() => { _initUebergMieterToggle(room); }, 50);
   }
 
-  document.getElementById('contractCancelBtn')?.addEventListener('click', () => {
-    document.getElementById('contractOverlay').classList.remove('open');
-  });
+  // Cancel: use fresh clone to avoid stale listener accumulation
+  const cancelBtn = document.getElementById('contractCancelBtn');
+  if (cancelBtn) {
+    const freshCancel = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(freshCancel, cancelBtn);
+    freshCancel.addEventListener('click', () => {
+      document.getElementById('contractOverlay').classList.remove('open');
+    });
+  }
 }
 
 document.getElementById('contractClose')?.addEventListener('click', () => {
