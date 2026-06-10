@@ -12,7 +12,8 @@
 
   <title>Casa Castel</title>
   <link rel="manifest" href="manifest-tenant.json"/>
-  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="apple-touch-icon" href="tenant-apple-touch-icon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="tenant-favicon-32.png"/>
 
   <link rel="stylesheet" href="casa-castel.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
@@ -55,6 +56,7 @@
             <button class="nav-role-pill" id="navRoomPill" onclick="toggleProfileMenu()" aria-haspopup="true">Room</button>
             <div class="nav-profile-menu" id="navProfileMenu">
               <button class="nav-profile-menu-item" id="changePwBtn">Change password</button>
+              <button class="nav-profile-menu-item" id="langToggleBtn" onclick="toggleLang()">Deutsch</button>
               <button class="nav-profile-menu-item" id="logoutBtn">Log out</button>
             </div>
           </div>
