@@ -328,9 +328,11 @@ function _kBuildFeedHtml(comments, weekRow, forMobile) {
 
   const events = [];
   const hasSub = comments.some(c => c.text && c.text.startsWith('[submission] '));
-  if (!hasSub && weekRow.submitted_at) {
+  // Only synthesize a submission entry from the row if there are no submission comments
+  // AND the week has photos stored — meaning comments were never written (legacy v1 data).
+  // If photos is null (cleared by Clear chat), don't synthesize — feed stays empty.
+  if (!hasSub && weekRow.submitted_at && weekRow.photos && weekRow.photos.length) {
     let photos = weekRow.photos || [];
-    if (!photos.length && weekRow.photo_url) photos = [{ url: weekRow.photo_url, type: 'overview' }];
     events.push({ _type: 'submission', _ts: new Date(weekRow.submitted_at).getTime(), room: weekRow.room, photos, isReupload: false });
   }
   comments.forEach(c => {
