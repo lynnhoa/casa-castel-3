@@ -1580,6 +1580,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   .k-mob-rot-badge.missed{background:#FDEEED;color:#7A2020;border:0.5px solid #F5A8A5;}
   .k-mob-rot-badge.skipped{background:#F5F3FF;color:#5B21B6;border:0.5px solid #C4B5FD;}
   .k-mob-rot-badge.absent{background:#F5EEE8;color:#8C5A30;border:0.5px solid #D4A87A;}
+  .k-mob-rot-badge.upcoming{background:transparent;color:var(--cc-stone);border:none;}
   .k-mob-rot-item.missed .k-mob-rot-room{color:#7A2020;}
   .k-mob-rot-item.missed .k-mob-rot-dates{color:#EF4444;}
   .k-mob-rot-item.skipped .k-mob-rot-room{color:#5B21B6;}

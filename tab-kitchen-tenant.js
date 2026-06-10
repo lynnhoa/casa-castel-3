@@ -226,7 +226,7 @@ async function _kTenAddComment(weekId, room, text, isFlag) {
 
 /* ── ROTATION STATE HELPER (mirrors landlord) ───────────── */
 function _kRotState(opts) {
-  const { isNow, isPast, dbStatus, room, weekStart, absenceRows } = opts;
+  const { isNow, isPast, isNext, dbStatus, room, weekStart, absenceRows } = opts;
   // Absence first — explicit absence overrides vacancy, now, next, missed
   if (absenceRows && weekStart) {
     const wStart = weekStart.toISOString().slice(0, 10);
@@ -239,7 +239,7 @@ function _kRotState(opts) {
     if (dbStatus === 'approved') return 'done';
     return 'now';
   }
-  if (!isPast) return 'next';
+  if (!isPast) return isNext ? 'next' : 'upcoming';
   if (!dbStatus)               return 'none';
   if (dbStatus === 'approved') return 'done';
   if (dbStatus === 'skipped')  return 'skipped';
@@ -585,6 +585,21 @@ async function _kTenRenderMobRotation() {
   for (let i = 0; i < cyclePos; i++) { if (dbRows[i] && dbRows[i].status === 'approved') approvedCount++; }
   const greenPct = approvedCount > 0 ? ((approvedCount / rooms.length) * 100).toFixed(1) + '%' : '0%';
 
+
+  // Find the one true next room — first future slot that isn't absent or skipped
+  let trueNextI = -1;
+  for (let offset = 1; offset < rooms.length; offset++) {
+    const ni = cyclePos + offset;
+    if (ni >= rooms.length) break;
+    const nRoom  = rooms[ni];
+    const nStart = new Date(K_START.getTime() + (cycleStart + ni) * 7 * 24 * 60 * 60 * 1000);
+    const nEnd   = new Date(nStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const nWs = nStart.toISOString().slice(0,10);
+    const nWe = nEnd.toISOString().slice(0,10);
+    const nAbsent  = absData.some(a => a.room === nRoom && a.from_date <= nWe && a.to_date >= nWs);
+    const nSkipped = isVacant(nRoom);
+    if (!nAbsent && !nSkipped) { trueNextI = ni; break; }
+  }
   const items = rooms.map((room, i) => {
     const slotIdx = cycleStart + i;
     const info    = kWeekInfo(Math.max(0, slotIdx));
@@ -593,12 +608,13 @@ async function _kTenRenderMobRotation() {
     const state   = _kRotState({
       isNow:       i === cyclePos,
       isPast:      i < cyclePos,
+      isNext:      i === trueNextI,
       dbStatus:    dbRow ? dbRow.status : null,
       room,
       weekStart:   info ? info.start : null,
       absenceRows: absData,
     });
-    const badgeText = { done:'✓', missed:'✗', skipped:'—', absent:'away', now:'Now', none:'—' }[state] || 'Next';
+    const badgeText = { done:'✓', missed:'✗', skipped:'—', absent:'away', now:'Now', none:'—', next:'Next', upcoming:'—' }[state] || '—';
     return `<div class="k-mob-rot-item ${state}"><span class="k-mob-rot-badge ${state}">${badgeText}</span><span class="k-mob-rot-room">${esc(room)}</span><span class="k-mob-rot-dates">${dateStr}</span></div>`;
   }).join('');
 
@@ -613,7 +629,7 @@ async function _kTenRenderMobRotation() {
       const end      = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
       const dateStr  = fmt(start) + ' – ' + fmt(end);
       const dbRow    = dbRows[i];
-      const state    = _kRotState({ isNow: i === cyclePos, isPast: i < cyclePos, dbStatus: dbRow ? dbRow.status : null, room, weekStart: start, absenceRows: absData });
+      const state    = _kRotState({ isNow: i === cyclePos, isPast: i < cyclePos, isNext: i === trueNextI, dbStatus: dbRow ? dbRow.status : null, room, weekStart: start, absenceRows: absData });
       const dotClass = { done:'rot-dot--done', now:'rot-dot--now', missed:'rot-dot--missed', skipped:'rot-dot--skipped', absent:'rot-dot--absent' }[state] || 'rot-dot--next';
       const topLine  = state === 'done' || state === 'now' ? 'rot-line-done'
                      : state === 'skipped' ? 'rot-line-skipped'
@@ -626,7 +642,7 @@ async function _kTenRenderMobRotation() {
         missed:  '<span class="rot-badge rot-badge--missed">Missed</span>',
         skipped: '<span class="rot-badge rot-badge--skipped">Skipped</span>',
         absent:  '<span class="rot-badge rot-badge--absent">Away</span>',
-      }[state] || '<span class="rot-badge rot-badge--next">Next</span>';
+      }[state] || '<span class="rot-badge rot-badge--none">—</span>';
       const rowClass = 'rot-tl-row'
         + (state === 'now'     ? ' rot-tl-row--now'
          : state === 'missed'  ? ' rot-tl-row--missed'

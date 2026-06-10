@@ -292,7 +292,7 @@ async function _kAutoReset(currentIdx) {
 // absenceRows = array of {room, from_date, to_date} from kitchen_absences.
 // weekStart = Date object for the start of the slot's week.
 function _kRotState(opts) {
-  const { isNow, isPast, dbStatus, room, weekStart, absenceRows } = opts;
+  const { isNow, isPast, isNext, dbStatus, room, weekStart, absenceRows } = opts;
 
   // Absence first — explicit absence overrides vacancy, now, next, missed
   if (absenceRows && weekStart) {
@@ -313,8 +313,8 @@ function _kRotState(opts) {
     return 'now';
   }
 
-  // Future week
-  if (!isPast) return 'next';
+  // Only the immediate next actionable room gets 'next' — all others are 'upcoming'
+  if (!isPast) return isNext ? 'next' : 'upcoming';
 
   // Past week — determine from DB status
   if (!dbStatus) return 'none';
@@ -649,6 +649,21 @@ async function _kRenderMobRotation() {
   for (let i = 0; i < cyclePos; i++) { if (dbRows[i] && dbRows[i].status === 'approved') approvedCount++; }
   const greenPct = approvedCount > 0 ? ((approvedCount / rooms.length) * 100).toFixed(1) + '%' : '0%';
 
+
+  // Find the one true next room — first future slot that isn't absent or skipped
+  let trueNextI = -1;
+  for (let offset = 1; offset < rooms.length; offset++) {
+    const ni = cyclePos + offset;
+    if (ni >= rooms.length) break;
+    const nRoom = rooms[ni];
+    const nStart = new Date(K_START.getTime() + (cycleStart + ni) * 7 * 24 * 60 * 60 * 1000);
+    const nEnd   = new Date(nStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const nWs = nStart.toISOString().slice(0,10);
+    const nWe = nEnd.toISOString().slice(0,10);
+    const nAbsent  = absData.some(a => a.room === nRoom && a.from_date <= nWe && a.to_date >= nWs);
+    const nSkipped = isVacant(nRoom);
+    if (!nAbsent && !nSkipped) { trueNextI = ni; break; }
+  }
   const items = rooms.map((room, i) => {
     const slotIdx  = cycleStart + i;
     const info     = kWeekInfo(Math.max(0, slotIdx));
@@ -657,12 +672,13 @@ async function _kRenderMobRotation() {
     const state    = _kRotState({
       isNow:       i === cyclePos,
       isPast:      i < cyclePos,
+      isNext:      i === trueNextI,
       dbStatus:    dbRow ? dbRow.status : null,
       room,
       weekStart:   info ? info.start : null,
       absenceRows: absData,
     });
-    const badgeText = { done:'✓', missed:'✗', skipped:'—', absent:'away', now:'Now', none:'—' }[state] || 'Next';
+    const badgeText = { done:'✓', missed:'✗', skipped:'—', absent:'away', now:'Now', none:'—', next:'Next', upcoming:'—' }[state] || '—';
     return `<div class="k-mob-rot-item ${state}"><span class="k-mob-rot-badge ${state}">${badgeText}</span><span class="k-mob-rot-room">${esc(room)}</span><span class="k-mob-rot-dates">${dateStr}</span></div>`;
   }).join('');
 
@@ -687,6 +703,21 @@ async function _kRenderDesktopRotation(currentIdx, currentInfo) {
     sbL ? sbL.from('kitchen_absences').select('room,from_date,to_date').then(r => r.data || []) : Promise.resolve([])
   ]);
 
+
+  // Find the one true next room — first future slot that isn't absent or skipped
+  let trueNextI = -1;
+  for (let offset = 1; offset < rooms.length; offset++) {
+    const ni = cyclePos + offset;
+    if (ni >= rooms.length) break;
+    const nRoom = rooms[ni];
+    const nStart = new Date(K_START.getTime() + (cycleStart + ni) * 7 * 24 * 60 * 60 * 1000);
+    const nEnd   = new Date(nStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const nWs = nStart.toISOString().slice(0,10);
+    const nWe = nEnd.toISOString().slice(0,10);
+    const nAbsent  = absData.some(a => a.room === nRoom && a.from_date <= nWe && a.to_date >= nWs);
+    const nSkipped = isVacant(nRoom);
+    if (!nAbsent && !nSkipped) { trueNextI = ni; break; }
+  }
   el.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
     const slotIdx  = cycleStart + i;
     const start    = new Date(K_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
@@ -697,6 +728,7 @@ async function _kRenderDesktopRotation(currentIdx, currentInfo) {
     const dbRow    = dbRows[i];
     const state    = _kRotState({
       isNow, isPast,
+      isNext:      i === trueNextI,
       dbStatus:    dbRow ? dbRow.status : null,
       room,
       weekStart:   start,
@@ -720,7 +752,7 @@ async function _kRenderDesktopRotation(currentIdx, currentInfo) {
       missed:  '<span class="rot-badge rot-badge--missed">Missed</span>',
       skipped: '<span class="rot-badge rot-badge--skipped">Skipped</span>',
       absent:  '<span class="rot-badge rot-badge--absent">Away</span>',
-    }[state] || '<span class="rot-badge rot-badge--next">Next</span>';
+    }[state] || '<span class="rot-badge rot-badge--none">—</span>';
     return `<div class="${rowClass}"><div class="rot-spine"><div class="rot-spine-top ${topLine}"></div><div class="rot-dot ${dotClass}"></div><div class="rot-spine-bot ${botLine}"></div></div><div class="rot-tl-body"><div class="rot-tl-info"><p class="rot-tl-room">${esc(room)}</p><p class="rot-tl-dates">${dateStr}</p></div>${badge}</div></div>`;
   }).join('') + '</div>';
 }
