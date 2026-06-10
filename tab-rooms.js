@@ -33,12 +33,12 @@ document.getElementById('tab-rooms').innerHTML = `
     <!-- Summary bar -->
     <div class="rp-summary" id="roomsSummary" style="display:none;">
       <div>
-        <div class="rp-summary__label">Gesamtmiete / Monat</div>
+        <div class="rp-summary__label">Gesamtkaltmiete / Monat</div>
         <div class="rp-summary__breakdown" id="roomsSummaryBreakdown"></div>
       </div>
       <div>
         <div class="rp-summary__total" id="roomsSummaryTotal"></div>
-        <div class="rp-summary__sub">inkl. Nebenkosten</div>
+        <div class="rp-summary__sub" id="roomsSummarySub">nur belegte Zimmer</div>
       </div>
     </div>
 
@@ -892,7 +892,7 @@ function _updateRoomsSummary(rooms) {
     nk   += info.nk;
   });
   bar.style.display = 'flex';
-  bd.textContent  = occupied + ' / ' + rooms.length + ' belegt' + (nk ? ' · ' + fmtEUR(nk) + ' NK nicht inkl.' : '');
+  bd.textContent  = occupied + ' / ' + rooms.length + ' belegt · ' + fmtEUR(nk) + ' NK separat';
   tot.textContent = fmtEUR(kalt);
 }
 
