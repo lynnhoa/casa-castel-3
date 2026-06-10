@@ -752,7 +752,7 @@ async function _kRenderDesktopRotation(currentIdx, currentInfo) {
                    : state === 'skipped' ? 'rot-line-skipped'
                    : state === 'absent'  ? 'rot-line-absent'
                    : state === 'missed'  ? 'rot-line-missed' : 'rot-line-faded';
-    const botLine  = state === 'done' && weekIdx < idx - 1 ? 'rot-line-done' : 'rot-line-faded';
+    const botLine  = state === 'done' && slotIdx < idx - 1 ? 'rot-line-done' : 'rot-line-faded';
     const badge    = {
       done:     '<span class="rot-badge rot-badge--done">Done</span>',
       now:      '<span class="rot-badge rot-badge--now">Now</span>',
