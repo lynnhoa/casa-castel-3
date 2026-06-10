@@ -859,7 +859,7 @@ function _kRefreshNudgeRoomButtons() {
 function _kSubscribe() {
   if (_kChannel) { sbL.removeChannel(_kChannel); _kChannel = null; }
   _kChannel = sbL.channel('kitchen-landlord-rt')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' },    async () => { await loadKitchen(); })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kitchen_weeks' },    () => { setTimeout(() => loadKitchen(), 350); })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kitchen_comments' }, async () => { await loadKitchen(); })
     .on('postgres_changes', { event: '*',      schema: 'public', table: 'kitchen_absences' }, async () => { await loadKitchen(); })
     .on('postgres_changes', { event: '*',      schema: 'public', table: 'lounge_data' },      async () => { await loadKitchen(); })
@@ -914,8 +914,8 @@ async function loadKitchen() {
   await _kRenderRotation(weekRow, absData);
   await _kLoadNudgeBanner(weekRow);
 
-  // Start realtime (safe to call repeatedly — removes old channel first)
-  _kSubscribe();
+  // Start realtime only once — channel must stay alive permanently
+  if (!_kChannel) _kSubscribe();
 
   // Rooms change hook
   if (typeof onRoomsChange === 'function') onRoomsChange(() => loadKitchen());
