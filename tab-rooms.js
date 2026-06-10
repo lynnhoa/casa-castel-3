@@ -1643,9 +1643,6 @@ function _openContract(type, roomId) {
       const grundVal    = befristet ? (document.querySelector('input[name=\'mv-grund\']:checked')?.value || '') : '';
       const eigenbedarfPerson = grundVal === 'eigenbedarf'
         ? document.getElementById('mv-eigenbedarf-person')?.value.trim() : '';
-      if (!mieterName) { alert('Bitte Mietername eingeben.'); return; }
-      if (!startVal)   { alert('Bitte Mietbeginn auswählen.'); return; }
-      if (befristet && !endVal) { alert('Bitte Mietende angeben.'); return; }
       if (befristet && grundVal === 'eigenbedarf' && !eigenbedarfPerson) {
         alert('Bitte Eigenbedarfsperson angeben (gesetzliche Pflicht).'); return;
       }
