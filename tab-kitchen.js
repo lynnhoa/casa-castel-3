@@ -566,22 +566,22 @@ function _kRenderWeekCard(weekRow, absData) {
     absenceRows: absData,
   });
   const dbStatus = weekRow ? weekRow.status : null;
-  const isResub  = state === 'now' && weekRow && weekRow.reupload_count > 0 && weekRow.status !== 'flagged';
+  const isResub  = state === 'now' && weekRow && weekRow.reupload_count > 0 && dbStatus !== 'flagged';
 
-  // Chip
-  const chipCls = isResub              ? 'resubmitted'
-                : state === 'done'     ? 'approved'
+  // Chip — status is checked before reupload_count so flagged always wins
+  const chipCls = state === 'done'     ? 'approved'
                 : state === 'missed'   ? 'missed'
                 : state === 'absent'   ? 'skipped'
                 : state === 'skipped'  ? 'skipped'
-                : dbStatus === 'flagged'   ? 'flagged'
-                : dbStatus === 'submitted' ? 'submitted'
+                : dbStatus === 'flagged'                      ? 'flagged'
+                : dbStatus === 'submitted' && isResub         ? 'resubmitted'
+                : dbStatus === 'submitted'                    ? 'submitted'
                 : 'pending';
   const chipTxt = state !== 'now'
     ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
+    : dbStatus === 'flagged'       ? '⚑ Redo'
     : isResub                      ? '↑↑ Re-submitted'
     : dbStatus === 'submitted'     ? '↑ Submitted'
-    : dbStatus === 'flagged'       ? '⚑ Redo'
     : 'Pending';
   const chip = document.getElementById('k-mob-status-chip');
   if (chip) { chip.className = 'k-mob-status-chip ' + chipCls; chip.textContent = chipTxt; }

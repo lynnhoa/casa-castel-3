@@ -562,30 +562,21 @@ async function _kTenRenderWeekCard(overrideRow) {
       _setChip(chip,    'k-mob-status-chip not-your-turn', '— Not your turn');
       _setChip(dskChip, 'k-mob-status-chip not-your-turn', '— Not your turn');
     } else {
-      const isResub = state === 'now' && freshRow && freshRow.reupload_count > 0;
-      const chipMap = {
-        now:     'pending',
-        done:    'approved',
-        missed:  'missed',
-        flagged: 'flagged',
-        absent:  'skipped',
-        skipped: 'skipped',
-        next:    'pending',
-      };
       const dbStatus = freshRow ? freshRow.status : null;
-      const chipCls = isResub         ? 'resubmitted'
-                    : state === 'done'    ? 'approved'
+      const isResub  = state === 'now' && freshRow && freshRow.reupload_count > 0 && dbStatus !== 'flagged';
+      const chipCls = state === 'done'    ? 'approved'
                     : state === 'missed'  ? 'missed'
                     : state === 'absent'  ? 'skipped'
                     : state === 'skipped' ? 'skipped'
-                    : dbStatus === 'flagged'   ? 'flagged'
-                    : dbStatus === 'submitted' ? 'submitted'
+                    : dbStatus === 'flagged'                        ? 'flagged'
+                    : dbStatus === 'submitted' && isResub           ? 'resubmitted'
+                    : dbStatus === 'submitted'                      ? 'submitted'
                     : 'pending';
       const chipTxt = state !== 'now'
         ? ({ done:'✓ Approved', missed:'✗ Missed', absent:'— Away', skipped:'— Skipped' }[state] || 'Pending')
+        : dbStatus === 'flagged'       ? '⚑ Redo'
         : isResub                      ? '↑↑ Re-submitted'
         : dbStatus === 'submitted'     ? '↑ Submitted'
-        : dbStatus === 'flagged'       ? '⚑ Redo'
         : 'Pending';
       _setChip(chip,    'k-mob-status-chip ' + chipCls, chipTxt);
       _setChip(dskChip, 'k-mob-status-chip ' + chipCls, chipTxt);
