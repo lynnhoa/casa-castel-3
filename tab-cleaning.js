@@ -276,8 +276,8 @@ function _hcSubscribe() {
   if (!sbL) return;
   if (_hcChannel) { sbL.removeChannel(_hcChannel); _hcChannel = null; }
   _hcChannel = sbL.channel('cleaning-landlord-rt')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'lounge_data' }, async payload => {
-      if (payload.new?.type === 'hc_done') loadHouseCleaning();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_weeks' }, async () => {
+      loadHouseCleaning();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'kitchen_absences' }, async () => {
       loadHouseCleaning();
@@ -302,30 +302,28 @@ async function loadHouseCleaning() {
   const cyclePos  = ((curIdx % rot.length) + rot.length) % rot.length;
   const cycleStart= curIdx - cyclePos;
 
-  /* ── Fetch hc_done records + absences in parallel ── */
+  /* ── Fetch cleaning_weeks + absences in parallel ── */
   let hcDoneMap = {};
   let absRows   = [];
   if (sbL) {
     const [doneRes, absRes] = await Promise.all([
-      sbL.from('lounge_data').select('room,body,created_at').eq('type','hc_done').order('created_at',{ascending:true}),
+      sbL.from('cleaning_weeks').select('week_index,room,status,done_at,done_by').eq('status','done'),
       sbL.from('kitchen_absences').select('room,from_date,to_date')
     ]);
     if (doneRes.data) doneRes.data.forEach(row => {
-      try {
-        const b = JSON.parse(row.body);
-        if (!hcDoneMap[b.week_index]) hcDoneMap[b.week_index] = { room: row.room, ts: b.ts };
-      } catch(e) {}
+      const key = row.week_index + '_' + row.room;
+      if (!hcDoneMap[key]) hcDoneMap[key] = { room: row.done_by || row.room, ts: row.done_at ? new Date(row.done_at).getTime() : Date.now() };
     });
     absRows = absRes.data || [];
   } else {
     for (let i = 0; i < rot.length; i++) {
       const si = cycleStart + i;
       const v  = S.get('hc_done_' + si, null);
-      if (v) hcDoneMap[si] = v;
+      if (v) hcDoneMap[si + '_' + rot[i]] = v;
     }
   }
 
-  const wDone  = hcDoneMap[curIdx] || null;
+  const wDone  = curInfo ? (hcDoneMap[curIdx + '_' + curInfo.room] || null) : null;
   const isDone = !!wDone;
 
   // Absences covering this week
@@ -447,7 +445,7 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, rot) {
     const isPast   = i < cyclePos;
     const isNow    = i === cyclePos;
     const isNext   = i === trueNextI;
-    const slotDone = hcDoneMap[slotIdx] || null;
+    const slotDone = hcDoneMap[slotIdx + '_' + r] || null;
 
     const state = _hcRotState({ isNow, isPast, isNext, slotDone, room: r, weekStart: ws, absRows: absRows || [] });
 
