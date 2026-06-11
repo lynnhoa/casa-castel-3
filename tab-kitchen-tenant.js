@@ -440,8 +440,8 @@ async function _kTenWizSubmit() {
     }
     const { error: updateErr } = await sbL.from('kitchen_weeks').update(patch).eq('id', _kTenWeekRow.id);
     if (updateErr) {
-      console.error('[kitchen] week update failed', updateErr);
-      alert('Could not save submission status. Please try again.');
+      console.error('[kitchen] week update failed', JSON.stringify(updateErr));
+      alert('Save failed: ' + (updateErr.message || updateErr.code || JSON.stringify(updateErr)));
       _kWizSubmitting = false;
       _kTenWizRender();
       return;
