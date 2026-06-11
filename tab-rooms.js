@@ -3849,7 +3849,7 @@ function _renderMietvertragHTML(d) {
     .total-box { background:#f0e8d8; border-radius:3px; padding:9px 10px; display:flex; justify-content:space-between; align-items:center; margin-top:10px; margin-bottom:24px; }
     .total-box__label, .total-box__value { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:700; color:#8a6535; line-height:1; }
     .note { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#6a6560; margin-top:10px; line-height:1.55; }
-    .nk-intro { font-family:'Lato',sans-serif; font-size:11px; font-weight:300; color:#3a3530; line-height:1.55; margin-top:7px; margin-bottom:10px; }
+    .nk-intro { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#3a3530; line-height:1.55; margin-top:7px; margin-bottom:10px; }
     .nk-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:24px; }
     .nk-item { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#3a3530; padding:2.5px 0; line-height:1.4; }
     .nk-item--full { grid-column:1/-1; border-bottom:none; }
@@ -3948,7 +3948,7 @@ function _renderMietvertragHTML(d) {
     ${sec('Betriebskosten gem. \u00a7\u00a71,\u00a02 BetrKV',true,true)}
     <p class="nk-intro">Neben der Kaltmiete trägt der Mieter anteilig folgende Betriebskosten. Umlageschlüssel: Gesamtnutzfläche des Mieters (Zimmer + anteilige Gemeinschaftsfläche) im Verhältnis zur Gesamtnutzfläche aller Zimmer. Heizung und Warmwasser nach HeizkostenV.</p>
     <div class="nk-grid">${nkRows}</div>
-    <p class="nk-intro" style="margin-top:6px;font-size:9.5px;">Winterdienst wird grundsätzlich vom Mieter erledigt. Unter Umständen wird dieser gelegentlich organisiert, sofern nicht erledigt, wird dieser in den Nebenkosten berücksichtigt.</p>
+    <p class="nk-intro" style="margin-top:6px;border-top:0.5px solid #e8dbc5;padding-top:5px;color:#6a6560;font-style:italic;">Winterdienst wird grundsätzlich vom Mieter erledigt. Unter Umständen wird dieser gelegentlich organisiert, sofern nicht erledigt, wird dieser in den Nebenkosten berücksichtigt.</p>
     <div style="margin-top:24px;">${cl('1',d.befristet?'Befristung und Beendigung':'Mietzeit',
       d.befristet
         ? `Das Mietverhältnis ist gemäß \u00a7\u00a0575 Abs.\u00a01 BGB befristet und endet am ${d.mietende} automatisch ohne Kündigung (\u00a7\u00a0545 BGB findet keine Anwendung). Das Zimmer darf ausschließlich zu Wohnzwecken durch den namentlich genannten Mieter genutzt werden.`
