@@ -748,7 +748,7 @@ function _kTenBuildFeedHtml(comments, weekRow) {
   const events = [];
 
   const hasSub = comments.some(c => c.text && c.text.startsWith('[submission] '));
-  if (!hasSub && weekRow.submitted_at) {
+  if (!hasSub && weekRow.submitted_at && weekRow.photos && weekRow.photos.length) {
     let photos = weekRow.photos || [];
     if (!photos.length && weekRow.photo_url) photos = [{ url: weekRow.photo_url, type: 'overview' }];
     events.push({ _type:'submission', _ts:new Date(weekRow.submitted_at).getTime(), room:weekRow.room, photos, isReupload:false });
@@ -953,6 +953,10 @@ function _kTenSubscribe(idx) {
       if (payload.new.week_id && payload.new.week_id !== _kTenWeekRow.id) return;
       document.getElementById('k-mob-optimistic')?.remove();
       document.getElementById('k-ten-dsk-optimistic')?.remove();
+      await _kTenRenderFeed();
+    })
+    .on('postgres_changes', { event:'DELETE', schema:'public', table:'kitchen_comments' }, async () => {
+      if (!_kTenWeekRow) return;
       await _kTenRenderFeed();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'lounge_data' }, async payload => {
