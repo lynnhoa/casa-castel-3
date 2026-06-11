@@ -2683,7 +2683,7 @@ function _renderKurzzeitHTML(d) {
       top: 143.63px;
       left: 80px;
       right: 80px;
-      bottom: 62px;
+      bottom: 90px;
       overflow: hidden;
     }
 
@@ -3208,7 +3208,7 @@ function _renderUebergHTML(d) {
     .ftr__row { display:flex; justify-content:space-between; font-family:'Lato',sans-serif;
       font-size:8px; font-weight:300; color:#aaa59e; line-height:1; }
 
-    .content { position:absolute; top:143.63px; left:80px; right:80px; bottom:62px; overflow:hidden; }
+    .content { position:absolute; top:143.63px; left:80px; right:80px; bottom:90px; overflow:hidden; }
 
     .doc-title { font-family:'Playfair Display',serif; font-size:21px; font-weight:400;
       color:#1a1a1a; line-height:1.15; margin-bottom:4px; }
@@ -3828,7 +3828,7 @@ function _renderMietvertragHTML(d) {
     .ftr { position:absolute; left:80px; right:80px; bottom:32px; }
     .ftr__rule { border:none; border-top:0.5px solid #e8dbc5; margin-bottom:7px; }
     .ftr__row { display:flex; justify-content:space-between; font-family:'Lato',sans-serif; font-size:8px; font-weight:300; color:#aaa59e; line-height:1; }
-    .content { position:absolute; top:143.63px; left:80px; right:80px; bottom:62px; overflow:hidden; }
+    .content { position:absolute; top:143.63px; left:80px; right:80px; bottom:90px; overflow:hidden; }
     .doc-title { font-family:'Playfair Display',serif; font-size:21px; font-weight:400; color:#1a1a1a; line-height:1.15; margin-bottom:4px; }
     .doc-subtitle { font-family:'Lato',sans-serif; font-size:9.5px; font-weight:300; color:#aaa59e; margin-bottom:28px; }
     .sec { font-family:'Lato',sans-serif; font-size:7.5px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#4a4540; margin-top:14px; padding-top:2px; padding-bottom:5px; border-bottom:0.6px solid #d8d3cc; }
@@ -3984,11 +3984,6 @@ function _renderMietvertragHTML(d) {
       'Mündliche Nebenabreden bestehen nicht. Änderungen bedürfen der Schriftform. Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam. Gerichtsstand ist '+d.gerichtsstand+'.')}
     ${cl('15','Energieausweis (\u00a7\u00a016a GEG)',
       'Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Energieeffizienzklasse: '+(d.energieklasse||'—')+'. Endenergiebedarf: '+(d.endenergiebedarf ? d.endenergiebedarf+' kWh/(m\u00b2\u00b7a)' : '—')+'. Art des Ausweises: '+(d.energieausweisart||'—')+'.')}
-    ${sec('Anlage A \u2014 Inventar',true,false)}
-    <table class="inv-table">
-      <thead><tr><th>Gegenstand</th><th>Anzahl</th></tr></thead>
-      <tbody>${invRows}</tbody>
-    </table>
     <div class="comment-label">Sonstige Anmerkungen</div>
     <div class="comment-line"></div><div class="comment-line"></div>
     <div class="comment-line"></div><div class="comment-line"></div>
@@ -3996,11 +3991,22 @@ function _renderMietvertragHTML(d) {
   </div>
 </div>`;
 
+  const page4 = `<div class="pdf-page page">
+  ${hdr(d.zimmerName)}${ftr(4)}
+  <div class="content">
+    ${sec('Anlage A \u2014 Inventar',true,true)}
+    <table class="inv-table">
+      <thead><tr><th>Gegenstand</th><th>Anzahl</th></tr></thead>
+      <tbody>${invRows}</tbody>
+    </table>
+  </div>
+</div>`;
+
   return `<!DOCTYPE html>
 <html lang="de"><head><meta charset="UTF-8"/>
 <title>Mietvertrag \u2014 ${d.zimmerName}</title>
 <style>${CSS}</style></head>
-<body>${page1}${page2}${page3}</body></html>`;
+<body>${page1}${page2}${page3}${page4}</body></html>`;
 }
 
 
