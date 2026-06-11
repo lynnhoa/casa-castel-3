@@ -78,55 +78,66 @@ document.getElementById('tab-kitchen').innerHTML = `
     <!-- Left column: week card + rotation + history -->
     <div class="k-desktop-left">
 
+      <!-- This week -->
       <div class="k-dsk-section">
-        <div class="k-mob-week-top-row" style="margin-bottom:10px;">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">This week</span>
           <span class="k-mob-status-chip pending" id="k-ten-dsk-chip"></span>
         </div>
-        <div class="k-mob-week-body">
-          <div class="k-mob-week-left">
-            <span class="k-mob-week-room" id="k-ten-dsk-room">—</span>
-            <span class="k-mob-week-dates-sm" id="k-ten-dsk-dates">—</span>
-            <span class="k-mob-week-absent-note" id="k-ten-dsk-absent-note" style="display:none;"></span>
-          </div>
-          <div id="k-ten-dsk-act"></div>
-        </div>
+        <span class="k-mob-week-room" id="k-ten-dsk-room">—</span>
+        <span class="k-mob-week-dates-sm" style="display:block;margin-top:3px;" id="k-ten-dsk-dates">—</span>
+        <span class="k-mob-week-absent-note" id="k-ten-dsk-absent-note" style="display:none;margin-top:3px;"></span>
+        <div id="k-ten-dsk-act"></div>
       </div>
 
-      <div class="k-dsk-section">
-        <div class="k-dsk-section-hdr"><span class="k-dsk-section-lbl">Rotation</span></div>
+      <!-- Rotation — rot-tl style matching cleaning tab -->
+      <div class="k-dsk-section" style="flex:1;overflow-y:auto;">
+        <div class="k-dsk-section-hdr">
+          <span class="k-dsk-section-lbl">Rotation</span>
+        </div>
         <div id="k-ten-dsk-rot"></div>
       </div>
 
-      <div class="k-dsk-section" style="border-bottom:none;">
+      <!-- History -->
+      <div class="k-dsk-section" style="border-bottom:none;flex-shrink:0;">
         <div class="k-dsk-section-hdr">
           <span class="k-dsk-section-lbl">History</span>
-          <button class="k-dsk-section-link" onclick="kitchenTenantOpenModal('history')">see all</button>
+          <button class="k-dsk-section-link" onclick="kitchenTenantOpenModal('history')">see all ›</button>
         </div>
         <div id="k-ten-dsk-hist"><p class="cc-note">Loading…</p></div>
       </div>
 
     </div><!-- /.k-desktop-left -->
 
-    <!-- Right column: nudge banner + proof/chat feed -->
+    <!-- Right column: header + nudge banner + feed + compose -->
     <div class="k-desktop-right">
+
+      <!-- Header -->
       <div class="k-dsk-chat-hdr">
         <span class="k-dsk-chat-lbl">Proof &amp; chat</span>
         <button class="k-dsk-chat-link" onclick="initKitchenMobile()">↺ Refresh</button>
       </div>
+
+      <!-- Nudge banner -->
       <div id="k-ten-dsk-nudge-banner" style="display:none;flex-shrink:0;padding:8px 14px;background:#FEFCE8;border-bottom:0.5px solid #EAD96B;align-items:center;gap:8px;">
-        <span style="font-size:13px;flex-shrink:0;">⚑</span>
+        <span style="font-size:12px;flex-shrink:0;color:#A0860E;">⚑</span>
         <span id="k-ten-dsk-nudge-text" style="flex:1;font-size:11px;color:#78640A;font-weight:400;"></span>
         <button onclick="_kTenMarkNudgeDone()" style="flex-shrink:0;background:#FEF9C3;border:0.5px solid #EAD96B;border-radius:6px;font-size:10px;font-weight:500;color:#78640A;cursor:pointer;padding:4px 10px;font-family:inherit;white-space:nowrap;">✓ Done</button>
-        <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+        <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:13px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
       </div>
+
+      <!-- Feed -->
       <div class="k-dsk-feed" id="k-ten-dsk-feed"></div>
-      <div class="k-mob-compose" style="flex-shrink:0;">
-        <input class="k-mob-compose-input" id="k-ten-dsk-msg-input" type="text" placeholder="Write to kitchen group…"/>
+
+      <!-- Compose bar — matches lounge desktop style -->
+      <div class="k-ten-dsk-compose">
+        <input class="k-ten-dsk-compose-input" id="k-ten-dsk-msg-input" type="text" placeholder="Write to kitchen group…"/>
         <input type="file" id="k-ten-dsk-photo-file" accept="image/*" style="display:none;"/>
-        <button class="k-mob-camera-btn" id="k-ten-dsk-photo-btn" aria-label="Send photo">
-          <i class="ti ti-camera" style="font-size:18px;"></i>
+        <button class="k-ten-dsk-camera" id="k-ten-dsk-photo-btn" aria-label="Send photo">
+          <i class="ti ti-camera"></i>
         </button>
       </div>
+
     </div><!-- /.k-desktop-right -->
 
   </div><!-- /.k-desktop-grid -->
@@ -482,14 +493,16 @@ function _kTenRenderActBtnToEl(el, state, freshRow) {
   if (!el) return;
   if (state !== 'now') { el.innerHTML = ''; return; }
   const dbStatus = freshRow ? freshRow.status : null;
+  const isDsk = el.id === 'k-ten-dsk-act';
   if (dbStatus === 'flagged') {
-    el.innerHTML = `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof">
-      <i class="ti ti-${window.innerWidth <= 700 ? 'camera-plus' : 'upload'}"></i><span>Re-upload</span></button>`;
+    el.innerHTML = isDsk
+      ? `<button class="k-ten-upload-pill red" onclick="_kTenWizOpen()"><i class="ti ti-upload" style="font-size:14px;"></i> Re-upload proof</button>`
+      : `<button class="k-mob-wact red" onclick="_kTenWizOpen()" aria-label="Re-upload proof"><i class="ti ti-camera-plus"></i><span>Re-upload</span></button>`;
   } else if (!dbStatus || dbStatus === 'pending') {
-    el.innerHTML = `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof">
-      <i class="ti ti-${window.innerWidth <= 700 ? 'camera-plus' : 'upload'}"></i><span>Proof</span></button>`;
+    el.innerHTML = isDsk
+      ? `<button class="k-ten-upload-pill blue" onclick="_kTenWizOpen()"><i class="ti ti-upload" style="font-size:14px;"></i> Upload proof</button>`
+      : `<button class="k-mob-wact blue" onclick="_kTenWizOpen()" aria-label="Upload proof"><i class="ti ti-camera-plus"></i><span>Proof</span></button>`;
   } else {
-    // submitted, approved, missed — no button needed
     el.innerHTML = '';
   }
 }
