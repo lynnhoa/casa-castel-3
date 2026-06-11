@@ -50,7 +50,7 @@ function initLandlordLogin() {
     ?.addEventListener('click', doLandlordLogin);
   document.getElementById('landlordPass')
     ?.addEventListener('keydown', e => { if (e.key === 'Enter') doLandlordLogin(); });
-  if (localStorage.getItem('cc_role') === 'landlord') showApp();
+  if (localStorage.getItem('cc_role') === 'landlord') { showApp(); } else { location.href = 'login.html'; }
 }
 
 /* ── TENANT AUTH — room + password (matches v1 exactly) ─── */
@@ -164,5 +164,5 @@ function logout() {
   localStorage.removeItem('cc_room');
   sessionStorage.removeItem('cc_preview_room');
   if (sbL) sbL.auth.signOut().catch(() => {});
-  location.reload();
+  location.href = 'login.html';
 }
