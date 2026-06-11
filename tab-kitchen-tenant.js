@@ -133,9 +133,10 @@ document.getElementById('tab-kitchen').innerHTML = `
       <div class="k-ten-dsk-compose">
         <input class="k-ten-dsk-compose-input" id="k-ten-dsk-msg-input" type="text" placeholder="Write to kitchen group…"/>
         <input type="file" id="k-ten-dsk-photo-file" accept="image/*" style="display:none;"/>
-        <button class="k-ten-dsk-camera" id="k-ten-dsk-photo-btn" aria-label="Send photo">
-          <i class="ti ti-camera"></i>
+        <button class="k-ten-dsk-camera" id="k-ten-dsk-photo-btn" aria-label="Send photo" title="Send photo">
+          <i class="ti ti-camera" style="font-size:15px;"></i>
         </button>
+        <button class="k-ten-dsk-compose-send" id="k-ten-dsk-send-btn" aria-label="Send message">↑</button>
       </div>
 
     </div><!-- /.k-desktop-right -->
@@ -1128,13 +1129,15 @@ async function _kTenDismissNudgeBanner() {
   wireComposeBlur(mobInput);
 
   // Desktop compose wiring
-  const dskInput = document.getElementById('k-ten-dsk-msg-input');
-  const dskPhoto = document.getElementById('k-ten-dsk-photo-btn');
-  const dskFile  = document.getElementById('k-ten-dsk-photo-file');
+  const dskInput  = document.getElementById('k-ten-dsk-msg-input');
+  const dskSend   = document.getElementById('k-ten-dsk-send-btn');
+  const dskPhoto  = document.getElementById('k-ten-dsk-photo-btn');
+  const dskFile   = document.getElementById('k-ten-dsk-photo-file');
 
   dskInput?.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); _kTenDskSendMsg(); }
   });
+  dskSend?.addEventListener('click', () => _kTenDskSendMsg());
   dskPhoto?.addEventListener('click', () => dskFile?.click());
   dskFile?.addEventListener('change', async e => {
     const file = e.target.files[0]; if (!file) return;
