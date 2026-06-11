@@ -3847,7 +3847,7 @@ function _renderMietvertragHTML(d) {
     .nk-item { font-family:'Lato',sans-serif; font-size:10.5px; font-weight:300; color:#3a3530; padding:2.5px 0; line-height:1.4; }
     .nk-item--full { grid-column:1/-1; border-bottom:none; }
     .clause { margin-top:8px; }
-    .clause--first { margin-top:52px; }
+    .clause--first { margin-top:38px; }
     .clause__title { font-family:'Lato',sans-serif; font-size:11px; font-weight:700; color:#4a4540; margin-bottom:2px; line-height:1.4; }
     .clause__body { font-family:'Lato',sans-serif; font-size:11px; font-weight:300; color:#3a3530; line-height:1.55; }
     .inv-table { width:100%; border-collapse:collapse; margin-top:6px; }
