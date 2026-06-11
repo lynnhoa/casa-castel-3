@@ -837,7 +837,7 @@ async function kReopen() {
   if (!_kWeekRow || !sbL || _kActionBusy) return; _kActionBusy = true;
   try {
     if (!confirm(`Reopen week for ${_kWeekRow.room}? They can upload proof again.`)) return;
-    await _kUpdateWeek(kWeekIdx(), { status:'pending', flagged:false, closed_at:null });
+    await _kUpdateWeek(kWeekIdx(), { status:'pending', flagged:false, closed_at:null, photos:null, photo_path:null, photo_url:null, reupload_count:null, submitted_at:null });
     await loadKitchen();
   } finally { _kActionBusy = false; }
 }
