@@ -90,7 +90,7 @@ document.getElementById('tab-kitchen').innerHTML = `
       </div>
 
       <!-- Rotation — rot-tl style matching cleaning tab -->
-      <div class="k-dsk-section" style="flex:1;overflow-y:auto;">
+      <div class="k-dsk-section">
         <div class="k-dsk-section-hdr">
           <span class="k-dsk-section-lbl">Rotation</span>
         </div>
@@ -98,7 +98,7 @@ document.getElementById('tab-kitchen').innerHTML = `
       </div>
 
       <!-- History -->
-      <div class="k-dsk-section" style="border-bottom:none;flex-shrink:0;">
+      <div class="k-dsk-section" style="border-bottom:none;">
         <div class="k-dsk-section-hdr">
           <span class="k-dsk-section-lbl">History</span>
           <button class="k-dsk-section-link" onclick="kitchenTenantOpenModal('history')">see all ›</button>
@@ -1070,7 +1070,6 @@ async function _kTenMarkNudgeDone() {
       await sbL.from('lounge_data').delete().eq('id', nudgeId);
     }
   } finally { _kTenNudgeBusy = false; }
-}
 }
 
 /* ── WIRE COMPOSE (identical to landlord) ───────────────── */
