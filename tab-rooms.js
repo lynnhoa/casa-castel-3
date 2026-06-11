@@ -2538,7 +2538,7 @@ function _buildMietvertragData(room, s, { mieterName, mieterAdr, mieterDob, miet
     // Gerichtsstand
     gerichtsstand:    s.gerichtsstand || 'Wiesbaden',
     unterschriftOrt:  s.unterschrift_ort || 'Wiesbaden',
-    footerAdresse:    s.objekt_adresse ? s.objekt_adresse + ' · ' + (s.objekt_plz_ort||'') : '',
+    footerAdresse:    s.objekt_adresse ? (s.objekt_plz_ort && s.objekt_adresse.includes(s.objekt_plz_ort) ? s.objekt_adresse : s.objekt_adresse + ' \u00b7 ' + (s.objekt_plz_ort || '')) : '',
     // Mieter
     mieterName,
     mieterAdresse:      mieterAdr,
