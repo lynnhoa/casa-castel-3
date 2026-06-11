@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Real Estate"/>
+  <meta name="theme-color" content="#F5F2ED"/>
+  <title>Real Estate — Login</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+
+  <style>
+    :root {
+      --cream:   #F5F2ED;
+      --warm:    #EDE8E0;
+      --rule:    #E0DAD0;
+      --stone:   #C8BFB0;
+      --taupe:   #9A8E7E;
+      --body:    #3A3530;
+      --ink:     #1E1B18;
+      --gold:    #B8956A;
+      --error:   #C0574A;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--cream);
+      color: var(--body);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .root {
+      min-height: 100%;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: calc(32px + var(--safe-top)) 24px calc(40px + var(--safe-bottom));
+    }
+
+    /* ── WORDMARK ── */
+    .wordmark {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 300;
+      font-size: 40px;
+      letter-spacing: 0.03em;
+      color: var(--ink);
+      text-align: center;
+      line-height: 1;
+      margin-bottom: 7px;
+    }
+    .studio-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      text-align: center;
+      margin-bottom: 3px;
+    }
+    .access-label {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--stone);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    /* ── FORM ── */
+    .login-form {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── APP CARDS ── */
+    .role-tabs {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .role-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      padding: 14px 6px 12px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      background: #fff;
+      border: 0.5px solid var(--rule);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform .12s, box-shadow .12s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(58,53,48,.05);
+    }
+    .role-tab:hover {
+      border-color: var(--stone);
+      box-shadow: 0 2px 8px rgba(58,53,48,.09);
+    }
+    .role-tab:active { transform: scale(.96); }
+
+    /* Icon circle */
+    .role-tab__icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      transition: background .15s;
+    }
+
+    /* Per-app pastel tints */
+    .role-tab[data-dest="realestate.html"] .role-tab__icon {
+      background: #EAE4D8;
+      color: #9A7A50;
+    }
+    .role-tab[data-dest="landlord.html"] .role-tab__icon {
+      background: #DDE8E0;
+      color: #4E7D62;
+    }
+    .role-tab[data-dest="controlling.html"] .role-tab__icon {
+      background: #DDE4EE;
+      color: #4E6480;
+    }
+
+    /* Active state — tinted border + bolder label */
+    .role-tab.active {
+      border-color: var(--stone);
+      box-shadow: 0 2px 10px rgba(58,53,48,.10);
+      color: var(--ink);
+    }
+    .role-tab.active .role-tab__icon {
+      filter: saturate(1.15) brightness(.95);
+    }
+    .role-tab.active::after {
+      content: '';
+      display: block;
+      width: 16px;
+      height: 2px;
+      border-radius: 99px;
+      background: var(--gold);
+      position: absolute;
+      bottom: 8px;
+    }
+    /* position relative for the after-element trick */
+    .role-tab { position: relative; }
+
+    /* ── PASSWORD ── */
+    .cc-input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      background: #fff;
+      border: 0.5px solid var(--stone);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+    }
+    .cc-input::placeholder { color: var(--stone); }
+    .cc-input:focus { border-color: var(--gold); }
+    .cc-input.error { border-color: var(--error); }
+
+    /* ── ERROR ── */
+    .login-error {
+      font-size: 11px;
+      color: var(--error);
+      display: none;
+      margin-top: 6px;
+      padding-left: 1px;
+    }
+    .login-error.visible { display: block; }
+
+    /* ── ENTER BUTTON ── */
+    .enter-btn {
+      width: 100%;
+      height: 46px;
+      margin-top: 10px;
+      background: var(--warm);
+      border: 0.5px solid var(--stone);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--body);
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .enter-btn:hover  { background: var(--rule); border-color: var(--taupe); }
+    .enter-btn:active { transform: scale(.99); }
+
+    @media (min-width: 600px) {
+      .wordmark { font-size: 46px; }
+      .login-form { max-width: 340px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="root">
+
+  <p class="wordmark">Real Estate</p>
+  <p class="studio-label">Management</p>
+  <p class="access-label">Private access</p>
+
+  <div class="login-form">
+
+    <div class="role-tabs" role="group" aria-label="Select app">
+
+      <button class="role-tab" data-dest="realestate.html">
+        <span class="role-tab__icon"><i class="ti ti-building-estate"></i></span>
+        Properties
+      </button>
+
+      <button class="role-tab active" data-dest="landlord.html" data-tab="lounge">
+        <span class="role-tab__icon"><i class="ti ti-home-heart"></i></span>
+        Casa Castel
+      </button>
+
+      <button class="role-tab" data-dest="controlling.html">
+        <span class="role-tab__icon"><i class="ti ti-chart-bar"></i></span>
+        Controlling
+      </button>
+
+    </div>
+
+    <input class="cc-input" id="loginPass" type="password" placeholder="Password" autocomplete="current-password"/>
+    <div class="login-error" id="loginError">Incorrect password.</div>
+
+    <button class="enter-btn" id="enterBtn">Enter</button>
+
+  </div>
+
+</div>
+
+<script>
+  const PASS     = 'casacastel2025';
+  const SESS_KEY = 'studio_authed';
+
+  const loginPass  = document.getElementById('loginPass');
+  const loginError = document.getElementById('loginError');
+  const enterBtn   = document.getElementById('enterBtn');
+  const tabs       = document.querySelectorAll('.role-tab');
+
+  let selectedDest = 'landlord.html';
+  let selectedTab  = 'lounge';
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      selectedDest = tab.dataset.dest;
+      selectedTab  = tab.dataset.tab || null;
+      clearError();
+    });
+  });
+
+  function isAuthed() {
+    return sessionStorage.getItem(SESS_KEY) === '1'
+        || localStorage.getItem('cc_role') === 'landlord';
+  }
+
+  function markAuth() {
+    sessionStorage.setItem(SESS_KEY, '1');
+    localStorage.setItem('cc_role', 'landlord');
+  }
+
+  function clearError() {
+    loginError.classList.remove('visible');
+    loginPass.classList.remove('error');
+  }
+
+  function attempt() {
+    if (isAuthed() || loginPass.value === PASS) {
+      clearError();
+      markAuth();
+      if (selectedTab) sessionStorage.setItem('cc_open_tab', selectedTab);
+      window.location.href = selectedDest;
+    } else {
+      loginError.classList.add('visible');
+      loginPass.classList.add('error');
+      loginPass.value = '';
+      loginPass.focus();
+    }
+  }
+
+  enterBtn.addEventListener('click', attempt);
+  loginPass.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+  loginPass.addEventListener('input', clearError);
+
+  setTimeout(() => loginPass.focus(), 100);
+</script>
+
+</body>
+</html>
