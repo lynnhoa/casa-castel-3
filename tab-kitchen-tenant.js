@@ -1065,7 +1065,7 @@ async function _kTenMarkNudgeDone() {
     }
     // Post system message to feed
     if (sbL && _kTenWeekRow && nudgeBody) {
-      await _kTenAddComment(_kTenWeekRow.id, myRoom, `✓ ${myRoom} — ${resolved} · done`, false);
+      await _kTenAddComment(_kTenWeekRow.id, myRoom, `[system] ✓ ${myRoom} — ${resolved} · done`, false);
       await _kTenRenderFeed();
     }
     // Always delete the nudge — first person to tap Done resolves it for everyone
