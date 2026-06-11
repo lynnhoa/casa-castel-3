@@ -802,6 +802,7 @@ async function kUnflag() {
   if (!_kWeekRow || !sbL || _kActionBusy) return; _kActionBusy = true;
   try {
     await _kUpdateWeek(kWeekIdx(), { flagged:false, status:'submitted' });
+    await _kAddComment(_kWeekRow.id, 'Casa Castel', '✓ Flag removed — week back under review.', false);
     await loadKitchen();
   } finally { _kActionBusy = false; }
 }
