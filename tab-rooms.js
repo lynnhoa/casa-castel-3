@@ -2048,7 +2048,7 @@ function _contractBodyUeberg(room, isEinzug) {
     <!-- Unterzeichnungsdatum — at end -->
     <div class="rm-field" style="margin-top:4px;">
       <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label>
-      <input class="rm-input" id="ub-sig" type="date"/>
+      <input class="rm-input" id="ub-sig" type="date" onclick="try{this.showPicker()}catch(e){}" />
     </div>
   `;
 }
@@ -2252,12 +2252,12 @@ function _contractBodyKurzzeit(room) {
     <div class="rm-field"><label>E-Mail</label><input class="rm-input" id="cm-email" type="email" placeholder="mieter@beispiel.de"/></div>
     <div class="rm-field"><label>Telefon <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label><input class="rm-input" id="cm-tel" type="tel" placeholder="+49 …"/></div>
     <div class="rm-field-row">
-      <div class="rm-field"><label>Mietbeginn <span style="color:#c0392b;font-weight:700;">*</span></label><input class="rm-input" id="cm-start" type="date"/></div>
-      <div class="rm-field"><label>Mietende <span style="color:#c0392b;font-weight:700;">*</span></label><input class="rm-input" id="cm-end" type="date"/></div>
+      <div class="rm-field"><label>Mietbeginn <span style="color:#c0392b;font-weight:700;">*</span></label><input class="rm-input" id="cm-start" type="date" onclick="try{this.showPicker()}catch(e){}" /></div>
+      <div class="rm-field"><label>Mietende <span style="color:#c0392b;font-weight:700;">*</span></label><input class="rm-input" id="cm-end" type="date" onclick="try{this.showPicker()}catch(e){}" /></div>
     </div>
     <div class="rm-field">
       <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label>
-      <input class="rm-input" id="cm-sig" type="date"/>
+      <input class="rm-input" id="cm-sig" type="date" onclick="try{this.showPicker()}catch(e){}" />
     </div>
     <div class="rm-field rm-field--toggle" id="cm-erster-wrap" style="display:none">
       <div class="rm-toggle-row">
@@ -3727,7 +3727,7 @@ function _contractBodyMietvertrag(room) {
 
     <div class="rm-field">
       <label>Mietbeginn <span style="color:#c0392b;font-weight:700;">*</span></label>
-      <input class="rm-input" id="mv-start" type="date" oninput="_updateMvMonatToggle()"/>
+      <input class="rm-input" id="mv-start" type="date" onclick="try{this.showPicker()}catch(e){}" oninput="_updateMvMonatToggle()"/>
     </div>
 
     <div class="rm-field rm-field--toggle" id="mv-erster-wrap" style="display:none">
@@ -3760,7 +3760,7 @@ function _contractBodyMietvertrag(room) {
     <div id="mv-befristung-details" style="display:none;">
       <div class="rm-field">
         <label>Mietende <span style="color:#c0392b;font-weight:700;">*</span></label>
-        <input class="rm-input" id="mv-end" type="date"/>
+        <input class="rm-input" id="mv-end" type="date" onclick="try{this.showPicker()}catch(e){}" />
       </div>
       <div class="rm-field">
         <label>Befristungsgrund <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(§ 575 BGB \u2014 Pflicht)</span></label>
@@ -3791,7 +3791,7 @@ function _contractBodyMietvertrag(room) {
 
     <div class="rm-field" style="margin-top:4px;">
       <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label>
-      <input class="rm-input" id="mv-sig" type="date"/>
+      <input class="rm-input" id="mv-sig" type="date" onclick="try{this.showPicker()}catch(e){}" />
     </div>`;
 }
 
