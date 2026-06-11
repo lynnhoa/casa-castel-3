@@ -303,10 +303,7 @@ async function handleLogout() {
   showLoading(true);
   try { await signOut(); } catch(e) {}
   showLoading(false);
-  document.getElementById('appShell').style.display = 'none';
-  document.getElementById('authScreen').classList.add('show');
-  document.getElementById('authEmail').value = '';
-  document.getElementById('authPass').value = '';
+  window.location.href = 'login.html';
 }
 
 /* ── BOOT ── */
