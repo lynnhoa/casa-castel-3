@@ -1925,7 +1925,6 @@ function _openContract(type, roomId) {
       // Validate required fields first
       const mieterName2 = document.getElementById('ub-mieter-name')?.value.trim();
       const datum2      = document.getElementById('ub-datum')?.value;
-      if (!mieterName2 || !datum2) { alert('Bitte Mieter Name und Übergabedatum ausfüllen.'); return; }
       // Pre-render into hidden container so preview reads from it
       // _generateUebergPDF will re-render anyway when PDF is actually saved
       await _generateUebergPreviewContainer(isEinzug);
@@ -3104,11 +3103,6 @@ async function _generateUebergPDF(isEinzug) {
   const haustur     = document.getElementById('ub-haustur')?.value || '1';
   const zimmertur   = document.getElementById('ub-zimmertur')?.value || '1';
 
-
-  if (!mieterName || !datum) {
-    alert('Bitte Mieter Name und Übergabedatum ausfüllen.');
-    return;
-  }
 
   const s = appSettings;
   const zaehler = _parseArr(s.zaehler);
