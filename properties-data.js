@@ -14,7 +14,7 @@ let _client = null;
 
 function getClient() {
   if (!_client) {
-    _client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    _client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
   return _client;
 }
@@ -43,8 +43,9 @@ async function fetchAll() {
     .from('properties')
     .select('*')
     .order('sort_order', { ascending: true });
-  if (error) throw error;
-  return data;
+  if (error) { console.error('fetchAll error:', error); throw error; }
+  console.log('fetchAll returned:', data ? data.length : 0, 'rows');
+  return data || [];
 }
 
 async function addProperty(fields) {
