@@ -516,12 +516,14 @@ async function _kTenRenderWeekCard(overrideRow) {
 
   const pad = n => String(n).padStart(2, '0');
   const fmt = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
-  const dateStr = fmt(wi.start) + ' – ' + fmt(wi.end) + (isAssigned && wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : isAssigned ? ' · ends today' : '');
-  document.getElementById('k-mob-room-name').textContent = wi.room;
+  const dateStr = isAssigned
+    ? fmt(wi.start) + ' – ' + fmt(wi.end) + (wi.daysLeft > 0 ? ' · ' + wi.daysLeft + 'd left' : ' · ends today')
+    : wi.room + "'s turn · " + fmt(wi.start) + ' – ' + fmt(wi.end);
+  document.getElementById('k-mob-room-name').textContent = myRoom;
   document.getElementById('k-mob-dates').textContent = dateStr;
   const dskRoom  = document.getElementById('k-ten-dsk-room');
   const dskDates = document.getElementById('k-ten-dsk-dates');
-  if (dskRoom)  dskRoom.textContent  = wi.room;
+  if (dskRoom)  dskRoom.textContent  = myRoom;
   if (dskDates) dskDates.textContent = dateStr;
 
   // If caller passes overrideRow (e.g. after optimistic patch), use it directly — no DB fetch.
@@ -597,7 +599,9 @@ async function _kTenRenderWeekCard(overrideRow) {
   const absNote = document.getElementById('k-mob-absent-note');
   const dskAbsNote = document.getElementById('k-ten-dsk-absent-note');
   if (freshRow && freshRow.is_absent) {
-    const txt = '📅 ' + wi.room + ' is absent — no proof required';
+    const txt = isAssigned
+      ? '📅 You are absent — no proof required'
+      : '📅 ' + wi.room + ' is absent — no proof required';
     if (absNote) { absNote.textContent = txt; absNote.style.display = ''; }
     if (dskAbsNote) { dskAbsNote.textContent = txt; dskAbsNote.style.display = ''; }
   } else {
@@ -1065,7 +1069,7 @@ async function _kTenMarkNudgeDone() {
     }
     // Post system message to feed
     if (sbL && _kTenWeekRow && nudgeBody) {
-      await _kTenAddComment(_kTenWeekRow.id, myRoom, `[system] ✓ ${myRoom} — ${resolved} · done`, false);
+      await _kTenAddComment(_kTenWeekRow.id, myRoom, `✓ ${myRoom} — ${resolved} · done`, false);
       await _kTenRenderFeed();
     }
     // Always delete the nudge — first person to tap Done resolves it for everyone
