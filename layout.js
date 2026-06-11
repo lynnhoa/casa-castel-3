@@ -99,12 +99,14 @@ function showApp(room) {
   if (room && typeof initLoungeTab === 'function') initLoungeTab(room);
 
   // Restore last active tab — validate against tabs present on this page.
-  // cc_last_tab is shared localStorage; a landlord 'rooms' tab must not land
-  // on tenant.html where that tab has no content (would show blank).
+  // Priority: (1) cc_open_tab from login.html (consumed once); (2) cc_last_tab; (3) lounge.
+  // cc_last_tab is shared localStorage — validate against DOM to avoid blank tabs cross-role.
   const _availableTabs = new Set(
     [...document.querySelectorAll('.cc-tab[data-tab]')].map(b => b.dataset.tab)
   );
-  const _savedTab = (() => { try { return localStorage.getItem('cc_last_tab'); } catch(e) { return null; } })();
+  const _openTab = (() => { try { return sessionStorage.getItem('cc_open_tab'); } catch(e) { return null; } })();
+  if (_openTab) { try { sessionStorage.removeItem('cc_open_tab'); } catch(e) {} }
+  const _savedTab = _openTab || (() => { try { return localStorage.getItem('cc_last_tab'); } catch(e) { return null; } })();
   const _lastTab = (_savedTab && _availableTabs.has(_savedTab)) ? _savedTab : 'lounge';
   switchTab(_lastTab);
 }
