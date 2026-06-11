@@ -521,28 +521,48 @@ async function _kRenderRotation(weekRow, absData) {
 
   el.innerHTML = `<div class="k-mob-rot-line"></div><div class="k-mob-rot-line-done" style="width:${greenPct}"></div><div class="k-mob-rot-items">${items}</div>`;
 
-  // Desktop: same data, vertical list format
+  // Desktop: rot-tl style matching cleaning tab and tenant
   const elDsk = document.getElementById('k-dsk-rot-list');
   if (elDsk) {
-    const dotColor = { done:'#9AC87A', now:'#E8C97A', next:'#90C2F5', missed:'#F5A8A5', skipped:'#C4B5FD', absent:'#D4A87A', upcoming:'var(--cc-rule)', none:'var(--cc-rule)' };
-    const statusLabel = { done:'✓ Done', missed:'✗ Missed', skipped:'— Skip', absent:'Away', now:'Now', next:'Next', upcoming:'', none:'' };
-    const statusCls   = { done:'rs-done', missed:'rs-missed', now:'rs-now', next:'rs-next' };
-    elDsk.innerHTML = rooms.map((room, i) => {
+    elDsk.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
       const slotIdx = cycleStart + i;
       const info    = kWeekInfo(Math.max(0, slotIdx));
-      const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
+      const dateStr = info ? fmt(info.start) + ' – ' + fmt(info.end) : '—';
       const dbRow   = dbRows[i];
       const state   = _kRotState({ isNow:i===cyclePos, isPast:i<cyclePos, isNext:i===trueNextI, dbStatus:dbRow?dbRow.status:null, room, weekStart:info?info.start:null, absenceRows:absData });
-      const dot  = dotColor[state] || 'var(--cc-rule)';
-      const lbl  = statusLabel[state] || '';
-      const cls  = statusCls[state] || '';
-      const roomStyle = state === 'now' ? 'font-weight:500;color:#633806;' : '';
-      const badge = lbl ? `<span class="k-dsk-rot-status ${cls}">${lbl}</span>` : '';
-      return `<div class="k-dsk-rot-item"><div class="k-dsk-rot-dot" style="background:${dot};"></div><span class="k-dsk-rot-room" style="${roomStyle}">${esc(room)}</span><span class="k-dsk-rot-date">${dateStr}</span>${badge}</div>`;
-    }).join('');
+      const dotClass = { done:'rot-dot--done', now:'rot-dot--now', missed:'rot-dot--missed', skipped:'rot-dot--skipped', absent:'rot-dot--absent' }[state] || 'rot-dot--next';
+      const topLine  = state === 'done' || state === 'now' ? 'rot-line-done'
+                     : state === 'skipped' ? 'rot-line-skipped'
+                     : state === 'absent'  ? 'rot-line-absent'
+                     : state === 'missed'  ? 'rot-line-missed' : 'rot-line-faded';
+      const botLine  = state === 'done' && i < cyclePos ? 'rot-line-done' : 'rot-line-faded';
+      const badge    = {
+        done:     '<span class="rot-badge rot-badge--done">✓ Done</span>',
+        now:      '<span class="rot-badge rot-badge--now">Now</span>',
+        next:     '<span class="rot-badge rot-badge--next">Next</span>',
+        missed:   '<span class="rot-badge rot-badge--missed">Missed</span>',
+        skipped:  '<span class="rot-badge rot-badge--skipped">Skipped</span>',
+        absent:   '<span class="rot-badge rot-badge--absent">Away</span>',
+        upcoming: '<span class="rot-badge rot-badge--none">—</span>',
+      }[state] || '<span class="rot-badge rot-badge--none">—</span>';
+      const rowClass = 'rot-tl-row'
+        + (state === 'now'     ? ' rot-tl-row--now'
+         : state === 'missed'  ? ' rot-tl-row--missed'
+         : state === 'skipped' ? ' rot-tl-row--skipped'
+         : state === 'absent'  ? ' rot-tl-row--absent'
+         : state === 'next'    ? ' rot-tl-row--next' : '');
+      const email   = tenantEmail(room);
+      const profile = S.get('room_profile_' + room, {});
+      const name    = profile.firstName || room;
+      const subject = encodeURIComponent('Casa Castel Kitchen — Proof required');
+      const body    = encodeURIComponent(`Hi ${name},\n\nPlease clean the kitchen and upload your proof in the app.\n\nCasa Castel`);
+      const mailBtn = email
+        ? `<a href="mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}" target="_blank" title="Send reminder to ${esc(room)}" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:var(--cc-r-sm);background:var(--cc-surface);border:0.5px solid var(--cc-rule);color:var(--cc-taupe);text-decoration:none;flex-shrink:0;margin-left:5px;" aria-label="Send reminder to ${esc(room)}"><i class="ti ti-mail" style="font-size:12px;" aria-hidden="true"></i></a>`
+        : '';
+      return `<div class="${rowClass}"><div class="rot-spine"><div class="rot-spine-top ${topLine}"></div><div class="rot-dot ${dotClass}"></div><div class="rot-spine-bot ${botLine}"></div></div><div class="rot-tl-body"><div class="rot-tl-info"><p class="rot-tl-room">${esc(room)}</p><p class="rot-tl-dates">${dateStr}</p></div><div style="display:flex;align-items:center;">${badge}${mailBtn}</div></div></div>`;
+    }).join('') + '</div>';
   }
 }
-
 /* ── WEEK CARD ──────────────────────────────────────────── */
 function _kRenderWeekCard(weekRow, absData) {
   const idx = kWeekIdx();
