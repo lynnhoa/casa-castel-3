@@ -101,7 +101,7 @@ function showApp(room) {
   // Restore last active tab (falls back to lounge)
   // Kitchen is desktop-hidden — fall back to lounge if on a wide screen
   const _lastTab = (() => {
-    try { return localStorage.getItem('cc_last_tab') || 'lounge'; } catch(e) { return 'lounge'; }
+    try { return localStorage.getItem('cc_last_tab') || 'rooms'; } catch(e) { return 'lounge'; }
   })();
   switchTab(_lastTab);
 }
