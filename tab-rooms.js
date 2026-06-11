@@ -1994,7 +1994,7 @@ function _contractBodyUeberg(room, isEinzug) {
     <!-- Übergabedatum -->
     <div class="rm-field" style="margin-top:4px;">
       <label>Übergabedatum</label>
-      <input class="rm-input" id="ub-datum" type="text" placeholder="TT.MM.JJJJ" oninput="_autoFormatGermanDate(event)"/>
+      <input class="rm-input" id="ub-datum" type="date"/>
     </div>
     ${!isEinzug ? `
     <!-- Neue Adresse — Auszug only -->
