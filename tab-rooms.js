@@ -2841,7 +2841,7 @@ function _renderKurzzeitHTML(d) {
     .comment-line { border-bottom: 0.5px solid #e0dbd4; height: 26px; margin-top: 2px; }
 
     /* SIGNATURE */
-    .sig-block { margin-top: 106px; display: flex; justify-content: space-between; }
+    .sig-block { margin-top: 134px; display: flex; justify-content: space-between; }
     .sig-col { width: 44%; }
     .sig-top-line { border: none; border-top: 0.6px solid #3a3530; margin-bottom: 7px; }
     .sig-prefill { font-family: 'Lato', Georgia, serif; font-size: 10px; font-style: italic; font-weight: 300; color: #8a7a66; margin-bottom: 4px; line-height: 1.4; }
@@ -2852,7 +2852,7 @@ function _renderKurzzeitHTML(d) {
       color: #aaa59e;
       margin-bottom: 4px;
     }
-    .sig-write-gap { height: 74px; }
+    .sig-write-gap { height: 88px; }
     .sig-line { border: none; border-top: 0.6px solid #3a3530; margin-bottom: 7px; }
     .sig-role {
       font-family: 'Lato', sans-serif;
@@ -3963,19 +3963,18 @@ function _renderMietvertragHTML(d) {
       'Kleintiere ohne Belästigungspotenzial (Zierfische, Kleinnager) sind erlaubt. Alle weiteren Tiere bedürfen der Zustimmung (Textform).')}
     ${cl('8','Betreten des Mietobjekts',
       'Das Zimmer wird nur nach vorheriger Ankündigung (mind. 2\u00a0Werktage in Textform) betreten, z.\u202fB. zur Besichtigung bei Verkauf oder Weitervermietung sowie für notwendige Instandhaltungsarbeiten. Bei Gefahr im Verzug ist das Betreten jederzeit ohne Vorankündigung zulässig.')}
-    ${cl('9','Rückgabe bei Vertragsende',
-      'Vollständig geräumt, gereinigt, in vertragsgemäßem Zustand, alle Schlüssel. Bauliche Änderungen sind rückzubauen. Ein Übergabeprotokoll wird erstellt und beidseitig unterzeichnet.')}
-    <div style="page-break-before:always;"></div>
-    ${cl('10','Aufrechnung &amp; Zurückbehaltungsrecht',
-      'Der Mieter kann gegen Forderungen des Vermieters nur mit unbestrittenen oder rechtskräftig festgestellten Gegenforderungen aufrechnen. Das Zurückbehaltungsrecht ist auf Mängelrechte nach \u00a7\u00a7\u00a0536\u00a0ff. BGB beschränkt und setzt eine mindestens einmonatige vorherige Ankündigung in Textform voraus.')}
   </div>
 </div>`;
 
   const page3 = `<div class="pdf-page page">
   ${hdr(d.zimmerName)}${ftr(3)}
   <div class="content">
+    ${cl('9','Rückgabe bei Vertragsende',
+      'Vollständig geräumt, gereinigt, in vertragsgemäßem Zustand, alle Schlüssel. Bauliche Änderungen sind rückzubauen. Ein Übergabeprotokoll wird erstellt und beidseitig unterzeichnet.',true)}
+    ${cl('10','Aufrechnung &amp; Zurückbehaltungsrecht',
+      'Der Mieter kann gegen Forderungen des Vermieters nur mit unbestrittenen oder rechtskräftig festgestellten Gegenforderungen aufrechnen. Das Zurückbehaltungsrecht ist auf Mängelrechte nach \u00a7\u00a7\u00a0536\u00a0ff. BGB beschränkt und setzt eine mindestens einmonatige vorherige Ankündigung in Textform voraus.')}
     ${cl('11','Haftpflichtversicherung',
-      'Der Mieter unterhält für die Dauer des Mietverhältnisses eine private Haftpflichtversicherung und weist sie auf Verlangen nach.',true)}
+      'Der Mieter unterhält für die Dauer des Mietverhältnisses eine private Haftpflichtversicherung und weist sie auf Verlangen nach.')}
     ${cl('12','Hausordnung',
       'Rauchen ist im gesamten Gebäude nicht gestattet. Nachtruhe gilt von 22:00–07:00\u202fUhr. Die Hausordnung ist Bestandteil dieses Vertrages (Anlage\u00a0B).')}
     ${cl('13','Datenschutz',
