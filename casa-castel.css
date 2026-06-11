@@ -1458,6 +1458,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   padding: 5px 11px !important;
   border-radius: var(--cc-r-pill) !important;
   font-size: 10px !important;
+  border: 0.5px solid var(--cc-rule) !important;
 }
 
 .k-nudge-to-chip.selected {
