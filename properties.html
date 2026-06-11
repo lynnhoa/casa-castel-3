@@ -380,9 +380,6 @@ async function handleLogout() {
 async function boot() {
   showLoading(true);
   try {
-    // Direct test fetch without auth
-    const testResult = await _supa.from('properties').select('id').limit(1);
-    
     const session = await getSession();
     if (!session) {
       document.getElementById('authScreen').classList.add('show');
@@ -399,21 +396,7 @@ async function boot() {
     document.getElementById('appShell').style.display = 'block';
     renderAll();
     
-    // Visible debug — shows on screen
-    const dbg = document.getElementById('dash-alerts');
-    const rows = window._props.length;
-    const testRows = testResult.data ? testResult.data.length : 0;
-    const testErr = testResult.error ? testResult.error.message : 'none';
-    dbg.innerHTML = `<div style="background:#fff3cd;border:1px solid #ffc107;padding:12px;border-radius:8px;font-size:12px;margin-bottom:16px;font-family:monospace">
-      <strong>DEBUG</strong><br>
-      Props loaded: ${rows}<br>
-      Test fetch rows: ${testRows}<br>
-      Test fetch error: ${testErr}<br>
-      Test data: ${JSON.stringify(testResult.data)}<br>
-      Session: ${session ? session.user.email : 'none'}<br>
-      SDK: ${typeof window.supabase}<br>
-      URL: nqxsonmmcnmdastcpiff.supabase.co
-    </div>`;
+
   } catch(e) {
     console.error('Boot error:', e);
     document.getElementById('authScreen').classList.add('show');
