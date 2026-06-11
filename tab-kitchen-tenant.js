@@ -438,20 +438,13 @@ async function _kTenWizSubmit() {
       // First upload: write photos to the row
       patch.photos = uploaded;
     }
-    await sbL.from('kitchen_weeks').update(patch).eq('week_index', idx);
-
-    // Verify the write landed — re-fetch and check status
-    const verifyRow = await _kTenGetWeek(idx);
-    if (verifyRow && verifyRow.status !== 'submitted') {
-      // Write didn't land — try again using the row id directly
-      const { error: retryErr } = await sbL.from('kitchen_weeks').update(patch).eq('id', _kTenWeekRow.id);
-      if (retryErr) {
-        console.error('[kitchen] week update retry failed', retryErr);
-        alert('Could not save submission status. Please try again.');
-        _kWizSubmitting = false;
-        _kTenWizRender();
-        return;
-      }
+    const { error: updateErr } = await sbL.from('kitchen_weeks').update(patch).eq('id', _kTenWeekRow.id);
+    if (updateErr) {
+      console.error('[kitchen] week update failed', updateErr);
+      alert('Could not save submission status. Please try again.');
+      _kWizSubmitting = false;
+      _kTenWizRender();
+      return;
     }
 
     // Post [submission] comment — this is what the feed renderer reads on both sides
