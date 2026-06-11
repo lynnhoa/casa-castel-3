@@ -47,7 +47,6 @@ document.getElementById('tab-kitchen').innerHTML = `
       <span style="font-size:13px;flex-shrink:0;">⚑</span>
       <span id="k-ten-nudge-banner-text" style="flex:1;font-size:11px;color:#78640A;font-weight:400;"></span>
       <button onclick="_kTenMarkNudgeDone()" style="flex-shrink:0;background:#FEF9C3;border:0.5px solid #EAD96B;border-radius:6px;font-size:10px;font-weight:500;color:#78640A;cursor:pointer;padding:4px 10px;font-family:inherit;white-space:nowrap;">✓ Done</button>
-      <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:14px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
     </div>
 
 
@@ -123,7 +122,6 @@ document.getElementById('tab-kitchen').innerHTML = `
         <span style="font-size:12px;flex-shrink:0;color:#A0860E;">⚑</span>
         <span id="k-ten-dsk-nudge-text" style="flex:1;font-size:11px;color:#78640A;font-weight:400;"></span>
         <button onclick="_kTenMarkNudgeDone()" style="flex-shrink:0;background:#FEF9C3;border:0.5px solid #EAD96B;border-radius:6px;font-size:10px;font-weight:500;color:#78640A;cursor:pointer;padding:4px 10px;font-family:inherit;white-space:nowrap;">✓ Done</button>
-        <button onclick="_kTenDismissNudgeBanner()" style="flex-shrink:0;background:none;border:none;font-size:13px;color:#A0860E;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
       </div>
 
       <!-- Feed -->
@@ -1012,14 +1010,9 @@ async function _kTenLoadNudgeBanner() {
   const banner = document.getElementById('k-ten-nudge-banner');
   const text   = document.getElementById('k-ten-nudge-banner-text');
   if (!banner || !text) return;
-  // Find nudge for this room or all — skip if this room already acked it
+  // Find nudge for this room or all
   const nudge = (data || []).find(n => {
     if (n.room !== myRoom && n.room !== 'All') return false;
-    // For all-rooms nudges, check localStorage dismissal
-    if (n.room === 'All') {
-      const dismissed = localStorage.getItem('cc_nudge_dismissed_' + n.id);
-      return !dismissed;
-    }
     return true;
   });
   const dskBanner = document.getElementById('k-ten-dsk-nudge-banner');
@@ -1078,31 +1071,6 @@ async function _kTenMarkNudgeDone() {
     }
   } finally { _kTenNudgeBusy = false; }
 }
-async function _kTenDismissNudgeBanner() {
-  // ✕ dismiss — hides locally for this room only via dismissed_by, nudge stays for others
-  if (_kTenNudgeBusy) return; _kTenNudgeBusy = true;
-  try {
-    const myRoom    = (typeof currentRoom !== 'undefined' ? currentRoom : '') || localStorage.getItem('cc_room') || '';
-    const banner    = document.getElementById('k-ten-nudge-banner');
-    const nudgeId   = banner?.dataset.nudgeId  || '';
-    const nudgeRoom = banner?.dataset.nudgeRoom || '';
-    if (banner) {
-      banner.style.display = 'none';
-      banner.dataset.nudgeId = '';
-      banner.dataset.nudgeRoom = '';
-      banner.dataset.nudgeBody = '';
-    }
-    if (sbL && nudgeId) {
-      if (nudgeRoom !== 'All') {
-        // Specific room nudge — delete entirely on dismiss too
-        await sbL.from('lounge_data').delete().eq('id', nudgeId);
-      } else {
-        // All-rooms nudge — store dismissal in localStorage so it doesn't reappear for this room
-        const key = 'cc_nudge_dismissed_' + nudgeId;
-        localStorage.setItem(key, '1');
-      }
-    }
-  } finally { _kTenNudgeBusy = false; }
 }
 
 /* ── WIRE COMPOSE (identical to landlord) ───────────────── */
