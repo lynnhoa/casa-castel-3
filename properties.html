@@ -261,6 +261,23 @@ async function signIn(email, password) {
   if (error) throw error;
   return data.session;
 }
+
+async function bootWithSession(session) {
+  showLoading(true);
+  try {
+    try {
+      window._props = await fetchAll();
+    } catch(fetchErr) {
+      console.error('Fetch error:', fetchErr);
+      window._props = [];
+    }
+    document.getElementById('authScreen').classList.remove('show');
+    document.getElementById('appShell').style.display = 'block';
+    renderAll();
+  } finally {
+    showLoading(false);
+  }
+}
 async function signOut() {
   await _supa.auth.signOut();
 }
@@ -374,11 +391,10 @@ async function handleLogin() {
   btn.textContent = '...';
   btn.disabled = true;
   try {
-    await signIn(email, pass);
-    // Reset button before boot
+    const session = await signIn(email, pass);
     btn.textContent = 'Enter';
     btn.disabled = false;
-    await boot();
+    await bootWithSession(session);
   } catch(e) {
     console.error('Login error:', e);
     errEl.classList.add('show');
