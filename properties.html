@@ -377,10 +377,8 @@ async function boot() {
   try {
     // Direct test fetch without auth
     const testResult = await _supa.from('properties').select('id').limit(1);
-    console.log('Direct test fetch:', JSON.stringify(testResult));
     
     const session = await getSession();
-    console.log('Session:', session ? 'valid' : 'none');
     if (!session) {
       document.getElementById('authScreen').classList.add('show');
       showLoading(false);
@@ -389,14 +387,27 @@ async function boot() {
     // Session valid — fetch data and show app
     try {
       window._props = await fetchAll();
-      console.log('Props loaded:', window._props.length);
     } catch(fetchErr) {
-      console.error('Fetch error:', fetchErr);
       window._props = [];
     }
     document.getElementById('authScreen').classList.remove('show');
     document.getElementById('appShell').style.display = 'block';
     renderAll();
+    
+    // Visible debug — shows on screen
+    const dbg = document.getElementById('dash-alerts');
+    const rows = window._props.length;
+    const testRows = testResult.data ? testResult.data.length : 0;
+    const testErr = testResult.error ? testResult.error.message : 'none';
+    dbg.innerHTML = `<div style="background:#fff3cd;border:1px solid #ffc107;padding:12px;border-radius:8px;font-size:12px;margin-bottom:16px;font-family:monospace">
+      <strong>DEBUG</strong><br>
+      Props loaded: ${rows}<br>
+      Test fetch rows: ${testRows}<br>
+      Test fetch error: ${testErr}<br>
+      Session: ${session ? session.user.email : 'none'}<br>
+      SDK: ${typeof window.supabase}<br>
+      URL: nqxsonmmcnmdastcpiff.supabase.co
+    </div>`;
   } catch(e) {
     console.error('Boot error:', e);
     document.getElementById('authScreen').classList.add('show');
