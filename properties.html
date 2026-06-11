@@ -286,14 +286,42 @@ async function deleteProperty(id) {
   const { error } = await _supa.from('properties').delete().eq('id', id);
   if (error) throw error;
   const remaining = await fetchAll();
-  await Promise.all(remaining.map((p, i) =>
-    _supa.from('properties').update({ sort_order: i + 1 }).eq('id', p.id)
-  ));
+  // Sequential to guarantee correct sort_order
+  for (let i = 0; i < remaining.length; i++) {
+    await _supa.from('properties')
+      .update({ sort_order: i + 1 })
+      .eq('id', remaining[i].id);
+  }
 }
 async function getNextSortOrder() {
   const { data, error } = await _supa.from('properties').select('sort_order').order('sort_order', { ascending: false }).limit(1);
   if (error) throw error;
   return data.length ? data[0].sort_order + 1 : 1;
+}
+
+/* ── SESSION EXPIRY HANDLER ── */
+async function withAuth(fn) {
+  try {
+    return await fn();
+  } catch(err) {
+    const msg = err.message || '';
+    if (
+      msg.includes('JWT') ||
+      msg.includes('session') ||
+      msg.includes('not authenticated') ||
+      msg.includes('token') ||
+      (err.status === 401) ||
+      (err.code === 'PGRST301')
+    ) {
+      try { await signOut(); } catch(e) {}
+      document.getElementById('appShell').style.display = 'none';
+      document.getElementById('authScreen').classList.add('show');
+      document.getElementById('authError').textContent = 'Session expired. Please log in again.';
+      document.getElementById('authError').classList.add('show');
+    } else {
+      throw err;
+    }
+  }
 }
 
 /* ── HELPERS ── */
@@ -404,6 +432,17 @@ async function boot() {
     showLoading(false);
   }
 }
+
+// iOS back swipe — close modal instead of navigating
+window.addEventListener('popstate', () => {
+  if (document.getElementById('detailOverlay').classList.contains('open')) {
+    closeDetail();
+  } else if (document.getElementById('addOverlay').classList.contains('open')) {
+    closeAdd();
+  } else if (document.getElementById('confirmOverlay').classList.contains('open')) {
+    closeConfirm();
+  }
+});
 
 // Start
 boot();

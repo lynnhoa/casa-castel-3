@@ -86,6 +86,7 @@ function openDetail(id) {
   renderView(p);
   document.getElementById('viewMode').classList.add('show');
   document.getElementById('editMode').classList.remove('show');
+  history.pushState({ modal: 'detail' }, '');
   document.getElementById('detailOverlay').classList.add('open');
 }
 
@@ -209,6 +210,8 @@ const CAT_OPTIONS = [
 ];
 
 function catSelect(id, current) {
+  const cur = (current || '').trim();
+  current = cur;
   return `<select class="cc-select" id="${id}">
     ${CAT_OPTIONS.map(o => `<option value="${o}"${o === current ? ' selected' : ''}>${o}</option>`).join('')}
   </select>`;
@@ -367,6 +370,7 @@ function openAdd() {
     ? Math.max(...props.map(p => p.sort_order)) + 1
     : 1;
   document.getElementById('nextNo').textContent = next;
+  history.pushState({ modal: 'add' }, '');
   document.getElementById('addOverlay').classList.add('open');
 }
 

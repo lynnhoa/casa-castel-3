@@ -685,3 +685,8 @@
 }
 .btn-cf-cancel { background: var(--cc-surface); color: var(--cc-taupe); border: var(--cc-border); }
 .btn-cf-ok     { background: var(--p-red); color: var(--cc-white); border: none; }
+
+/* ── iOS INPUT ZOOM FIX ── */
+@media (max-width: 700px) {
+  .cc-input, .cc-select { font-size: 16px !important; }
+}
