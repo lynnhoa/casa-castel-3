@@ -500,7 +500,9 @@ async function _kRenderRotation(weekRow, absData) {
   }
 
   const items = rooms.map((room, i) => {
-    const slotIdx = cycleStart + i;
+    const slotIdx = (i === trueNextI && trueNextI < cyclePos)
+      ? cycleStart + rooms.length + i
+      : cycleStart + i;
     const info    = kWeekInfo(Math.max(0, slotIdx));
     const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
     const dbRow   = dbRows[i];
@@ -523,7 +525,9 @@ async function _kRenderRotation(weekRow, absData) {
   const elDsk = document.getElementById('k-dsk-rot-list');
   if (elDsk) {
     elDsk.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
-      const slotIdx = cycleStart + i;
+      const slotIdx = (i === trueNextI && trueNextI < cyclePos)
+        ? cycleStart + rooms.length + i
+        : cycleStart + i;
       const info    = kWeekInfo(Math.max(0, slotIdx));
       const dateStr = info ? fmt(info.start) + ' – ' + fmt(info.end) : '—';
       const dbRow   = dbRows[i];

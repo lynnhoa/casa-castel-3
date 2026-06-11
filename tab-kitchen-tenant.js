@@ -668,7 +668,9 @@ async function _kTenRenderMobRotation() {
     if (!nAbsent && !nSkipped) { trueNextI = ni; break; }
   }
   const items = rooms.map((room, i) => {
-    const slotIdx = cycleStart + i;
+    const slotIdx = (i === trueNextI && trueNextI < cyclePos)
+      ? cycleStart + rooms.length + i
+      : cycleStart + i;
     const info    = kWeekInfo(Math.max(0, slotIdx));
     const dateStr = info ? fmt(info.start) + '–' + fmt(info.end) : '—';
     const dbRow   = dbRows[i];
@@ -691,7 +693,9 @@ async function _kTenRenderMobRotation() {
   const dskRot = document.getElementById('k-ten-dsk-rot');
   if (dskRot) {
     dskRot.innerHTML = '<div class="rot-tl">' + rooms.map((room, i) => {
-      const slotIdx  = cycleStart + i;
+      const slotIdx  = (i === trueNextI && trueNextI < cyclePos)
+        ? cycleStart + rooms.length + i
+        : cycleStart + i;
       const start    = new Date(K_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
       const end      = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
       const dateStr  = fmt(start) + ' – ' + fmt(end);
