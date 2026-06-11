@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Properties"/>
+<meta name="theme-color" content="#F5F2ED"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Properties</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+<!-- Styles -->
+<link rel="stylesheet" href="casa-castel.css"/>
+<link rel="stylesheet" href="properties.css"/>
+
+<!-- Supabase JS v2 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Inject Vercel env vars -->
+<script>
+  window.__SUPABASE_URL__ = '%%SUPABASE_URL%%';
+  window.__SUPABASE_KEY__ = '%%SUPABASE_ANON_KEY%%';
+</script>
+</head>
+<body>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div class="p-auth" id="authScreen">
+  <div class="p-auth__logo">Properties</div>
+  <div class="p-auth__sub">Private access</div>
+  <div class="p-auth__form">
+    <input class="cc-input" id="authEmail" type="email" placeholder="Email" autocomplete="email"/>
+    <input class="cc-input" id="authPass" type="password" placeholder="Password" autocomplete="current-password"/>
+    <div class="p-auth__error" id="authError">Incorrect email or password.</div>
+    <button class="cc-btn--primary" id="authBtn" onclick="handleLogin()">Enter</button>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ══ -->
+<div id="appShell" style="display:none">
+
+  <div class="cc-header">
+    <nav class="cc-nav">
+      <a class="cc-nav__logo" href="#">Properties</a>
+      <div class="nav-actions">
+
+        <!-- Add property -->
+        <button class="cc-nav__icon" onclick="openAdd()" title="Add property">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="7" y1="1" x2="7" y2="13"/>
+            <line x1="1" y1="7" x2="13" y2="7"/>
+          </svg>
+        </button>
+
+        <!-- Bell -->
+        <button class="cc-nav__icon" title="Alerts" style="position:relative">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="nav-dot" id="navDot"></span>
+        </button>
+
+        <!-- Profile -->
+        <div class="nav-profile">
+          <button class="cc-nav__icon" onclick="toggleProfileMenu()" title="Profile">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </button>
+          <div class="nav-profile-menu" id="profileMenu">
+            <button class="nav-profile-menu-item" onclick="handleLogout()">Log out</button>
+          </div>
+        </div>
+
+      </div>
+    </nav>
+
+    <div class="cc-tabs">
+      <button class="cc-tab active" id="tabDash" onclick="showTab('dashboard', this)">Dashboard</button>
+      <button class="cc-tab" id="tabPort" onclick="showTab('portfolio', this)">Portfolio</button>
+    </div>
+  </div>
+
+  <div class="cc-main">
+
+    <!-- DASHBOARD -->
+    <div class="tab-pane active" id="tab-dashboard">
+      <div id="dash-alerts"></div>
+      <div class="obj-line" id="dash-obj-line"></div>
+      <div class="kpi-grid" id="dash-kpis"></div>
+      <div class="cc-divider"></div>
+      <div id="dash-rate"></div>
+      <div id="dash-prog"></div>
+      <div class="cc-divider"></div>
+      <span class="sec-lbl">Strategic Insights</span>
+      <div class="insights-grid" id="dash-insights"></div>
+    </div>
+
+    <!-- PORTFOLIO -->
+    <div class="tab-pane" id="tab-portfolio">
+      <div class="port-summary" id="port-summary"></div>
+      <div class="port-list" id="port-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ DETAIL MODAL ══ -->
+<div class="overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="sheet">
+    <div class="sheet-hdr">
+      <div class="sheet-hdr__info">
+        <div class="sheet-hdr__no" id="det-no"></div>
+        <div class="sheet-hdr__name" id="det-name"></div>
+      </div>
+      <div class="sheet-hdr__btns">
+        <button class="btn-edit" id="editBtn" onclick="toggleEdit()">Edit</button>
+        <button class="btn-close" onclick="closeDetail()">✕</button>
+      </div>
+    </div>
+    <div class="sheet-body">
+      <div class="view-mode" id="viewMode"></div>
+      <div class="edit-mode" id="editMode"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD MODAL ══ -->
+<div class="add-overlay" id="addOverlay" onclick="if(event.target===this)closeAdd()">
+  <div class="add-sheet">
+    <div class="sheet-hdr">
+      <div class="sheet-hdr__info">
+        <div class="sheet-hdr__no">New Property</div>
+        <div class="sheet-hdr__name">Add to portfolio</div>
+      </div>
+      <button class="btn-close" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="add-body">
+      <div class="add-note">Will be added as No. <span id="nextNo">—</span> — saved directly to Supabase.</div>
+
+      <span class="e-sec">Property</span>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Short name *</label><input class="cc-input" id="a-name" placeholder="e.g. Goethestr. 12"/></div>
+        <div class="e-field"><label class="e-lbl">Type</label>
+          <select class="cc-select" id="a-cat">
+            <option>1-Zimmer-Wohnung</option><option>2-Zimmer-Wohnung</option>
+            <option>3-Zimmer-Wohnung</option><option>4-Zimmer-Wohnung</option>
+            <option>Studio / Appartement</option><option>Einfamilienhaus</option>
+            <option>Mehrfamilienhaus</option><option>Doppelhaushälfte</option>
+            <option>Reihenhaus</option><option>Wohngemeinschaft</option>
+            <option>Gewerbeeinheit</option><option>Gemischte Nutzung</option>
+          </select>
+        </div>
+      </div>
+      <div class="e-field"><label class="e-lbl">Address</label><input class="cc-input" id="a-addr" placeholder="Street No., PLZ City"/></div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Size m²</label><input class="cc-input" id="a-m2" type="number" placeholder="32"/></div>
+        <div class="e-field"><label class="e-lbl">Purchase date</label><input class="cc-input" id="a-kaufdatum" placeholder="2026"/></div>
+      </div>
+
+      <span class="e-sec">Purchase</span>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Purchase price €</label><input class="cc-input" id="a-kaufpreis" type="number"/></div>
+        <div class="e-field"><label class="e-lbl">Equity €</label><input class="cc-input" id="a-ek" type="number"/></div>
+      </div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Acquisition costs €</label><input class="cc-input" id="a-nebenkosten" type="number"/></div>
+        <div class="e-field"><label class="e-lbl">Est. market value €</label><input class="cc-input" id="a-marktwert" type="number"/></div>
+      </div>
+
+      <span class="e-sec">Financing</span>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Bank</label><input class="cc-input" id="a-bank"/></div>
+        <div class="e-field"><label class="e-lbl">Loan number</label><input class="cc-input" id="a-darlehensnr"/></div>
+      </div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Loan amount €</label><input class="cc-input" id="a-darlehen" type="number"/></div>
+        <div class="e-field"><label class="e-lbl">Remaining debt €</label><input class="cc-input" id="a-restschuld" type="number"/></div>
+      </div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Paid off €</label><input class="cc-input" id="a-abbezahlt" type="number" placeholder="0"/></div>
+        <div class="e-field"><label class="e-lbl">Interest rate %</label><input class="cc-input" id="a-zinssatz" type="number" step="0.01"/></div>
+      </div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Fixed rate until</label><input class="cc-input" id="a-zb" placeholder="bis 2036"/></div>
+        <div class="e-field"><label class="e-lbl">Rate status</label>
+          <select class="cc-select" id="a-zb-status">
+            <option value="ok">OK</option>
+            <option value="amber">⚠ 6 months</option>
+            <option value="red">🔴 Urgent</option>
+          </select>
+        </div>
+      </div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Monthly payment €</label><input class="cc-input" id="a-rate" type="number"/></div>
+        <div class="e-field"><label class="e-lbl">Repayment €/mo</label><input class="cc-input" id="a-tilgung" type="number"/></div>
+      </div>
+      <div class="e-grid">
+        <div class="e-field"><label class="e-lbl">Interest €/mo</label><input class="cc-input" id="a-zinsen" type="number"/></div>
+        <div class="e-field"><label class="e-lbl">Savings contract</label>
+          <select class="cc-select" id="a-sparv">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="cc-btn--primary" onclick="saveNew()">Save</button>
+      <button class="cc-btn--secondary" onclick="closeAdd()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM DIALOG ══ -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-box__title">Delete property?</div>
+    <div class="confirm-box__desc" id="confirmDesc"></div>
+    <div class="confirm-box__btns">
+      <button class="btn-cf-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-cf-ok" id="confirmOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOADING ══ -->
+<div class="p-loading" id="loadingOverlay">
+  <div class="p-loading__spinner"></div>
+</div>
+
+<!-- ══ SCRIPTS ══ -->
+<script src="properties-data.js"></script>
+<script src="properties-dashboard.js"></script>
+<script src="properties-portfolio.js"></script>
+
+<script>
+'use strict';
+
+/* ── HELPERS ── */
+window._props = [];
+const n   = v => Number(v) || 0;
+const de  = v => n(v).toLocaleString('de-DE');
+const eur = v => de(v) + '\u202f€';
+function mio(v) {
+  v = n(v);
+  if (v >= 1000000) return (Math.round(v / 10000) / 100).toFixed(2).replace('.', ',') + '\u202fMio\u202f€';
+  if (v >= 1000)    return (Math.round(v / 100) / 10).toFixed(1).replace('.', ',') + '\u202fk\u202f€';
+  return eur(v);
+}
+
+function showLoading(on) {
+  document.getElementById('loadingOverlay').classList.toggle('show', on);
+}
+
+function renderAll() {
+  renderDashboard();
+  renderPortfolio();
+}
+
+/* ── TABS ── */
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.cc-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ── PROFILE MENU ── */
+function toggleProfileMenu() {
+  document.getElementById('profileMenu').classList.toggle('open');
+}
+function closeProfileMenu() {
+  document.getElementById('profileMenu').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.nav-profile')) closeProfileMenu();
+});
+
+/* ── AUTH ── */
+async function handleLogin() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPass').value;
+  const errEl = document.getElementById('authError');
+  const btn   = document.getElementById('authBtn');
+  errEl.classList.remove('show');
+  btn.textContent = '...';
+  btn.disabled = true;
+  try {
+    await signIn(email, pass);
+    await boot();
+  } catch(e) {
+    errEl.classList.add('show');
+    btn.textContent = 'Enter';
+    btn.disabled = false;
+  }
+}
+
+// Allow Enter key on password field
+document.getElementById('authPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+
+async function handleLogout() {
+  closeProfileMenu();
+  showLoading(true);
+  try {
+    await signOut();
+  } catch(e) { /* ignore */ }
+  showLoading(false);
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('authScreen').classList.add('show');
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPass').value  = '';
+}
+
+/* ── BOOT ── */
+async function boot() {
+  showLoading(true);
+  try {
+    const session = await getSession();
+    if (!session) {
+      // No session — show login
+      document.getElementById('authScreen').classList.add('show');
+      showLoading(false);
+      return;
+    }
+    // Session valid — fetch data and show app
+    window._props = await fetchAll();
+    document.getElementById('authScreen').classList.remove('show');
+    document.getElementById('appShell').style.display = 'block';
+    renderAll();
+  } catch(e) {
+    document.getElementById('authScreen').classList.add('show');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Start
+boot();
+</script>
+</body>
+</html>
