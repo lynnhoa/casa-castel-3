@@ -3602,7 +3602,7 @@ function _buildMietvertragOnlyData(room, s, {
     vermieterSig:     s.vermieter_name    || '',
     objektAdresse:    s.objekt_adresse    || '',
     objektPLZOrt:     s.objekt_plz_ort    || '',
-    footerAdresse:    s.objekt_adresse ? s.objekt_adresse + ' \u00b7 ' + (s.objekt_plz_ort || '') : '',
+    footerAdresse:    s.objekt_adresse ? (s.objekt_plz_ort && s.objekt_adresse.includes(s.objekt_plz_ort) ? s.objekt_adresse : s.objekt_adresse + ' \u00b7 ' + (s.objekt_plz_ort || '')) : '',
     kontoinhaber:     s.kontoinhaber      || '',
     iban:             s.iban              || '',
     bic:              s.bic               || '',
@@ -3962,7 +3962,7 @@ function _renderMietvertragHTML(d) {
     ${cl('7','Tierhaltung',
       'Kleintiere ohne Belästigungspotenzial (Zierfische, Kleinnager) sind erlaubt. Alle weiteren Tiere bedürfen der Zustimmung (Textform).')}
     ${cl('8','Betreten des Mietobjekts',
-      'Bei Gefahr im Verzug jederzeit. Zur Vorbereitung von Verkauf oder Weitervermietung werktags 9:00–12:00 und 15:00–19:00\u202fUhr, mind. 2\u00a0Werktage Vorankündigung (Textform).')}
+      'Das Zimmer wird nur nach vorheriger Ankündigung (mind. 2\u00a0Werktage in Textform) betreten, z.\u202fB. zur Besichtigung bei Verkauf oder Weitervermietung sowie für notwendige Instandhaltungsarbeiten. Bei Gefahr im Verzug ist das Betreten jederzeit ohne Vorankündigung zulässig.')}
     ${cl('9','Rückgabe bei Vertragsende',
       'Vollständig geräumt, gereinigt, in vertragsgemäßem Zustand, alle Schlüssel. Bauliche Änderungen sind rückzubauen. Ein Übergabeprotokoll wird erstellt und beidseitig unterzeichnet.')}
     ${cl('10','Aufrechnung &amp; Zurückbehaltungsrecht',
