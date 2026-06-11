@@ -375,7 +375,9 @@ async function handleLogin() {
   btn.disabled = true;
   try {
     await signIn(email, pass);
-    console.log('Login success, booting...');
+    // Reset button before boot
+    btn.textContent = 'Enter';
+    btn.disabled = false;
     await boot();
   } catch(e) {
     console.error('Login error:', e);
@@ -422,8 +424,6 @@ async function boot() {
     document.getElementById('authScreen').classList.remove('show');
     document.getElementById('appShell').style.display = 'block';
     renderAll();
-    
-
   } catch(e) {
     console.error('Boot error:', e);
     document.getElementById('authScreen').classList.add('show');
