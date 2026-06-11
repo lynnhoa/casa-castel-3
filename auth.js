@@ -160,9 +160,10 @@ function initTenantLogin() {
 
 /* ── LOGOUT ─────────────────────────────────────────────── */
 function logout() {
+  const wasTenant = localStorage.getItem('cc_role') === 'tenant';
   localStorage.removeItem('cc_role');
   localStorage.removeItem('cc_room');
   sessionStorage.removeItem('cc_preview_room');
   if (sbL) sbL.auth.signOut().catch(() => {});
-  location.href = 'login.html';
+  location.href = wasTenant ? 'tenant.html' : 'login.html';
 }

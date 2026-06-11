@@ -244,6 +244,7 @@ function initLoungeTab(room) {
     loadAnnouncements();
     loadNotice();
     loadLounge(room);
+    initLoungeTab._justInited = true;  // prevent loadLoungeAll from firing a second load
     return;
   }
   initLoungeTab._wired = true;
