@@ -92,18 +92,19 @@
 
     /* ── APP BUTTONS ── */
     .role-tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
     }
 
     .role-tab {
-      flex: 1;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 6px;
-      padding: 13px 4px 11px;
+      justify-content: center;
+      gap: 9px;
+      padding: 14px 12px;
       background: #fff;
       border: 0.5px solid var(--rule);
       border-radius: 10px;
@@ -116,17 +117,19 @@
     .role-tab:active { transform: scale(.96); }
 
     .role-tab i {
-      font-size: 18px;
+      font-size: 17px;
       color: var(--stone);
       transition: color .15s;
+      flex-shrink: 0;
     }
     .role-tab span {
-      font-size: 9.5px;
+      font-size: 9px;
       font-weight: 500;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
       color: var(--stone);
       transition: color .15s;
+      white-space: nowrap;
     }
 
     /* Selected state */
