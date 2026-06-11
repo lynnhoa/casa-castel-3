@@ -106,24 +106,33 @@ document.getElementById('tab-kitchen').innerHTML = `
       </div>
 
       <!-- Nudge compose — inline on desktop (replaces bottom-sheet modal) -->
-      <div class="k-dsk-section" style="border-bottom:none;">
+      <div class="k-dsk-section k-dsk-nudge-section" style="border-bottom:none;">
         <div class="k-dsk-section-hdr">
           <span class="k-dsk-section-lbl">Send nudge</span>
           <button class="k-dsk-section-link" onclick="kitchenOpenModal('nudgelog')">log ›</button>
         </div>
-        <div style="background:#FEFCE8;border:0.5px solid #EAD96B;border-radius:var(--cc-r-md);padding:10px;">
-          <p style="font-size:8px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#78640A;margin-bottom:6px;">Problem</p>
-          <div style="display:flex;gap:5px;margin-bottom:10px;" id="k-dsk-nudge-type-row">
-            <button class="k-mob-n-chip" style="flex:1;text-align:center;padding:6px 4px;" data-type="Trash not taken out">🗑 Trash</button>
-            <button class="k-mob-n-chip" style="flex:1;text-align:center;padding:6px 4px;" data-type="Dishes not clean">🍽 Dishes</button>
-            <button class="k-mob-n-chip" style="flex:1;text-align:center;padding:6px 4px;" data-type="Fridge not clean">🧊 Fridge</button>
+        <div class="k-nudge-compose-card">
+          <p class="k-nudge-sublbl">What's the issue?</p>
+          <div class="k-nudge-type-row" id="k-dsk-nudge-type-row">
+            <button class="k-nudge-type-chip" data-type="Trash not taken out">
+              <span class="k-nudge-chip-icon">🗑</span>
+              <span class="k-nudge-chip-label">Trash</span>
+            </button>
+            <button class="k-nudge-type-chip" data-type="Dishes not clean">
+              <span class="k-nudge-chip-icon">🍽</span>
+              <span class="k-nudge-chip-label">Dishes</span>
+            </button>
+            <button class="k-nudge-type-chip" data-type="Fridge not clean">
+              <span class="k-nudge-chip-icon">🧊</span>
+              <span class="k-nudge-chip-label">Fridge</span>
+            </button>
           </div>
-          <p style="font-size:8px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#78640A;margin-bottom:6px;">Send to</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;" id="k-dsk-nudge-to-row">
-            <button class="k-mob-n-chip" style="padding:6px 0;text-align:center;" data-to="All">All rooms</button>
+          <p class="k-nudge-sublbl" style="margin-top:10px;">Who should see this?</p>
+          <div class="k-nudge-to-row" id="k-dsk-nudge-to-row">
+            <button class="k-mob-n-chip k-nudge-to-chip" data-to="All">All rooms</button>
           </div>
-          <textarea class="issue-note-input" id="k-dsk-nudge-note" placeholder="Optional note…" rows="2" style="margin-bottom:8px;width:100%;"></textarea>
-          <button class="cc-btn cc-btn--primary" id="k-dsk-nudge-send-btn" style="width:100%;">Send nudge</button>
+          <textarea class="issue-note-input k-nudge-note" id="k-dsk-nudge-note" placeholder="Add a note… (optional)" rows="2"></textarea>
+          <button class="k-nudge-send-btn" id="k-dsk-nudge-send-btn">Send nudge</button>
         </div>
       </div>
 
@@ -186,19 +195,28 @@ document.getElementById('tab-kitchen').innerHTML = `
         <button class="cc-modal-close" onclick="kitchenCloseModal('nudge')">✕</button>
       </div>
       <div class="cc-modal-body">
-        <p style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);margin-bottom:8px;">What is the problem?</p>
-        <div style="display:flex;gap:6px;margin-bottom:16px;" id="k-mob-nudge-type-row">
-          <button class="k-mob-n-chip" style="flex:1;padding:10px 4px;text-align:center;" data-type="Trash not taken out">🗑 Trash</button>
-          <button class="k-mob-n-chip" style="flex:1;padding:10px 4px;text-align:center;" data-type="Dishes not clean">🍽 Dishes</button>
-          <button class="k-mob-n-chip" style="flex:1;padding:10px 4px;text-align:center;" data-type="Fridge not clean">🧊 Fridge</button>
+        <p class="k-nudge-sublbl">What's the issue?</p>
+        <div class="k-nudge-type-row" id="k-mob-nudge-type-row">
+          <button class="k-nudge-type-chip" data-type="Trash not taken out">
+            <span class="k-nudge-chip-icon">🗑</span>
+            <span class="k-nudge-chip-label">Trash</span>
+          </button>
+          <button class="k-nudge-type-chip" data-type="Dishes not clean">
+            <span class="k-nudge-chip-icon">🍽</span>
+            <span class="k-nudge-chip-label">Dishes</span>
+          </button>
+          <button class="k-nudge-type-chip" data-type="Fridge not clean">
+            <span class="k-nudge-chip-icon">🧊</span>
+            <span class="k-nudge-chip-label">Fridge</span>
+          </button>
         </div>
-        <p style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-taupe);margin-bottom:8px;">Send to</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;" id="k-mob-nudge-to-row">
-          <button class="k-mob-n-chip" style="padding:10px 0;text-align:center;" data-to="All">All rooms</button>
-          ${getKitchenRooms().map(r => `<button class="k-mob-n-chip" style="padding:10px 0;text-align:center;" data-to="${r}">${r}</button>`).join('')}
+        <p class="k-nudge-sublbl" style="margin-top:14px;">Who should see this?</p>
+        <div class="k-nudge-to-row" id="k-mob-nudge-to-row">
+          <button class="k-mob-n-chip k-nudge-to-chip" data-to="All">All rooms</button>
+          ${getKitchenRooms().map(r => `<button class="k-mob-n-chip k-nudge-to-chip" data-to="${r}">${r}</button>`).join('')}
         </div>
-        <textarea class="issue-note-input" id="k-mob-nudge-note" placeholder="Optional note…" rows="2" style="margin-bottom:12px;"></textarea>
-        <button class="cc-btn cc-btn--primary" id="k-mob-nudge-send-btn">Send nudge</button>
+        <textarea class="issue-note-input k-nudge-note" id="k-mob-nudge-note" placeholder="Add a note… (optional)" rows="2"></textarea>
+        <button class="k-nudge-send-btn" id="k-mob-nudge-send-btn">Send nudge</button>
       </div>
     </div>
   </div>
@@ -823,42 +841,26 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePhotoMo
 /* ── NUDGE ROOM BUTTONS (refreshed after kitchenRooms loads) */
 function _kRefreshNudgeRoomButtons() {
   const rooms = getKitchenRooms();
-  // Mobile nudge modal
-  const row = document.getElementById('k-mob-nudge-to-row'); if (!row) return;
-  const allBtn = row.querySelector('.k-mob-n-chip[data-to="All"]');
-  row.innerHTML = '';
-  if (allBtn) row.appendChild(allBtn);
-  rooms.forEach(r => {
-    const btn = document.createElement('button');
-    btn.className = 'k-mob-n-chip';
-    btn.style.cssText = 'padding:10px 0;text-align:center;';
-    btn.dataset.to = r; btn.textContent = r;
-    row.appendChild(btn);
-  });
-  row.querySelectorAll('.k-mob-n-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      row.querySelectorAll('.k-mob-n-chip').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
+
+  // Helper: fully rebuild a "to" row with All + room chips, all wired
+  function _buildToRow(rowEl) {
+    if (!rowEl) return;
+    rowEl.innerHTML = '';
+    ['All', ...rooms].forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'k-mob-n-chip k-nudge-to-chip';
+      btn.dataset.to = r;
+      btn.textContent = r === 'All' ? 'All rooms' : r;
+      btn.addEventListener('click', () => {
+        rowEl.querySelectorAll('.k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+      rowEl.appendChild(btn);
     });
-  });
-  // Desktop inline nudge compose — same room list
-  const dskRow = document.getElementById('k-dsk-nudge-to-row'); if (!dskRow) return;
-  const dskAllBtn = dskRow.querySelector('.k-mob-n-chip[data-to="All"]');
-  dskRow.innerHTML = '';
-  if (dskAllBtn) dskRow.appendChild(dskAllBtn);
-  rooms.forEach(r => {
-    const btn = document.createElement('button');
-    btn.className = 'k-mob-n-chip';
-    btn.style.cssText = 'padding:6px 0;text-align:center;';
-    btn.dataset.to = r; btn.textContent = r;
-    dskRow.appendChild(btn);
-  });
-  dskRow.querySelectorAll('.k-mob-n-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      dskRow.querySelectorAll('.k-mob-n-chip').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    });
-  });
+  }
+
+  _buildToRow(document.getElementById('k-mob-nudge-to-row'));
+  _buildToRow(document.getElementById('k-dsk-nudge-to-row'));
 }
 
 /* ── REALTIME ───────────────────────────────────────────── */
@@ -941,64 +943,82 @@ async function loadKitchen() {
 var initKitchenMobile = loadKitchen;
 var initKitchen       = loadKitchen;
 
-/* ── NUDGE MODAL WIRING ─────────────────────────────────── */
-(function _wireNudge() {
-  document.querySelectorAll('#k-mob-nudge-type-row .k-mob-n-chip').forEach(btn => {
+/* ── NUDGE WIRING (mobile modal + desktop inline) ──────────
+   Type chips are static HTML — wired once here.
+   "To" chips are dynamic — rebuilt + wired inside _kRefreshNudgeRoomButtons()
+   every time loadKitchen() runs, so they always reflect current rooms.
+   ─────────────────────────────────────────────────────────── */
+
+// Shared send logic so mobile and desktop stay in sync
+async function _kSendNudge(typeBtn, toBtn, noteEl, sendBtn, afterSend) {
+  if (!typeBtn || !toBtn) {
+    sendBtn.textContent = 'Select type & room first';
+    sendBtn.style.backgroundColor = '#A32D2D';
+    setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.backgroundColor = ''; }, 1800);
+    return;
+  }
+  if (!sbL) return;
+  sendBtn.disabled = true;
+  const note = noteEl ? noteEl.value.trim() : '';
+  try {
+    await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
+    await sbL.from('lounge_data').insert({
+      type: 'kitchen_nudge',
+      room: toBtn.dataset.to,
+      body: typeBtn.dataset.type,
+      title: note || null
+    });
+    if (afterSend) afterSend();
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+(function _wireNudgeAll() {
+  // ── Mobile: type chip selection ──
+  document.querySelectorAll('#k-mob-nudge-type-row .k-nudge-type-chip').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#k-mob-nudge-type-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#k-mob-nudge-type-row .k-nudge-type-chip').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
     });
   });
-  document.querySelectorAll('#k-mob-nudge-to-row .k-mob-n-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#k-mob-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    });
-  });
+
+  // ── Mobile: send button ──
   document.getElementById('k-mob-nudge-send-btn')?.addEventListener('click', async () => {
-    const typeBtn = document.querySelector('#k-mob-nudge-type-row .k-mob-n-chip.selected');
+    const typeBtn = document.querySelector('#k-mob-nudge-type-row .k-nudge-type-chip.selected');
     const toBtn   = document.querySelector('#k-mob-nudge-to-row .k-mob-n-chip.selected');
     const sendBtn = document.getElementById('k-mob-nudge-send-btn');
-    if (!typeBtn || !toBtn) {
-      sendBtn.textContent = 'Select type & room first'; sendBtn.style.background = '#A32D2D';
-      setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.background = ''; }, 1500);
-      return;
-    }
-    if (!sbL) return;
-    const note = document.getElementById('k-mob-nudge-note').value.trim();
-    await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
-    await sbL.from('lounge_data').insert({ type:'kitchen_nudge', room:toBtn.dataset.to, body:typeBtn.dataset.type, title:note||null });
-    document.querySelectorAll('#k-mob-nudge-type-row .k-mob-n-chip, #k-mob-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
-    document.getElementById('k-mob-nudge-note').value = '';
-    kitchenCloseModal('nudge');
+    const noteEl  = document.getElementById('k-mob-nudge-note');
+    await _kSendNudge(typeBtn, toBtn, noteEl, sendBtn, () => {
+      document.querySelectorAll('#k-mob-nudge-type-row .k-nudge-type-chip').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#k-mob-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+      noteEl.value = '';
+      kitchenCloseModal('nudge');
+    });
   });
-})();
 
-/* ── DESKTOP INLINE NUDGE COMPOSE WIRING ───────────────── */
-(function _wireNudgeDsk() {
-  document.querySelectorAll('#k-dsk-nudge-type-row .k-mob-n-chip').forEach(btn => {
+  // ── Desktop: type chip selection ──
+  document.querySelectorAll('#k-dsk-nudge-type-row .k-nudge-type-chip').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#k-dsk-nudge-type-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#k-dsk-nudge-type-row .k-nudge-type-chip').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
     });
   });
+
+  // ── Desktop: send button ──
   document.getElementById('k-dsk-nudge-send-btn')?.addEventListener('click', async () => {
-    const typeBtn = document.querySelector('#k-dsk-nudge-type-row .k-mob-n-chip.selected');
+    const typeBtn = document.querySelector('#k-dsk-nudge-type-row .k-nudge-type-chip.selected');
     const toBtn   = document.querySelector('#k-dsk-nudge-to-row .k-mob-n-chip.selected');
     const sendBtn = document.getElementById('k-dsk-nudge-send-btn');
-    if (!typeBtn || !toBtn) {
-      sendBtn.textContent = 'Select type & room first'; sendBtn.style.background = '#A32D2D';
-      setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.background = ''; }, 1500);
-      return;
-    }
-    if (!sbL) return;
-    const note = document.getElementById('k-dsk-nudge-note').value.trim();
-    await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
-    await sbL.from('lounge_data').insert({ type:'kitchen_nudge', room:toBtn.dataset.to, body:typeBtn.dataset.type, title:note||null });
-    document.querySelectorAll('#k-dsk-nudge-type-row .k-mob-n-chip, #k-dsk-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
-    document.getElementById('k-dsk-nudge-note').value = '';
-    sendBtn.textContent = '✓ Sent'; sendBtn.style.background = '#27500A';
-    setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.background = ''; }, 1500);
+    const noteEl  = document.getElementById('k-dsk-nudge-note');
+    await _kSendNudge(typeBtn, toBtn, noteEl, sendBtn, () => {
+      document.querySelectorAll('#k-dsk-nudge-type-row .k-nudge-type-chip').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#k-dsk-nudge-to-row .k-mob-n-chip').forEach(b => b.classList.remove('selected'));
+      noteEl.value = '';
+      sendBtn.textContent = '✓ Nudge sent';
+      sendBtn.style.backgroundColor = '#27500A';
+      setTimeout(() => { sendBtn.textContent = 'Send nudge'; sendBtn.style.backgroundColor = ''; }, 1800);
+    });
   });
 })();
 

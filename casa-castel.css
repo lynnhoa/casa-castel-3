@@ -1386,6 +1386,106 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   background: #FEFCE8;
   border-bottom: 0.5px solid #EAD96B;
 }
+
+/* ── NUDGE COMPOSE REDESIGN ─────────────────────────────────────────── */
+
+.k-nudge-sublbl {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cc-taupe);
+  margin: 0 0 7px 0;
+}
+
+.k-nudge-compose-card {
+  background: var(--cc-surface);
+  border: 0.5px solid var(--cc-rule);
+  border-radius: var(--cc-r-md);
+  padding: 12px;
+}
+
+.k-nudge-type-row {
+  display: flex;
+  gap: 6px;
+}
+
+.k-nudge-type-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px 8px;
+  background: var(--cc-bg);
+  border: 0.5px solid var(--cc-rule);
+  border-radius: var(--cc-r-md);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.12s, background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.k-nudge-type-chip:hover { border-color: var(--cc-taupe); }
+
+.k-nudge-type-chip.selected {
+  background: var(--cc-ink);
+  border-color: var(--cc-ink);
+}
+
+.k-nudge-chip-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.k-nudge-chip-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--cc-charcoal);
+  letter-spacing: 0.03em;
+}
+
+.k-nudge-type-chip.selected .k-nudge-chip-label { color: #fff; }
+
+.k-nudge-to-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.k-nudge-to-chip {
+  padding: 5px 11px !important;
+  border-radius: var(--cc-r-pill) !important;
+  font-size: 10px !important;
+}
+
+.k-nudge-note {
+  margin-bottom: 10px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.k-nudge-send-btn {
+  width: 100%;
+  padding: 9px 0;
+  background: var(--cc-ink);
+  color: #fff;
+  border: none;
+  border-radius: var(--cc-r-md);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.k-nudge-send-btn:hover  { opacity: 0.85; }
+.k-nudge-send-btn:active { opacity: 0.70; }
+.k-nudge-send-btn:disabled { opacity: 0.35; cursor: default; }
 .k-dsk-nudge-banner-text {\n  flex: 1;\n  font-size: 11px;\n  color: #78640A;\n}\n\n/* Rotation list items in desktop left column */\n.k-dsk-rot-item {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 5px 0;\n  border-bottom: 0.5px solid var(--cc-rule);\n  font-size: 11px;\n}\n.k-dsk-rot-item:last-child { border-bottom: none; }\n.k-dsk-rot-dot {\n  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;\n}\n.k-dsk-rot-room { flex: 1; color: var(--cc-ink); }\n.k-dsk-rot-date { font-size: 9px; color: var(--cc-stone); }\n.k-dsk-rot-status { font-size: 8px; font-weight: 500; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }\n.rs-done  { background: #EAF3DE; color: #27500A; border: 0.5px solid #9AC87A; }\n.rs-missed{ background: #FDEEED; color: #7A2020; border: 0.5px solid #F5A8A5; }\n.rs-now   { background: #FDF5E8; color: #633806; border: 0.5px solid #E8C97A; }\n.rs-next  { background: #EBF4FF; color: #1A5896; border: 0.5px solid #90C2F5; }\n\n/* Desktop feed — mirrors mobile k-mob-feed scroll behaviour */\n.k-desktop-right .k-dsk-feed {\n  flex: 1;\n  min-height: 0;\n  overflow-y: auto;\n  scroll-behavior: smooth;\n  padding: 10px 14px;\n  background: var(--cc-bg);\n}
 
 .msg-row{display:flex;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--cc-rule);}
