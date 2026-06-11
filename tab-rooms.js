@@ -2841,7 +2841,7 @@ function _renderKurzzeitHTML(d) {
     .comment-line { border-bottom: 0.5px solid #e0dbd4; height: 26px; margin-top: 2px; }
 
     /* SIGNATURE */
-    .sig-block { margin-top: 134px; display: flex; justify-content: space-between; }
+    .sig-block { margin-top: 148px; display: flex; justify-content: space-between; }
     .sig-col { width: 44%; }
     .sig-top-line { border: none; border-top: 0.6px solid #3a3530; margin-bottom: 7px; }
     .sig-prefill { font-family: 'Lato', Georgia, serif; font-size: 10px; font-style: italic; font-weight: 300; color: #8a7a66; margin-bottom: 4px; line-height: 1.4; }
@@ -2852,7 +2852,7 @@ function _renderKurzzeitHTML(d) {
       color: #aaa59e;
       margin-bottom: 4px;
     }
-    .sig-write-gap { height: 88px; }
+    .sig-write-gap { height: 116px; }
     .sig-line { border: none; border-top: 0.6px solid #3a3530; margin-bottom: 7px; }
     .sig-role {
       font-family: 'Lato', sans-serif;
