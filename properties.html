@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="properties.css"/>
 
 <!-- Supabase JS v2 -->
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 
 </head>
@@ -239,11 +239,18 @@
 <script>
 'use strict';
 
-/* ── SUPABASE CLIENT ── */
-const _supa = window.supabase.createClient(
-  'https://nqxsonmmcnmdastcpiff.supabase.co',
-  'sb_publishable_t2gaxYkyyGS32sEJJuCAnA_qk_G7sYM'
-);
+/* ── SUPABASE CONFIG ── */
+const SUPA_URL = 'https://nqxsonmmcnmdastcpiff.supabase.co';
+const SUPA_KEY = 'sb_publishable_t2gaxYkyyGS32sEJJuCAnA_qk_G7sYM';
+
+/* ── SUPABASE CLIENT (v3 compatible) ── */
+const _supa = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+});
 
 async function getSession() {
   const { data, error } = await _supa.auth.getSession();
@@ -256,16 +263,14 @@ async function signIn(email, password) {
   return data.session;
 }
 async function signOut() {
-  const { error } = await _supa.auth.signOut();
-  if (error) throw error;
+  await _supa.auth.signOut();
 }
 async function fetchAll() {
   const { data, error } = await _supa
     .from('properties')
     .select('*')
     .order('sort_order', { ascending: true });
-  if (error) { console.error('fetchAll error:', error); throw error; }
-  console.log('fetchAll rows:', data ? data.length : 0);
+  if (error) { console.error('fetchAll error:', error.message, error.code); throw error; }
   return data || [];
 }
 async function updateProperty(id, fields) {
@@ -404,6 +409,7 @@ async function boot() {
       Props loaded: ${rows}<br>
       Test fetch rows: ${testRows}<br>
       Test fetch error: ${testErr}<br>
+      Test data: ${JSON.stringify(testResult.data)}<br>
       Session: ${session ? session.user.email : 'none'}<br>
       SDK: ${typeof window.supabase}<br>
       URL: nqxsonmmcnmdastcpiff.supabase.co
