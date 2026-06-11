@@ -538,4 +538,9 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, myRoom, rot
       </div>
     </div>`;
   }).join('') + '</div>';
+
+  if (typeof onRoomsChange === 'function' && !loadHouseCleaning._roomsWired) {
+    loadHouseCleaning._roomsWired = true;
+    onRoomsChange(() => loadHouseCleaning(room));
+  }
 }
