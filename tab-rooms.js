@@ -2087,6 +2087,65 @@ function _toggleUebergMieter(roomId) {
 
 /* ── CONTRACT BODY: KURZZEIT ─────────────────────────────── */
 /* Auto-insert dots while typing a German date: 13011992 → 13.01.1992 */
+/* ── SHARED TENANT TOGGLE — Kurzzeit + Mietvertrag ──────── */
+function _initContractMieter(prefix, roomName) {
+  const profile    = (typeof _getProfile === 'function') ? _getProfile(roomName) : {};
+  const tenantName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+  let   tenantDob  = profile.birthday || '';
+  if (tenantDob && tenantDob.includes('-') && tenantDob.length === 10) {
+    const [y, m, day] = tenantDob.split('-');
+    tenantDob = `${day}.${m}.${y}`;
+  }
+  const pillId = prefix === 'cm' ? 'cmMieterPill' : 'mvMieterPill';
+  const pill = document.getElementById(pillId);
+  if (pill) {
+    pill.dataset.tenantName  = tenantName;
+    pill.dataset.tenantEmail = profile.email || '';
+    pill.dataset.tenantDob   = tenantDob;
+    pill.dataset.tenantPhone = profile.phone || '';
+  }
+}
+
+function _fillContractFromProfile(prefix, pill) {
+  if (!pill) return;
+  const nameEl  = document.getElementById(prefix + '-name');
+  const emailEl = document.getElementById(prefix + '-email');
+  const dobEl   = document.getElementById(prefix + '-dob');
+  const telEl   = document.getElementById(prefix + '-tel');
+  if (nameEl)  nameEl.value  = pill.dataset.tenantName  || '';
+  if (emailEl) emailEl.value = pill.dataset.tenantEmail || '';
+  if (dobEl)   dobEl.value   = pill.dataset.tenantDob   || '';
+  if (telEl)   telEl.value   = pill.dataset.tenantPhone || '';
+}
+
+function _toggleContractMieter(prefix, roomName) {
+  const pillId    = prefix === 'cm' ? 'cmMieterPill' : 'mvMieterPill';
+  const lblId     = prefix === 'cm' ? 'cmMieterManualLbl' : 'mvMieterManualLbl';
+  const pill      = document.getElementById(pillId);
+  const manualLbl = document.getElementById(lblId);
+  if (!pill) return;
+
+  // Load profile data onto pill on first toggle (lazy init)
+  if (!pill.dataset.tenantName && roomName) _initContractMieter(prefix, roomName);
+
+  const isRoom = pill.dataset.state === 'room';
+  if (isRoom) {
+    // Switch to manual — clear fields
+    pill.dataset.state = 'manual';
+    const nameEl = document.getElementById(prefix + '-name');
+    if (nameEl) { nameEl.value = ''; nameEl.focus(); }
+    const emailEl = document.getElementById(prefix + '-email'); if (emailEl) emailEl.value = '';
+    const dobEl   = document.getElementById(prefix + '-dob');   if (dobEl)   dobEl.value   = '';
+    const telEl   = document.getElementById(prefix + '-tel');   if (telEl)   telEl.value   = '';
+    if (manualLbl) manualLbl.style.color = 'var(--cc-charcoal)';
+  } else {
+    // Switch to room tenant — fill from profile
+    pill.dataset.state = 'room';
+    _fillContractFromProfile(prefix, pill);
+    if (manualLbl) manualLbl.style.color = 'var(--cc-stone)';
+  }
+}
+
 function _autoFormatGermanDate(e) {
   const input  = e.target;
   const digits = input.value.replace(/\D/g, '').slice(0, 8);
@@ -2245,9 +2304,16 @@ function _contractBodyKurzzeit(room) {
       <div class="rm-kaution-val" id="cm-kaution-val">${kautionVal}</div>
     </div>
 
-    <div class="rm-fields-title">Tenant details — enter manually</div>
-    <div class="rm-field"><label>Mieter Name</label><input class="rm-input" id="cm-name" placeholder="Full name…"/></div>
-    <div class="rm-field"><label>Mieter Adresse</label><input class="rm-input" id="cm-adr" placeholder="Current address…"/></div>
+    <div class="rm-fields-title" style="margin-bottom:10px;">Mieterdaten</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:11px;color:var(--cc-taupe);font-weight:400;">${esc(room.name)} Mieter</span>
+      <div class="ub-mieter-pill" id="cmMieterPill" data-state="manual" onclick="_toggleContractMieter('cm', '${esc(room.name)}')">
+        <div class="ub-mieter-pill__knob"></div>
+      </div>
+      <span style="font-size:11px;color:var(--cc-charcoal);" id="cmMieterManualLbl">Manuell</span>
+    </div>
+    <div class="rm-field"><label>Mieter Name</label><input class="rm-input" id="cm-name" placeholder="Vor- und Nachname…"/></div>
+    <div class="rm-field"><label>Mieter Adresse <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(frei eingeben)</span></label><input class="rm-input" id="cm-adr" placeholder="Aktuelle Adresse…"/></div>
     <div class="rm-field"><label>Geburtsdatum</label><input class="rm-input" id="cm-dob" placeholder="TT.MM.JJJJ" oninput="_autoFormatGermanDate(event)"/></div>
     <div class="rm-field"><label>E-Mail</label><input class="rm-input" id="cm-email" type="email" placeholder="mieter@beispiel.de"/></div>
     <div class="rm-field"><label>Telefon <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label><input class="rm-input" id="cm-tel" type="tel" placeholder="+49 …"/></div>
@@ -3689,27 +3755,33 @@ function _contractBodyMietvertrag(room) {
       <div class="rm-kaution-val">${fmtEUR(kaution)}</div>
     </div>
 
-    <div class="rm-fields-title" style="margin-top:2px;">Mieterdaten</div>
-
-    <div class="rm-field">
-      <label>Name</label>
-      <input class="rm-input" id="mv-name" value="${esc(tenantName)}" placeholder="Vor- und Nachname\u2026"/>
+    <div class="rm-fields-title" style="margin-top:2px;margin-bottom:10px;">Mieterdaten</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:11px;color:var(--cc-taupe);font-weight:400;">${esc(room.name)} Mieter</span>
+      <div class="ub-mieter-pill" id="mvMieterPill" data-state="manual" onclick="_toggleContractMieter('mv', '${esc(room.name)}')">
+        <div class="ub-mieter-pill__knob"></div>
+      </div>
+      <span style="font-size:11px;color:var(--cc-charcoal);" id="mvMieterManualLbl">Manuell</span>
     </div>
     <div class="rm-field">
-      <label>Adresse</label>
-      <input class="rm-input" id="mv-adr" value="${esc(tenantAddress)}" placeholder="Aktuelle Adresse\u2026"/>
+      <label>Name</label>
+      <input class="rm-input" id="mv-name" placeholder="Vor- und Nachname\u2026"/>
+    </div>
+    <div class="rm-field">
+      <label>Adresse <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(frei eingeben)</span></label>
+      <input class="rm-input" id="mv-adr" placeholder="Aktuelle Adresse\u2026"/>
     </div>
     <div class="rm-field">
       <label>Geburtsdatum</label>
-      <input class="rm-input" id="mv-dob" value="${esc(tenantDob)}" placeholder="TT.MM.JJJJ" oninput="_autoFormatGermanDate(event)"/>
+      <input class="rm-input" id="mv-dob" placeholder="TT.MM.JJJJ" oninput="_autoFormatGermanDate(event)"/>
     </div>
     <div class="rm-field">
       <label>E-Mail</label>
-      <input class="rm-input" id="mv-email" type="email" value="${esc(tenantEmail)}" placeholder="mieter@beispiel.de"/>
+      <input class="rm-input" id="mv-email" type="email" placeholder="mieter@beispiel.de"/>
     </div>
     <div class="rm-field">
       <label>Telefon <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label>
-      <input class="rm-input" id="mv-tel" type="tel" placeholder="+49 …"/>
+      <input class="rm-input" id="mv-tel" type="tel" placeholder="+49 \u2026"/>
     </div>
 
     <div class="rm-fields-title" style="margin-top:6px;">Mietzeit</div>
