@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="properties.css"/>
 
 <!-- Supabase JS v2 -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 
 </head>
@@ -375,6 +375,10 @@ async function handleLogout() {
 async function boot() {
   showLoading(true);
   try {
+    // Direct test fetch without auth
+    const testResult = await _supa.from('properties').select('id').limit(1);
+    console.log('Direct test fetch:', JSON.stringify(testResult));
+    
     const session = await getSession();
     console.log('Session:', session ? 'valid' : 'none');
     if (!session) {
