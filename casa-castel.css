@@ -1430,7 +1430,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
 
 .k-nudge-type-chip.selected {
   background: var(--cc-ink);
-  border-color: var(--cc-ink);
+  border-color: transparent;
 }
 
 .k-nudge-chip-icon {
@@ -1458,6 +1458,12 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   padding: 5px 11px !important;
   border-radius: var(--cc-r-pill) !important;
   font-size: 10px !important;
+}
+
+.k-nudge-to-chip.selected {
+  background: var(--cc-ink);
+  color: var(--cc-white);
+  border-color: transparent;
 }
 
 .k-nudge-note {
