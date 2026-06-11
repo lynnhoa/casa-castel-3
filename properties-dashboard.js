@@ -82,7 +82,7 @@ function renderDashboard() {
     </div>`;
 
   /* ── Rate Card ── */
-  document.getElementById('dash-rate').innerHTML = `
+  const rateHTML = `
     <div class="rate-card">
       <div class="rate-card__top">
         <div>
@@ -110,7 +110,7 @@ function renderDashboard() {
     </div>`;
 
   /* ── Progress Card ── */
-  document.getElementById('dash-prog').innerHTML = `
+  const progHTML = `
     <div class="prog-card">
       <div class="prog-card__top">
         <span class="prog-card__lbl">Repayment progress</span>
@@ -124,6 +124,9 @@ function renderDashboard() {
         <span class="prog-sublbl">of <strong>${mio(tDar)}</strong> loan</span>
       </div>
     </div>`;
+
+  document.getElementById('dash-rate').innerHTML = rateHTML;
+  document.getElementById('dash-prog').innerHTML = progHTML;
 
   /* ── Strategic Insights ── */
   const withRate = props.filter(p => n(p.rate) > 0);
