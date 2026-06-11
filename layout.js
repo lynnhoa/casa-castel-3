@@ -11,8 +11,6 @@ const kIsMobile = () => window.innerWidth <= 700;
 /* ── TAB SWITCH ─────────────────────────────────────────── */
 function switchTab(tabName) {
   const mobile    = kIsMobile();
-  // Kitchen is desktop-hidden — silently redirect to lounge
-  if (tabName === 'kitchen' && !mobile) tabName = 'lounge';
   const isLounge  = tabName === 'lounge';
   const isKitchen = tabName === 'kitchen';
   // Persist active tab so page refresh restores it
@@ -103,10 +101,7 @@ function showApp(room) {
   // Restore last active tab (falls back to lounge)
   // Kitchen is desktop-hidden — fall back to lounge if on a wide screen
   const _lastTab = (() => {
-    try {
-      const t = localStorage.getItem('cc_last_tab') || 'lounge';
-      return (t === 'kitchen' && !kIsMobile()) ? 'lounge' : t;
-    } catch(e) { return 'lounge'; }
+    try { return localStorage.getItem('cc_last_tab') || 'lounge'; } catch(e) { return 'lounge'; }
   })();
   switchTab(_lastTab);
 }
