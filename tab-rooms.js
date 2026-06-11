@@ -3862,7 +3862,7 @@ function _renderMietvertragHTML(d) {
     .inv-table td { font-family:'Lato',sans-serif; font-size:11px; font-weight:300; color:#1a1a1a; padding:3.5px 0; line-height:1.55; }
     .comment-label { font-family:'Lato',sans-serif; font-size:7.5px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#4a4540; margin-top:48px; padding-bottom:5px; border-bottom:0.6px solid #d8d3cc; }
     .comment-line { border-bottom:0.5px solid #e0dbd4; height:26px; margin-top:2px; }
-    .sig-block { margin-top:52px; display:flex; justify-content:space-between; }
+    .sig-block { margin-top:92px; display:flex; justify-content:space-between; }
     .sig-col { width:44%; }
     .sig-date-label { font-family:'Lato',sans-serif; font-size:9px; font-weight:300; color:#aaa59e; margin-bottom:4px; }
     .sig-prefill { font-family:'Lato',Georgia,serif; font-size:10px; font-style:italic; font-weight:300; color:#8a7a66; margin-bottom:4px; line-height:1.4; }
