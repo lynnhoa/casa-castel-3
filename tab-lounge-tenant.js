@@ -48,13 +48,6 @@ document.getElementById('tab-lounge').innerHTML = `
         <div id="ann-list-desktop"><p class="cc-note" style="padding:4px 0;">No announcement yet.</p></div>
       </div>
 
-      <div class="l-dsk-section" style="border-bottom:none;">
-        <div class="l-dsk-section-hdr">
-          <span class="l-dsk-section-lbl">Notice</span>
-        </div>
-        <div id="notice-display-desktop"><p class="cc-note" style="padding:4px 0;">No notice posted.</p></div>
-      </div>
-
     </div><!-- /.l-desktop-left -->
 
     <!-- Right column: chat -->
@@ -62,6 +55,10 @@ document.getElementById('tab-lounge').innerHTML = `
       <div class="l-dsk-chat-hdr">
         <span class="l-dsk-chat-lbl">House chat</span>
         <button class="l-dsk-chat-link" id="lounge-refresh-btn-desktop">↺ Refresh</button>
+      </div>
+      <div id="lounge-notice-banner-desktop" style="display:none;flex-shrink:0;padding:8px 14px;border-bottom:0.5px solid #EAD96B;align-items:center;gap:8px;">
+        <span style="font-size:13px;flex-shrink:0;" id="lounge-notice-banner-icon-dsk">ⓘ</span>
+        <span id="lounge-notice-banner-text-dsk" style="flex:1;font-size:12px;font-weight:300;line-height:1.5;"></span>
       </div>
       <div class="l-feed" id="lounge-feed-desktop">
         <p class="cc-note" style="padding:8px 0 4px;">No messages yet. Say hello 👋</p>
@@ -114,29 +111,32 @@ async function loadNotice() {
 }
 
 function _renderNotice(data) {
-  const strip  = document.getElementById('notice-strip');
-  const dskEl  = document.getElementById('notice-display-desktop');
+  const strip     = document.getElementById('notice-strip');
+  const bannerDsk = document.getElementById('lounge-notice-banner-desktop');
+  const textDsk   = document.getElementById('lounge-notice-banner-text-dsk');
+  const iconDsk   = document.getElementById('lounge-notice-banner-icon-dsk');
   const cols = {
     yellow: { bg:'#FEFCE8', bd:'#EAD96B', tx:'#78640A', ic:'#A0860E' },
     green:  { bg:'#F0FDF4', bd:'#86EFAC', tx:'#14532D', ic:'#16A34A' },
     red:    { bg:'#FFF1F2', bd:'#FECDD3', tx:'#9F1239', ic:'#E11D48' },
   };
   if (data && data.body) {
+    const c = data.color || 'yellow';
+    const col = cols[c] || cols.yellow;
     if (strip) {
       document.getElementById('notice-strip-text').textContent = data.body;
-      strip.className = 'l-notice-strip visible ' + (data.color || 'yellow');
+      strip.className = 'l-notice-strip visible ' + c;
     }
-    if (dskEl) {
-      const c   = data.color || 'yellow';
-      const col = cols[c] || cols.yellow;
-      dskEl.innerHTML = `<div style="background:${col.bg};border:0.5px solid ${col.bd};border-radius:var(--cc-r-md);padding:9px 12px;display:flex;align-items:flex-start;gap:8px;">
-        <span style="font-size:13px;color:${col.ic};flex-shrink:0;">ⓘ</span>
-        <span style="font-size:12px;font-weight:300;color:${col.tx};flex:1;line-height:1.5;">${esc(data.body)}</span>
-      </div>`;
+    if (bannerDsk) {
+      bannerDsk.style.display = 'flex';
+      bannerDsk.style.background = col.bg;
+      bannerDsk.style.borderBottomColor = col.bd;
+      if (textDsk) { textDsk.textContent = data.body; textDsk.style.color = col.tx; }
+      if (iconDsk) iconDsk.style.color = col.ic;
     }
   } else {
-    if (strip) strip.className = 'l-notice-strip';
-    if (dskEl) dskEl.innerHTML = '<p class="cc-note" style="padding:4px 0;">No notice posted.</p>';
+    if (strip)     strip.className = 'l-notice-strip';
+    if (bannerDsk) bannerDsk.style.display = 'none';
   }
 }
 

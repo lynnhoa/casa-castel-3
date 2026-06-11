@@ -62,13 +62,6 @@ document.getElementById('tab-lounge').innerHTML = `
       </div>
 
       <div class="l-dsk-section">
-        <div class="l-dsk-section-hdr">
-          <span class="l-dsk-section-lbl">Active notice</span>
-        </div>
-        <div id="notice-display-desktop"><p class="cc-note" style="padding:4px 0;">No notice posted.</p></div>
-      </div>
-
-      <div class="l-dsk-section">
         <p class="l-dsk-compose-lbl">New announcement</p>
         <div class="cc-input-wrap cc-mb-8">
           <label class="cc-input-label" for="ann-title-input">Title (optional)</label>
@@ -119,6 +112,11 @@ document.getElementById('tab-lounge').innerHTML = `
           <a class="l-dsk-chat-link" id="lounge-email-all-desktop" href="#" target="_blank">✉ Email all</a>
           <button class="l-dsk-chat-link l-dsk-chat-link--danger" id="lounge-reset-btn">↺ Reset chat</button>
         </div>
+      </div>
+      <div id="lounge-notice-banner-desktop" style="display:none;flex-shrink:0;padding:8px 14px;border-bottom:0.5px solid #EAD96B;align-items:center;gap:8px;">
+        <span style="font-size:13px;flex-shrink:0;" id="lounge-notice-banner-icon-dsk">ⓘ</span>
+        <span id="lounge-notice-banner-text-dsk" style="flex:1;font-size:12px;font-weight:300;line-height:1.5;"></span>
+        <button onclick="clearNotice()" style="font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#9F1239;background:none;border:none;cursor:pointer;flex-shrink:0;font-family:inherit;">Clear</button>
       </div>
       <div class="lounge-feed" id="lounge-feed-desktop">
         <p class="cc-note" style="padding:8px 0 4px;">No messages yet.</p>
@@ -345,8 +343,10 @@ async function loadNotice() {
 
 function _renderNotice(data) {
   const strip    = document.getElementById('notice-posted');
-  const clearBtn = document.getElementById('notice-clear-btn');
-  const dskEl    = document.getElementById('notice-display-desktop');
+  const clearBtn  = document.getElementById('notice-clear-btn');
+  const bannerDsk = document.getElementById('lounge-notice-banner-desktop');
+  const textDsk   = document.getElementById('lounge-notice-banner-text-dsk');
+  const iconDsk   = document.getElementById('lounge-notice-banner-icon-dsk');
 
   const cols = {
     yellow: { bg:'#FEFCE8', bd:'#EAD96B', tx:'#78640A', ic:'#A0860E' },
@@ -355,13 +355,14 @@ function _renderNotice(data) {
   };
 
   if (!data || !data.body) {
-    if (strip)    strip.className = 'l-notice-strip';
-    if (clearBtn) clearBtn.style.display = 'none';
-    if (dskEl)    dskEl.innerHTML = '<p class="cc-note" style="padding:4px 0;">No notice posted.</p>';
+    if (strip)     strip.className = 'l-notice-strip';
+    if (clearBtn)  clearBtn.style.display = 'none';
+    if (bannerDsk) bannerDsk.style.display = 'none';
     _renderNoticeModalPreview(null);
     return;
   }
   const c = data.color || 'yellow';
+  const col = cols[c] || cols.yellow;
   // Mobile strip
   document.getElementById('notice-posted-text').textContent = data.body;
   strip.className = 'l-notice-strip visible ' + c;
@@ -371,14 +372,13 @@ function _renderNotice(data) {
     .forEach(b => b.classList.toggle('active', b.dataset.color === c));
   _noticeColor = c;
   if (clearBtn) clearBtn.style.display = '';
-  // Desktop sidebar notice display
-  if (dskEl) {
-    const col = cols[c] || cols.yellow;
-    dskEl.innerHTML = `<div style="background:${col.bg};border:0.5px solid ${col.bd};border-radius:var(--cc-r-md);padding:9px 12px;display:flex;align-items:flex-start;gap:8px;">
-      <span style="font-size:13px;color:${col.ic};flex-shrink:0;">ⓘ</span>
-      <span style="font-size:12px;font-weight:300;color:${col.tx};flex:1;line-height:1.5;">${esc(data.body)}</span>
-      <button onclick="clearNotice()" style="font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#9F1239;background:none;border:none;cursor:pointer;flex-shrink:0;font-family:inherit;">Clear</button>
-    </div>`;
+  // Desktop banner above chat
+  if (bannerDsk) {
+    bannerDsk.style.display = 'flex';
+    bannerDsk.style.background = col.bg;
+    bannerDsk.style.borderBottomColor = col.bd;
+    if (textDsk) { textDsk.textContent = data.body; textDsk.style.color = col.tx; }
+    if (iconDsk) iconDsk.style.color = col.ic;
   }
   _renderNoticeModalPreview(data);
 }
