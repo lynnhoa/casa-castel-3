@@ -2982,16 +2982,8 @@ function _renderKurzzeitHTML(d) {
   ${hdr(d.zimmerName)}
   ${ftr(3)}
   <div class="content">
-    ${sec('Anlage A — Inventar', true, true)}
-    <table class="inv-table">
-      <thead><tr><th>Gegenstand</th><th>Anzahl</th></tr></thead>
-      <tbody>
-        ${d.inventar.map(i => `<tr><td>${i.gegenstand}</td><td>${i.anzahl}</td></tr>`).join('')}
-      </tbody>
-    </table>
-
     ${(d.energieklasse || d.endenergiebedarf || d.energieausweisart) ? `
-    <div class="comment-label" style="margin-top:18px;">Energieausweis (\u00a7\u00a016a GEG)</div>
+    <div class="sec sec--lg sec--first">Energieausweis (\u00a7\u00a016a GEG)</div>
     <p class="nutzung" style="margin-top:6px;font-size:10.5px;line-height:1.55;color:#3a3530;">Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Effizienzklasse: ${d.energieklasse||'\u2014'}. Endenergiebedarf: ${d.endenergiebedarf ? d.endenergiebedarf+' kWh/(m\u00b2\u00b7a)' : '\u2014'}. Art: ${d.energieausweisart||'\u2014'}.</p>` : ''}
 
     <div class="comment-label">Sonstige Anmerkungen</div>
@@ -3017,6 +3009,21 @@ function _renderKurzzeitHTML(d) {
         <div class="sig-name">${d.mieterName}</div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="pdf-page page">
+  ${hdr(d.zimmerName)}
+  ${ftr(4)}
+  <div class="content">
+    ${sec('Anlage A — Inventar', true, true)}
+    <table class="inv-table">
+      <thead><tr><th>Gegenstand</th><th>Anzahl</th></tr></thead>
+      <tbody>
+        ${d.inventar.map(i => `<tr><td>${i.gegenstand}</td><td>${i.anzahl}</td></tr>`).join('')}
+      </tbody>
+    </table>
   </div>
 </div>
 
