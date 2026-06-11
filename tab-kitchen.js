@@ -809,6 +809,24 @@ async function kReset() {
   if (!_kWeekRow || !sbL || _kActionBusy) return; _kActionBusy = true;
   try {
     if (!confirm(`Reset week for ${_kWeekRow.room}? Marks as Missed and clears proof.`)) return;
+    // Collect all storage paths before deleting comments (same logic as kClearChat)
+    const paths = [];
+    if (_kWeekRow.photos && Array.isArray(_kWeekRow.photos))
+      _kWeekRow.photos.forEach(p => { if (p.path) paths.push(p.path); });
+    if (_kWeekRow.photo_path) paths.push(_kWeekRow.photo_path);
+    const comments = await _kGetComments(_kWeekRow.id);
+    comments.forEach(c => {
+      if (!c.text) return;
+      if (c.text.startsWith('[submission] ')) {
+        try { const d = JSON.parse(c.text.replace('[submission] ', '')); (d.photos||[]).forEach(p => { if (p.path) paths.push(p.path); }); } catch(e) {}
+      } else if (c.text.startsWith('[photo] ')) {
+        const url = c.text.replace('[photo] ', '').trim();
+        const marker = 'kitchen-proofs/';
+        const mi = url.indexOf(marker);
+        if (mi !== -1) paths.push(decodeURIComponent(url.slice(mi + marker.length)));
+      }
+    });
+    if (paths.length) await sbL.storage.from('kitchen-proofs').remove(paths).catch(e => console.warn('Storage cleanup error', e));
     await _kDeleteComments(_kWeekRow.id);
     await _kUpdateWeek(kWeekIdx(), { status:'missed', photos:null, photo_path:null, photo_url:null, flagged:false, closed_at:new Date().toISOString() });
     await loadKitchen();
