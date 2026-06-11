@@ -647,11 +647,15 @@ async function _kLoadNudgeBanner(weekRow) {
   banner.style.display = 'flex';
   if (bannerDsk) bannerDsk.style.display = 'flex';
 }
-function _kDismissNudgeBanner() {
+async function _kDismissNudgeBanner() {
   const b = document.getElementById('k-mob-nudge-banner'); if (b) b.style.display = 'none';
+  const d = document.getElementById('k-dsk-nudge-banner'); if (d) d.style.display = 'none';
+  if (sbL) await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
 }
-function _kDismissNudgeBannerDsk() {
-  const b = document.getElementById('k-dsk-nudge-banner'); if (b) b.style.display = 'none';
+async function _kDismissNudgeBannerDsk() {
+  const b = document.getElementById('k-mob-nudge-banner'); if (b) b.style.display = 'none';
+  const d = document.getElementById('k-dsk-nudge-banner'); if (d) d.style.display = 'none';
+  if (sbL) await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
 }
 
 /* ── MODAL POPULATORS ───────────────────────────────────── */
@@ -880,7 +884,7 @@ function _kSubscribe() {
       }
     })
     .on('postgres_changes', { event: '*',      schema: 'public', table: 'kitchen_absences' }, async () => { await loadKitchen(); })
-    .on('postgres_changes', { event: '*',      schema: 'public', table: 'lounge_data' },      async payload => { const t = payload.new?.type || payload.old?.type; if (t === 'kitchen_nudge' || t === 'hc_done') await loadKitchen(); })
+    .on('postgres_changes', { event: '*',      schema: 'public', table: 'lounge_data' },      async payload => { const t = payload.new?.type || payload.old?.type; const isDelete = payload.eventType === 'DELETE' || (!payload.new?.id && payload.old?.id); if (t === 'kitchen_nudge' || (isDelete && payload.old?.type === 'kitchen_nudge')) { await _kLoadNudgeBanner(_kWeekRow); } else if (t === 'hc_done') { await loadKitchen(); } })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms' }, async () => {
       if (typeof loadRoomsData === 'function') await loadRoomsData();
       await loadKitchen();
@@ -960,15 +964,19 @@ async function _kSendNudge(typeBtn, toBtn, noteEl, sendBtn, afterSend) {
   if (!sbL) return;
   sendBtn.disabled = true;
   const note = noteEl ? noteEl.value.trim() : '';
+  // Call afterSend immediately (optimistic) so UI closes/resets without waiting for DB
+  if (afterSend) afterSend();
   try {
-    await sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge');
-    await sbL.from('lounge_data').insert({
-      type: 'kitchen_nudge',
-      room: toBtn.dataset.to,
-      body: typeBtn.dataset.type,
-      title: note || null
-    });
-    if (afterSend) afterSend();
+    // Run delete and insert in parallel — avoids two sequential round-trips
+    await Promise.all([
+      sbL.from('lounge_data').delete().eq('type', 'kitchen_nudge'),
+      sbL.from('lounge_data').insert({
+        type: 'kitchen_nudge',
+        room: toBtn.dataset.to,
+        body: typeBtn.dataset.type,
+        title: note || null
+      })
+    ]);
   } finally {
     sendBtn.disabled = false;
   }
