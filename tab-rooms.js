@@ -752,7 +752,7 @@ function _parseArr(v) {
 const _DEFAULT_ROOMS = [
   {
     name: 'Paris', room_type: '2-Zimmer mit eigener Küche', floor: 'Dachgeschoss',
-    flaeche_m2: 28, kitchen_type: 'Eigene Küche', vacant: false,
+    flaeche_m2: 28, kitchen_type: 'Eigene Küche', active: true, vacant: false,
     badezimmer: ['Bad 2. OG'],
     gemeinschaftsraeume: ['Terrasse','Garten','Vorgarten & Fahrradabstellplatz'],
     haustuerschluessel: 1, zimmerschluessel: 1, briefkastenschluessel: 0,
@@ -870,6 +870,14 @@ async function loadRooms() {
   // Re-render if settings change (bathrooms / shared spaces lists update)
   if (!loadRooms._settingsWired) { loadRooms._settingsWired = true; onSettingsChange(() => _renderRoomsList()); }
 
+  // Re-render when any room changes via realtime (another device, or other tabs)
+  if (!loadRooms._roomsChangeWired) {
+    loadRooms._roomsChangeWired = true;
+    onRoomsChange(() => {
+      _renderRoomsList();
+    });
+  }
+
   // Realtime: re-render room cards when kitchen_config changes on another device
   if (sbL && !loadRooms._kitchenRtWired) {
     loadRooms._kitchenRtWired = true;
@@ -895,7 +903,7 @@ function _updateRoomsSummary(rooms) {
   if (!rooms || !rooms.length) { bar.style.display = 'none'; return; }
   let kalt = 0, nk = 0, occupied = 0;
   rooms.forEach(r => {
-    if (r.vacant) return;
+    if (r.vacant !== false) return;  // skip vacant, null, or undefined
     occupied++;
     const type = _getActiveType(r);
     if (!type) return;
@@ -937,12 +945,14 @@ function _getRentInfo(r, type) {
     }
     if (r.mietvertrag_miete) {
       const tot = Number(r.mietvertrag_miete)||0;
-      return { kalt: tot-50, nk: 50, total: tot, detail: 'pauschal inkl. NK' };
+      const nk  = Number(r.nk_pauschale)||0;
+      return { kalt: tot - nk, nk, total: tot, detail: 'pauschal inkl. NK' };
     }
   }
   if (type === 'kurzzeit' && r.monatl_miete) {
     const tot = Number(r.monatl_miete)||0;
-    return { kalt: tot-50, nk: 50, total: tot, detail: 'pauschal inkl. NK' };
+    const nk  = Number(r.nk_pauschale)||0;
+    return { kalt: tot - nk, nk, total: tot, detail: 'pauschal inkl. NK' };
   }
   return null;
 }
@@ -1399,9 +1409,7 @@ async function _toggleVacant(roomId, btn) {
       if (wasExpanded) newCard.classList.add('rc--expanded');
       _bindAllCards();
       _initSortable();
-    } else {
-      // Fallback: full re-render
-      _renderRoomsList();
+      _updateRoomsSummary(appRooms);
     }
   } else {
     btn.disabled = false;
