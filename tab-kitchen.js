@@ -550,7 +550,7 @@ async function _kRenderRotation(weekRow, absData) {
          : state === 'absent'  ? ' rot-tl-row--absent'
          : state === 'next'    ? ' rot-tl-row--next' : '');
       const email   = tenantEmail(room);
-      const profile = S.get('room_profile_' + room, {});
+      const profile = (typeof _getProfile === 'function') ? _getProfile(room) : (S ? S.get('room_profile_' + room, {}) : {});
       const name    = profile.firstName || room;
       const subject = encodeURIComponent('Casa Castel Kitchen — Proof required');
       const body    = encodeURIComponent(`Hi ${name},\n\nPlease clean the kitchen and upload your proof in the app.\n\nCasa Castel`);
@@ -862,7 +862,7 @@ async function kReopen() {
 function kReminder() {
   if (!_kWeekRow) return;
   const email = tenantEmail(_kWeekRow.room);
-  const name  = S.get('room_profile_' + _kWeekRow.room, {}).firstName || _kWeekRow.room;
+  const name  = (typeof _getProfile === 'function' ? _getProfile(_kWeekRow.room) : (S ? S.get('room_profile_' + _kWeekRow.room, {}) : {})).firstName || _kWeekRow.room;
   window.open(buildMailto(email, 'Casa Castel Kitchen — Proof required',
     `Hi ${name},\n\nPlease clean the kitchen and upload your proof in the app.\n\nCasa Castel`), '_blank');
 }

@@ -54,7 +54,7 @@ async function saveRoomProfile(room, field, value) {
 }
 
 function _getProfile(room) {
-  // Merge: Supabase profile first, localStorage fallback for legacy data
+  // Supabase wins — localStorage used only as migration fallback for fields not yet in Supabase
   const supa = _tenantProfiles[room] || {};
   const local = (() => {
     try { return JSON.parse(localStorage.getItem('cc_room_profile_' + room) || '{}'); } catch { return {}; }
@@ -198,6 +198,7 @@ async function loadTenants() {
             ${field(r.name, 'Last name',  'lastName',  p.lastName  || '')}
             ${field(r.name, 'Birthday',   'birthday',  p.birthday  || '')}
             ${field(r.name, 'Email',      'email',     p.email     || '', 'email')}
+            ${field(r.name, 'Phone',      'phone',     p.phone     || '', 'tel')}
           </div>
           <div class="room-card__divider"></div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -210,6 +211,9 @@ async function loadTenants() {
             ${email ? `<a class="btn-email"
               href="${buildMailto(email, 'Message from Casa Castel', '')}"
               target="_blank" style="flex-shrink:0;">✉ Email</a>` : ''}
+            ${p.phone ? `<a class="btn-email"
+              href="tel:${esc(p.phone)}"
+              style="flex-shrink:0;">✆ Call</a>` : ''}
             <button class="room-reset-btn tenants-reset-btn"
               data-room="${esc(r.name)}"
               onclick="resetRoomPassword('${esc(r.name)}')"

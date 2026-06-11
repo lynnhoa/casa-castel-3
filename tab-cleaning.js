@@ -478,7 +478,7 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, rot) {
 
     /* Mail icon button — builds mailto link from tenantEmail() utility */
     const email   = tenantEmail(r);
-    const profile = S.get('room_profile_' + r, {});
+    const profile = (typeof _getProfile === 'function') ? _getProfile(r) : (S ? S.get('room_profile_' + r, {}) : {});
     const name    = profile.firstName || r;
     const subject = encodeURIComponent('Casa Castel — House Cleaning Reminder');
     const body    = encodeURIComponent(`Hi ${name},\n\nThis is a reminder to complete the house cleaning for your assigned week.\n\nPlease make sure the shared areas are cleaned by Sunday 23:59.\n\nCasa Castel`);

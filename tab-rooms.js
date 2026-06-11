@@ -1963,8 +1963,8 @@ document.getElementById('contractOverlay')?.addEventListener('click', e => {
 /* ── CONTRACT BODY: ÜBERGABEPROTOKOLL ───────────────────── */
 function _contractBodyUeberg(room, isEinzug) {
   const s = appSettings;
-  // Load tenant from localStorage
-  const profile   = (typeof S !== 'undefined') ? S.get('room_profile_' + room.name, {}) : {};
+  // Load tenant from Supabase-backed profile cache
+  const profile   = (typeof _getProfile === 'function') ? _getProfile(room.name) : ((typeof S !== 'undefined') ? S.get('room_profile_' + room.name, {}) : {});
   const tenantName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
 
   const zaehler = _parseArr(s.zaehler);
@@ -2056,7 +2056,7 @@ function _contractBodyUeberg(room, isEinzug) {
 function _initUebergMieterToggle(room) {
   // Pill toggle is handled by _toggleUebergMieter via onclick
   // Just store tenant name on the pill for reference
-  const profile    = (typeof S !== 'undefined') ? S.get('room_profile_' + room.name, {}) : {};
+  const profile    = (typeof _getProfile === 'function') ? _getProfile(room.name) : ((typeof S !== 'undefined') ? S.get('room_profile_' + room.name, {}) : {});
   const tenantName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
   const pill = document.getElementById('uebergMieterPill');
   if (pill) pill.dataset.tenantName = tenantName;
