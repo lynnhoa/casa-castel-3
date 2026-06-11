@@ -886,6 +886,7 @@ img { display: block; max-width: 100%; }
 .preview-banner__exit{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--cc-gold);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;}
 .room-picker-overlay{display:none;position:fixed;inset:0;background:rgba(30,27,24,0.45);z-index:300;align-items:flex-end;justify-content:center;}
 .room-picker-overlay.visible{display:flex;}
+@media(min-width:701px){.room-picker-overlay.visible{align-items:center;}.room-picker{border-radius:var(--cc-r-lg);max-width:380px;padding:24px 20px 28px;}}
 .tenant-preview-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--cc-white);flex-direction:column;}
 .tenant-preview-overlay.visible{display:flex;}
 .tenant-preview-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--cc-ink);color:var(--cc-white);flex-shrink:0;}
@@ -969,7 +970,7 @@ img { display: block; max-width: 100%; }
 .notice-compose__icon{font-size:13px;color:#8C5A1A;}
 .notice-compose__label{font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#8C5A1A;}
 .notice-compose__input{width:100%;border:none;background:transparent;padding:9px 12px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:300;color:var(--cc-charcoal);outline:none;resize:none;line-height:1.5;min-height:60px;display:block;box-sizing:border-box;}
-.notice-compose__footer{padding:0 12px 8px;display:flex;justify-content:flex-end;gap:8px;align-items:center;}
+.notice-compose__footer{padding:0 12px 10px;display:flex;gap:8px;align-items:center;}
 .notice-compose__btn{font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;padding:0 16px;height:28px;background:var(--cc-ink);color:var(--cc-white);border:none;border-radius:14px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;}
 .notice-posted{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:0.5px solid #EAD96B;background:#FEFCE8;}
 .notice-posted--yellow{background:#FEFCE8;border-bottom-color:#EAD96B;}

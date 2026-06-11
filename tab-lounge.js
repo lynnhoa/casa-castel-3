@@ -76,8 +76,8 @@ document.getElementById('tab-lounge').innerHTML = `
           <span class="pin-toggle-label">Pin this announcement</span>
         </label>
         <div class="ann-compose-actions">
-          <button class="cc-btn cc-btn--primary" id="ann-post-btn" style="flex:1;min-height:40px;">Post to app</button>
-          <a class="btn-email" id="ann-email-btn" href="#" target="_blank">✉ Email all</a>
+          <button class="cc-btn cc-btn--primary" id="ann-post-btn" style="flex:1;">Post to app</button>
+          <a class="btn-email" id="ann-email-btn" href="#" target="_blank" style="flex:1;justify-content:center;">✉ Email all</a>
         </div>
       </div>
 
@@ -95,8 +95,8 @@ document.getElementById('tab-lounge').innerHTML = `
           </div>
           <textarea class="notice-compose__input" id="notice-input" rows="2" placeholder="e.g. Plumber visiting Thursday 10–12. Please keep hallway clear."></textarea>
           <div class="notice-compose__footer">
-            <button type="button" class="cc-btn--ghost" id="notice-clear-btn" style="display:none;">Clear notice</button>
-            <button type="button" class="notice-compose__btn" id="notice-post-btn">Post notice</button>
+            <button type="button" class="cc-btn--ghost" id="notice-clear-btn" style="display:none;flex:1;">Clear notice</button>
+            <button type="button" class="notice-compose__btn" id="notice-post-btn" style="flex:1;">Post notice</button>
           </div>
         </div>
       </div>
@@ -156,8 +156,8 @@ document.getElementById('tab-lounge').innerHTML = `
           <span class="pin-toggle-label">Pin this announcement</span>
         </label>
         <div class="ann-compose-actions">
-          <button class="cc-btn cc-btn--primary" id="ann-post-btn-mob" style="flex:1;min-height:40px;">Post to app</button>
-          <a class="btn-email" id="ann-email-btn-mob" href="#" target="_blank">✉ Email all</a>
+          <button class="cc-btn cc-btn--primary" id="ann-post-btn-mob" style="flex:1;">Post to app</button>
+          <a class="btn-email" id="ann-email-btn-mob" href="#" target="_blank" style="flex:1;justify-content:center;">✉ Email all</a>
         </div>
       </div>
     </div>
@@ -183,7 +183,7 @@ document.getElementById('tab-lounge').innerHTML = `
         </div>
         <textarea class="notice-compose__input" id="notice-input-mob" rows="3" placeholder="e.g. Plumber visiting Thursday 10–12. Please keep hallway clear." style="width:100%;box-sizing:border-box;margin-bottom:12px;"></textarea>
         <div style="display:flex;gap:8px;">
-          <button type="button" class="cc-btn--ghost" id="notice-clear-btn-mob" style="display:none;">Clear notice</button>
+          <button type="button" class="cc-btn--ghost" id="notice-clear-btn-mob" style="display:none;flex:1;">Clear notice</button>
           <button type="button" class="notice-compose__btn" id="notice-post-btn-mob" style="flex:1;">Post notice</button>
         </div>
       </div>
