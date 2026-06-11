@@ -22,6 +22,7 @@
 <body class="tenant-shell">
 
   <!-- ══ LOGIN ══ -->
+  <script>if(localStorage.getItem("cc_role")==="tenant"&&localStorage.getItem("cc_room")){document.write("<style>#loginScreen{display:none}</style>");}</script>
   <div class="login-screen" id="loginScreen">
     <p class="login-logo">Casa Castel</p>
     <p class="login-sub">Alsenstraße 60 · 55252 Mainz-Kastel</p>
