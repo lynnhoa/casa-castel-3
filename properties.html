@@ -22,11 +22,7 @@
 <!-- Supabase JS v2 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- Inject Vercel env vars -->
-<script>
-  window.__SUPABASE_URL__ = 'https://nqxsonmmcnmdastcpiff.supabase.co';
-  window.__SUPABASE_KEY__ = 'sb_publishable_t2gaxYkyyGS32sEJJuCAnA_qk_G7sYM';
-</script>
+
 </head>
 <body>
 
@@ -237,12 +233,63 @@
 </div>
 
 <!-- ══ SCRIPTS ══ -->
-<script src="properties-data.js"></script>
 <script src="properties-dashboard.js"></script>
 <script src="properties-portfolio.js"></script>
 
 <script>
 'use strict';
+
+/* ── SUPABASE CLIENT ── */
+const _supa = window.supabase.createClient(
+  'https://nqxsonmmcnmdastcpiff.supabase.co',
+  'sb_publishable_t2gaxYkyyGS32sEJJuCAnA_qk_G7sYM'
+);
+
+async function getSession() {
+  const { data, error } = await _supa.auth.getSession();
+  if (error) throw error;
+  return data.session;
+}
+async function signIn(email, password) {
+  const { data, error } = await _supa.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data.session;
+}
+async function signOut() {
+  const { error } = await _supa.auth.signOut();
+  if (error) throw error;
+}
+async function fetchAll() {
+  const { data, error } = await _supa
+    .from('properties')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error) { console.error('fetchAll error:', error); throw error; }
+  console.log('fetchAll rows:', data ? data.length : 0);
+  return data || [];
+}
+async function updateProperty(id, fields) {
+  const safe = { ...fields }; delete safe.id; delete safe.created_at;
+  const { data, error } = await _supa.from('properties').update(safe).eq('id', id).select().single();
+  if (error) throw error; return data;
+}
+async function addProperty(fields) {
+  const { data, error } = await _supa.from('properties').insert([fields]).select().single();
+  if (error) throw error; return data;
+}
+async function deleteProperty(id) {
+  const { error } = await _supa.from('properties').delete().eq('id', id);
+  if (error) throw error;
+  const remaining = await fetchAll();
+  await Promise.all(remaining.map((p, i) =>
+    _supa.from('properties').update({ sort_order: i + 1 }).eq('id', p.id)
+  ));
+}
+async function getNextSortOrder() {
+  const { data, error } = await _supa.from('properties').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+  if (error) throw error;
+  return data.length ? data[0].sort_order + 1 : 1;
+}
 
 /* ── HELPERS ── */
 window._props = [];
