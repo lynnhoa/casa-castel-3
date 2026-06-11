@@ -1778,11 +1778,7 @@ body.browser-mode #tab-kitchen .k-mob-compose{padding-bottom:var(--cc-browser-ch
   }
 }
 
-/* ── Kitchen tab: hidden on landlord desktop (no kitchen tab in landlord nav) ── */
-@media(min-width:701px){
-  /* Landlord: kitchen tab not in nav on desktop */
-  body:not(.tenant-shell) #appTabs .cc-tab[data-tab="kitchen"] { display: none !important; }
-}
+/* Kitchen tab visible on both landlord and tenant desktop/iPad */
 
 /* ── Tenant kitchen desktop — upload pill button ───────── */
 .k-ten-upload-pill {
