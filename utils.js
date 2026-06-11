@@ -118,8 +118,10 @@ function kHistPill(status, size) {
   const base = sm
     ? 'font-size:9px;padding:1px 7px;border-radius:10px;font-weight:500;white-space:nowrap;border:0.5px solid;'
     : 'font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;white-space:nowrap;border:0.5px solid;display:inline-block;';
-  if (status === 'approved' || status === 'submitted')
+  if (status === 'approved')
     return `<span style="${base}background:#EDF5E8;color:#3A6A1A;border-color:#9AC87A;">✓ Done</span>`;
+  if (status === 'submitted')
+    return `<span style="${base}background:#FFF7ED;color:#92400E;border-color:#FCD34D;">↑ Submitted</span>`;
   if (status === 'missed')
     return `<span style="${base}background:#FEF2F2;color:#991B1B;border-color:#FCA5A5;">✗ Missed</span>`;
   if (status === 'flagged')
