@@ -3941,6 +3941,7 @@ function _renderMietvertragHTML(d) {
     ${sec('Betriebskosten gem. \u00a7\u00a71,\u00a02 BetrKV',true,true)}
     <p class="nk-intro">Neben der Kaltmiete trägt der Mieter anteilig folgende Betriebskosten. Umlageschlüssel: Gesamtnutzfläche des Mieters (Zimmer + anteilige Gemeinschaftsfläche) im Verhältnis zur Gesamtnutzfläche aller Zimmer. Heizung und Warmwasser nach HeizkostenV.</p>
     <div class="nk-grid">${nkRows}</div>
+    <p class="nk-intro" style="margin-top:6px;font-size:9.5px;">Winterdienst wird grundsätzlich vom Mieter erledigt. Unter Umständen wird dieser gelegentlich organisiert, sofern nicht erledigt, wird dieser in den Nebenkosten berücksichtigt.</p>
     ${cl('1',d.befristet?'Befristung und Beendigung':'Mietzeit',
       d.befristet
         ? `Das Mietverhältnis ist gemäß \u00a7\u00a0575 Abs.\u00a01 BGB befristet und endet am ${d.mietende} automatisch ohne Kündigung (\u00a7\u00a0545 BGB findet keine Anwendung). Das Zimmer darf ausschließlich zu Wohnzwecken durch den namentlich genannten Mieter genutzt werden.`
