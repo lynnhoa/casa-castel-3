@@ -30,7 +30,6 @@ document.getElementById('tab-kitchen').innerHTML = `
         <span class="k-mob-status-chip pending" id="k-mob-status-chip"></span>
         <div class="k-mob-week-corner-links">
           <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('history')">history</button>
-          <button class="k-mob-week-corner-link" onclick="kitchenOpenModal('nudgelog')">nudges</button>
         </div>
       </div>
       <div class="k-mob-week-body">
@@ -147,7 +146,6 @@ document.getElementById('tab-kitchen').innerHTML = `
         <div style="display:flex;gap:10px;align-items:center;">
           <button class="k-dsk-chat-link" onclick="loadKitchen()">↺ Refresh</button>
           <button class="k-dsk-chat-link" onclick="kClearChat()">✕ Clear</button>
-          <button class="k-dsk-chat-link k-dsk-chat-link--danger" onclick="kitchenOpenModal('nudgelog')">nudges ›</button>
         </div>
       </div>
 
