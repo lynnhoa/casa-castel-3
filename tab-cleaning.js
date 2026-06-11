@@ -438,14 +438,16 @@ function _renderHcRotation(cycleStart, cyclePos, hcDoneMap, absRows, rot) {
   }
 
   rotEl.innerHTML = '<div class="rot-tl">' + rot.map((r, i) => {
-    const slotIdx  = cycleStart + i;
+    const slotIdx  = (i === trueNextI && trueNextI < cyclePos)
+      ? cycleStart + rot.length + i
+      : cycleStart + i;
     const ws       = new Date(HC_W1_START.getTime() + slotIdx * 7 * 24 * 60 * 60 * 1000);
     const we       = new Date(ws.getTime() + 6 * 24 * 60 * 60 * 1000);
     const dateStr  = fmtD(ws) + ' – ' + fmtD(we);
     const isPast   = i < cyclePos;
     const isNow    = i === cyclePos;
     const isNext   = i === trueNextI;
-    const slotDone = hcDoneMap[slotIdx + '_' + r] || null;
+    const slotDone = hcDoneMap[(cycleStart + i) + '_' + r] || null;
 
     const state = _hcRotState({ isNow, isPast, isNext, slotDone, room: r, weekStart: ws, absRows: absRows || [] });
 
