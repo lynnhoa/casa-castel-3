@@ -140,9 +140,6 @@ function initTenantLogin() {
   document.getElementById('tenantPass')
     ?.addEventListener('keydown', e => { if (e.key === 'Enter') doTenantLogin(); });
 
-  // Populate room dropdown from DB (replaces hardcoded options)
-  _populateTenantRoomDropdown();
-
   // Preview mode (landlord previewing as tenant)
   const previewRoom = new URLSearchParams(window.location.search).get('preview');
   if (previewRoom) {
@@ -151,11 +148,16 @@ function initTenantLogin() {
     return;
   }
 
-  // Auto-login if session exists
+  // Auto-login if session exists — check synchronously before any async work
+  // so the login screen is hidden immediately on refresh, eliminating the flash.
   const savedRoom = localStorage.getItem('cc_room');
   if (localStorage.getItem('cc_role') === 'tenant' && savedRoom) {
+    document.getElementById('loginScreen').style.display = 'none';
     showApp(savedRoom);
   }
+
+  // Populate room dropdown from DB (runs in background — no longer blocks auto-login)
+  _populateTenantRoomDropdown();
 }
 
 /* ── LOGOUT ─────────────────────────────────────────────── */
