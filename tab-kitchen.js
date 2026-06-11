@@ -932,8 +932,6 @@ async function loadKitchen() {
     return;
   }
 
-  _kAutoReset(idx);
-
   // Fetch week row + absences in parallel
   let [weekRow, absData] = await Promise.all([
     _kGetWeek(idx),
