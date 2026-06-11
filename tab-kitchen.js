@@ -845,8 +845,8 @@ function kReminder() {
   if (!_kWeekRow) return;
   const email = tenantEmail(_kWeekRow.room);
   const name  = S.get('room_profile_' + _kWeekRow.room, {}).firstName || _kWeekRow.room;
-  window.location.href = buildMailto(email, 'Casa Castel Kitchen — Proof required',
-    `Hi ${name},\n\nPlease clean the kitchen and upload your proof in the app.\n\nCasa Castel`);
+  window.open(buildMailto(email, 'Casa Castel Kitchen — Proof required',
+    `Hi ${name},\n\nPlease clean the kitchen and upload your proof in the app.\n\nCasa Castel`), '_blank');
 }
 
 /* ── PHOTO MODAL ────────────────────────────────────────── */
