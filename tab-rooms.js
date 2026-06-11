@@ -2252,8 +2252,8 @@ function _contractBodyKurzzeit(room) {
     <div class="rm-field"><label>E-Mail</label><input class="rm-input" id="cm-email" type="email" placeholder="mieter@beispiel.de"/></div>
     <div class="rm-field"><label>Telefon <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label><input class="rm-input" id="cm-tel" type="tel" placeholder="+49 …"/></div>
     <div class="rm-field-row">
-      <div class="rm-field"><label>Mietbeginn</label><input class="rm-input" id="cm-start" type="date"/></div>
-      <div class="rm-field"><label>Mietende</label><input class="rm-input" id="cm-end" type="date"/></div>
+      <div class="rm-field"><label>Mietbeginn <span style="color:#c0392b;font-weight:700;">*</span></label><input class="rm-input" id="cm-start" type="date"/></div>
+      <div class="rm-field"><label>Mietende <span style="color:#c0392b;font-weight:700;">*</span></label><input class="rm-input" id="cm-end" type="date"/></div>
     </div>
     <div class="rm-field">
       <label>Unterzeichnungsdatum <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;">(optional)</span></label>
@@ -3726,7 +3726,7 @@ function _contractBodyMietvertrag(room) {
     <div class="rm-fields-title" style="margin-top:6px;">Mietzeit</div>
 
     <div class="rm-field">
-      <label>Mietbeginn</label>
+      <label>Mietbeginn <span style="color:#c0392b;font-weight:700;">*</span></label>
       <input class="rm-input" id="mv-start" type="date" oninput="_updateMvMonatToggle()"/>
     </div>
 
@@ -3759,7 +3759,7 @@ function _contractBodyMietvertrag(room) {
 
     <div id="mv-befristung-details" style="display:none;">
       <div class="rm-field">
-        <label>Mietende</label>
+        <label>Mietende <span style="color:#c0392b;font-weight:700;">*</span></label>
         <input class="rm-input" id="mv-end" type="date"/>
       </div>
       <div class="rm-field">
@@ -3783,7 +3783,7 @@ function _contractBodyMietvertrag(room) {
         </div>
       </div>
       <div class="rm-field" id="mv-eigenbedarf-wrap">
-        <label>Eigenbedarfsperson <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(Pflicht nach BGH)</span></label>
+        <label>Eigenbedarfsperson <span style="color:#c0392b;font-weight:700;">*</span> <span style="font-size:9px;color:var(--cc-stone);text-transform:none;letter-spacing:0;font-weight:400;">(Pflicht nach BGH)</span></label>
         <input class="rm-input" id="mv-eigenbedarf-person"
           placeholder="z.\u202fB. Tochter des Vermieters, Eigennutzung durch Vermieter\u2026"/>
       </div>
