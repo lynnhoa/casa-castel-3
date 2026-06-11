@@ -25,6 +25,8 @@
       --body:    #3A3530;
       --ink:     #1E1B18;
       --gold:    #B8956A;
+      --gold-lt: #F0E8DA;
+      --gold-dk: #9A7040;
       --error:   #C0574A;
       --safe-top:    env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -51,7 +53,6 @@
       padding: calc(32px + var(--safe-top)) 24px calc(40px + var(--safe-bottom));
     }
 
-    /* ── WORDMARK ── */
     .wordmark {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-weight: 300;
@@ -73,15 +74,13 @@
     }
     .access-label {
       font-size: 10px;
-      font-weight: 400;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--stone);
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
     }
 
-    /* ── FORM ── */
     .login-form {
       width: 100%;
       max-width: 320px;
@@ -89,12 +88,11 @@
       flex-direction: column;
     }
 
-    /* ── APP CARDS ── */
+    /* ── APP BUTTONS ── */
     .role-tabs {
       display: flex;
-      flex-direction: row;
       gap: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .role-tab {
@@ -104,74 +102,38 @@
       align-items: center;
       gap: 7px;
       padding: 14px 6px 12px;
-      font-family: inherit;
-      font-size: 9.5px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--taupe);
       background: #fff;
       border: 0.5px solid var(--rule);
       border-radius: 10px;
       cursor: pointer;
-      transition: transform .12s, box-shadow .12s, border-color .15s;
+      font-family: inherit;
+      transition: border-color .15s, background .15s, transform .1s;
       -webkit-tap-highlight-color: transparent;
-      text-align: center;
-      box-shadow: 0 1px 4px rgba(58,53,48,.05);
     }
-    .role-tab:hover {
-      border-color: var(--stone);
-      box-shadow: 0 2px 8px rgba(58,53,48,.09);
-    }
+    .role-tab:hover { border-color: var(--stone); background: var(--warm); }
     .role-tab:active { transform: scale(.96); }
 
-    /* Icon circle */
-    .role-tab__icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      transition: background .15s;
+    .role-tab i {
+      font-size: 18px;
+      color: var(--stone);
+      transition: color .15s;
+    }
+    .role-tab span {
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--stone);
+      transition: color .15s;
     }
 
-    /* Per-app pastel tints */
-    .role-tab[data-dest="realestate.html"] .role-tab__icon {
-      background: #EAE4D8;
-      color: #9A7A50;
-    }
-    .role-tab[data-dest="landlord.html"] .role-tab__icon {
-      background: #DDE8E0;
-      color: #4E7D62;
-    }
-    .role-tab[data-dest="controlling.html"] .role-tab__icon {
-      background: #DDE4EE;
-      color: #4E6480;
-    }
-
-    /* Active state — tinted border + bolder label */
+    /* Selected state */
     .role-tab.active {
-      border-color: var(--stone);
-      box-shadow: 0 2px 10px rgba(58,53,48,.10);
-      color: var(--ink);
+      background: var(--gold-lt);
+      border: 1.5px solid var(--gold);
     }
-    .role-tab.active .role-tab__icon {
-      filter: saturate(1.15) brightness(.95);
-    }
-    .role-tab.active::after {
-      content: '';
-      display: block;
-      width: 16px;
-      height: 2px;
-      border-radius: 99px;
-      background: var(--gold);
-      position: absolute;
-      bottom: 8px;
-    }
-    /* position relative for the after-element trick */
-    .role-tab { position: relative; }
+    .role-tab.active i { color: var(--gold-dk); }
+    .role-tab.active span { color: var(--gold-dk); }
 
     /* ── PASSWORD ── */
     .cc-input {
@@ -193,7 +155,6 @@
     .cc-input:focus { border-color: var(--gold); }
     .cc-input.error { border-color: var(--error); }
 
-    /* ── ERROR ── */
     .login-error {
       font-size: 11px;
       color: var(--error);
@@ -203,7 +164,7 @@
     }
     .login-error.visible { display: block; }
 
-    /* ── ENTER BUTTON ── */
+    /* ── ENTER ── */
     .enter-btn {
       width: 100%;
       height: 46px;
@@ -241,22 +202,18 @@
   <div class="login-form">
 
     <div class="role-tabs" role="group" aria-label="Select app">
-
       <button class="role-tab" data-dest="realestate.html">
-        <span class="role-tab__icon"><i class="ti ti-building-estate"></i></span>
-        Properties
+        <i class="ti ti-building-estate" aria-hidden="true"></i>
+        <span>Properties</span>
       </button>
-
-      <button class="role-tab active" data-dest="landlord.html" data-tab="lounge">
-        <span class="role-tab__icon"><i class="ti ti-home-heart"></i></span>
-        Casa Castel
+      <button class="role-tab active" data-dest="landlord.html" data-tab="rooms">
+        <i class="ti ti-home-heart" aria-hidden="true"></i>
+        <span>Casa Castel</span>
       </button>
-
       <button class="role-tab" data-dest="controlling.html">
-        <span class="role-tab__icon"><i class="ti ti-chart-bar"></i></span>
-        Controlling
+        <i class="ti ti-chart-bar" aria-hidden="true"></i>
+        <span>Controlling</span>
       </button>
-
     </div>
 
     <input class="cc-input" id="loginPass" type="password" placeholder="Password" autocomplete="current-password"/>
@@ -278,7 +235,7 @@
   const tabs       = document.querySelectorAll('.role-tab');
 
   let selectedDest = 'landlord.html';
-  let selectedTab  = 'lounge';
+  let selectedTab  = 'rooms';
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
