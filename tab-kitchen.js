@@ -603,10 +603,10 @@ function _kRenderWeekCard(weekRow, absData) {
     items.push(`<button class="k-mob-wact amber" onclick="kUnflag()"   aria-label="Unflag"><i class="ti ti-flag-off"></i><span>Unflag</span></button>`);
     items.push(`<button class="k-mob-wact blue"  onclick="kReminder()" aria-label="Remind"><i class="ti ti-mail"></i><span>Remind</span></button>`);
   } else if (dbStatus === 'missed') {
-    items.push(`<button class="k-mob-wact blue"  onclick="kReopen()"  aria-label="Reopen"><i class="ti ti-rotate"></i><span>Reopen</span></button>`);
+    items.push(`<button class="k-mob-wact amber" onclick="kReopen()"  aria-label="Reopen"><i class="ti ti-rotate"></i><span>Reopen</span></button>`);
   } else {
     items.push(`<button class="k-mob-wact blue"  onclick="kReminder()" aria-label="Remind"><i class="ti ti-mail"></i><span>Remind</span></button>`);
-    items.push(`<button class="k-mob-wact red"   onclick="kReset()"   aria-label="Missed"><i class="ti ti-rotate"></i><span>Missed</span></button>`);
+    items.push(`<button class="k-mob-wact red"   onclick="kReset()"   aria-label="Missed"><i class="ti ti-ban"></i><span>Missed</span></button>`);
   }
   actEl.innerHTML = items.join('');
   const actDsk = document.getElementById('k-dsk-actions');
