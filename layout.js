@@ -98,11 +98,14 @@ function showApp(room) {
   // switchTab('lounge') below will call loadLoungeAll which calls loadLounge(room).
   if (room && typeof initLoungeTab === 'function') initLoungeTab(room);
 
-  // Restore last active tab (falls back to lounge)
-  // Kitchen is desktop-hidden — fall back to lounge if on a wide screen
-  const _lastTab = (() => {
-    try { return localStorage.getItem('cc_last_tab') || 'rooms'; } catch(e) { return 'lounge'; }
-  })();
+  // Restore last active tab — validate against tabs present on this page.
+  // cc_last_tab is shared localStorage; a landlord 'rooms' tab must not land
+  // on tenant.html where that tab has no content (would show blank).
+  const _availableTabs = new Set(
+    [...document.querySelectorAll('.cc-tab[data-tab]')].map(b => b.dataset.tab)
+  );
+  const _savedTab = (() => { try { return localStorage.getItem('cc_last_tab'); } catch(e) { return null; } })();
+  const _lastTab = (_savedTab && _availableTabs.has(_savedTab)) ? _savedTab : 'lounge';
   switchTab(_lastTab);
 }
 
