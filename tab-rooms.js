@@ -951,8 +951,7 @@ function _getRentInfo(r, type) {
   }
   if (type === 'kurzzeit' && r.monatl_miete) {
     const tot = Number(r.monatl_miete)||0;
-    const nk  = Number(r.nk_pauschale)||0;
-    return { kalt: tot - nk, nk, total: tot, detail: 'pauschal inkl. NK' };
+    return { kalt: tot, nk: 0, total: tot, detail: 'pauschal inkl. NK' };
   }
   return null;
 }
