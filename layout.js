@@ -117,7 +117,7 @@ function initTabs() {
 // ── CLEAR STALE TAB PREFERENCE (one-time migration to rooms default) ──
 (function() {
   const v = localStorage.getItem('cc_last_tab');
-  if (!v || v === 'lounge' || v === 'kitchen') {
+  if (!v) {
     localStorage.setItem('cc_last_tab', 'rooms');
   }
 })();
