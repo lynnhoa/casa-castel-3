@@ -331,6 +331,9 @@ document.getElementById('tab-rooms').innerHTML = `
 }
 .rc-input:focus { border-color:var(--cc-charcoal); }
 .rc-input::placeholder { color:var(--cc-stone); }
+.rc-input[type=number]::-webkit-inner-spin-button,
+.rc-input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+.rc-input[type=number] { -moz-appearance:textfield; }
 .rc-chips { display:flex; flex-wrap:wrap; gap:6px; }
 .rc-chip {
   padding:5px 10px; border-radius:var(--cc-r-pill); font-size:10px; font-weight:500;
