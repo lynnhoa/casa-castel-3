@@ -1086,10 +1086,9 @@ function _roomCardHTML(r) {
     return `<span class="rc-chip ${on}" data-bad="${esc(b)}" onclick="this.classList.toggle('on')">${esc(b)}</span>`;
   }).join('');
 
-  // Pricing toggle
-  const isKaltNk = r.mietvertrag_pricing === 'kalt_nk';
-  const kaltNkStyle = isKaltNk ? '' : 'display:none;';
-  const pauschalStyle = isKaltNk ? 'display:none;' : '';
+  // Pricing toggles
+  const mvIsPauschal = r.mietvertrag_pricing === 'pauschal';
+  const kzIsPauschal = (r.kurzzeit_pricing || 'pauschal') === 'pauschal';
 
   return `
   <div class="rc" data-id="${r.id}" data-room="${esc(r.name)}">
@@ -1253,29 +1252,32 @@ function _roomCardHTML(r) {
       </div>
 
       <div class="rc-edit-section">
-        <div class="rc-edit-stitle">Miete</div>
-        <div class="rc-field"><label class="rc-field__label">Pauschalmiete Kurzzeit (€)</label><input class="rc-input" type="number" data-f="monatl_miete" value="${r.monatl_miete||''}"/></div>
-        <div class="rc-field">
-          <label class="rc-field__label">Mietvertrag pricing</label>
-          <div class="rc-pricing-toggle" data-pricetoggle>
-            <button ${!isKaltNk?'class="active"':''} onclick="_setPricing(this,'pauschal')">Pauschal</button>
-            <button ${isKaltNk?'class="active"':''} onclick="_setPricing(this,'kalt_nk')">Kalt + NK</button>
-          </div>
+        <div class="rc-edit-stitle">Kurzzeit Pricing</div>
+        <div class="rc-toggle-row">
+          <span class="rc-tlabel">${kzIsPauschal ? 'Pauschal' : 'Kalt + NK'}</span>
+          <label class="cc-sw"><input type="checkbox" data-kztoggle ${kzIsPauschal?'':'checked'} onchange="_onKzToggle(this)"/><span class="cc-sw__t"></span></label>
         </div>
-        <div data-pauschalfields style="${pauschalStyle}">
-          <div class="rc-field"><label class="rc-field__label">Pauschalmiete Mietvertrag (€)</label><input class="rc-input" type="number" data-f="mietvertrag_miete" value="${r.mietvertrag_miete||''}"/></div>
+        <div class="rc-field-row">
+          <div class="rc-field"><label class="rc-field__label">Kaltmiete (€)</label><input class="rc-input" type="number" data-f="kurzzeit_kaltmiete" value="${r.kurzzeit_kaltmiete||''}"/></div>
+          <div class="rc-field"><label class="rc-field__label">Nebenkosten (€)</label><input class="rc-input" type="number" data-f="kurzzeit_nk" value="${r.kurzzeit_nk||''}"/></div>
         </div>
-        <div data-kaltnkfields style="${kaltNkStyle}">
-          <div class="rc-field-row">
-            <div class="rc-field"><label class="rc-field__label">Kaltmiete (€)</label><input class="rc-input" type="number" data-f="kaltmiete" value="${r.kaltmiete||''}"/></div>
-            <div class="rc-field"><label class="rc-field__label">NK-Pauschale (€)</label><input class="rc-input" type="number" data-f="nk_pauschale" value="${r.nk_pauschale||''}"/></div>
-          </div>
+      </div>
+
+      <div class="rc-edit-section">
+        <div class="rc-edit-stitle">Mietvertrag Pricing</div>
+        <div class="rc-toggle-row">
+          <span class="rc-tlabel">${mvIsPauschal ? 'Pauschal' : 'Kalt + NK'}</span>
+          <label class="cc-sw"><input type="checkbox" data-mvtoggle ${mvIsPauschal?'checked':''} onchange="_onMvToggle(this)"/><span class="cc-sw__t"></span></label>
+        </div>
+        <div class="rc-field-row">
+          <div class="rc-field"><label class="rc-field__label">Kaltmiete (€)</label><input class="rc-input" type="number" data-f="kaltmiete" value="${r.kaltmiete||''}"/></div>
+          <div class="rc-field"><label class="rc-field__label">Nebenkosten (€)</label><input class="rc-input" type="number" data-f="nk_pauschale" value="${r.nk_pauschale||''}"/></div>
         </div>
         <div class="rc-toggle-row" style="margin-top:6px;">
           <span class="rc-tlabel">Custom Kaution</span>
           <label class="cc-sw"><input type="checkbox" data-f="kaution_override" ${r.kaution_override?'checked':''} onchange="_toggleKautionOverride(this)"/><span class="cc-sw__t"></span></label>
         </div>
-        <div data-kautionoverridefield style="${r.kaution_override?'':'display:none;'}">
+        <div data-kautionoverridefield style="${r.kaution_override?'':'display:none;}">
           <div class="rc-field"><label class="rc-field__label">Kaution (€)</label><input class="rc-input" type="number" data-f="kaution_default" value="${r.kaution_default||''}"/></div>
         </div>
       </div>
@@ -1362,15 +1364,14 @@ function _cancelEdit(card) {
   _initSortable();
 }
 
-function _setPricing(btn, type) {
-  const toggle = btn.closest('[data-pricetoggle]');
-  const card   = btn.closest('.rc');
-  toggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const pf = card.querySelector('[data-pauschalfields]');
-  const kf = card.querySelector('[data-kaltnkfields]');
-  if (type === 'kalt_nk') { pf.style.display='none'; kf.style.display=''; }
-  else                     { pf.style.display='';    kf.style.display='none'; }
+function _onKzToggle(chk) {
+  const label = chk.closest('.rc-toggle-row').querySelector('.rc-tlabel');
+  label.textContent = chk.checked ? 'Kalt + NK' : 'Pauschal';
+}
+
+function _onMvToggle(chk) {
+  const label = chk.closest('.rc-toggle-row').querySelector('.rc-tlabel');
+  label.textContent = chk.checked ? 'Pauschal' : 'Kalt + NK';
 }
 
 function _toggleKautionOverride(chk) {
@@ -1477,9 +1478,11 @@ async function _saveCard(card) {
   const badChips = card.querySelectorAll('[data-chipgroup="badezimmer"] .rc-chip.on');
   data.badezimmer = [...badChips].map(c => c.dataset.bad);
 
-  // Pricing type
-  const activePrice = card.querySelector('[data-pricetoggle] button.active');
-  if (activePrice) data.mietvertrag_pricing = activePrice.textContent.trim() === 'Kalt + NK' ? 'kalt_nk' : 'pauschal';
+  // Pricing types
+  const kzToggle = card.querySelector('[data-kztoggle]');
+  if (kzToggle) data.kurzzeit_pricing = kzToggle.checked ? 'kalt_nk' : 'pauschal';
+  const mvToggle = card.querySelector('[data-mvtoggle]');
+  if (mvToggle) data.mietvertrag_pricing = mvToggle.checked ? 'pauschal' : 'kalt_nk';
 
   // Save
   const saveBtn = card.querySelector('.rm-btn--primary');
@@ -1514,7 +1517,8 @@ document.getElementById('roomAddBtn')?.addEventListener('click', () => {
     id: null, name: '', room_type: 'WG Zimmer', active: true, vacant: false,
     floor: '', flaeche_m2: null, kitchen_type: 'Geteilte Küche',
     badezimmer: [], gemeinschaftsraeume: [],
-    monatl_miete: null, mietvertrag_pricing: 'pauschal',
+    monatl_miete: null, mietvertrag_pricing: 'kalt_nk',
+    kurzzeit_pricing: 'pauschal', kurzzeit_kaltmiete: null, kurzzeit_nk: null,
     mietvertrag_miete: null, kaltmiete: null, nk_pauschale: null,
     active_price_type: null,
     kaution_override: false, kaution_default: null,
@@ -1548,8 +1552,10 @@ document.getElementById('roomAddBtn')?.addEventListener('click', () => {
     data.gemeinschaftsraeume = [...spaceChips].map(c => c.dataset.space);
     const badChips = card.querySelectorAll('[data-chipgroup="badezimmer"] .rc-chip.on');
     data.badezimmer = [...badChips].map(c => c.dataset.bad);
-    const activePrice = card.querySelector('[data-pricetoggle] button.active');
-    if (activePrice) data.mietvertrag_pricing = activePrice.textContent.trim() === 'Kalt + NK' ? 'kalt_nk' : 'pauschal';
+    const kzToggle = card.querySelector('[data-kztoggle]');
+    if (kzToggle) data.kurzzeit_pricing = kzToggle.checked ? 'kalt_nk' : 'pauschal';
+    const mvToggle = card.querySelector('[data-mvtoggle]');
+    if (mvToggle) data.mietvertrag_pricing = mvToggle.checked ? 'pauschal' : 'kalt_nk';
     const activePriceType = card.querySelector('.rc-price-toggle__opt.active--mietvertrag, .rc-price-toggle__opt.active--kurzzeit');
     if (activePriceType) data.active_price_type = activePriceType.dataset.type;
     data.inventar = [];
