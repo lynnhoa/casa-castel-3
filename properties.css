@@ -384,19 +384,22 @@
 .ins-card__sub { font-size: 10px; color: var(--cc-stone); margin-top: 3px; }
 
 /* ── PORTFOLIO ── */
-.port-summary {
-  font-size: 12px;
-  color: var(--cc-taupe);
-  margin-bottom: 14px;
-  line-height: 1.8;
+.port-summary { margin-bottom: 0; }
+.port-header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px 10px;
 }
-.port-summary strong { font-weight: 500; color: var(--cc-charcoal); }
-.port-summary .t { color: var(--p-green); font-weight: 500; }
-.port-summary .z { color: var(--p-amber); font-weight: 500; }
-.port-summary .sep { color: var(--cc-stone); }
+.port-header__left {}
+.port-header__title { font-size: 14px; font-weight: 500; color: var(--cc-ink); margin-bottom: 3px; }
+.port-header__meta  { font-size: 12px; color: var(--cc-taupe); }
+.port-header__right { text-align: right; }
+.port-header__amount { font-size: 20px; font-weight: 500; color: var(--cc-ink); letter-spacing: -0.3px; }
+.port-header__mo { font-size: 12px; font-weight: 400; color: var(--cc-taupe); margin-left: 3px; }
+.port-header__split { font-size: 12px; color: var(--cc-taupe); margin-top: 2px; }
+.port-header__split .t { color: var(--p-green); font-weight: 500; }
+.port-header__split .z { color: var(--p-amber); font-weight: 500; }
 .port-list {
   background: var(--cc-white);
   border: var(--cc-border);
@@ -429,20 +432,7 @@
 .port-row__split .t { color: var(--p-green); font-weight: 500; }
 .port-row__split .z { color: var(--p-amber); font-weight: 500; }
 .port-chev { color: var(--cc-stone); font-size: 18px; flex-shrink: 0; line-height: 1; }
-.port-totals {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 11px 16px;
-  background: var(--cc-surface);
-  border-top: 1px solid var(--cc-rule);
-}
-.port-totals__lbl { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cc-taupe); }
-.port-totals__r { text-align: right; }
-.port-totals__rate { font-size: 13px; font-weight: 600; color: var(--cc-ink); }
-.port-totals__split { font-size: 11px; color: var(--cc-taupe); margin-top: 2px; }
-.port-totals__split .t { color: var(--p-green); font-weight: 500; }
-.port-totals__split .z { color: var(--p-amber); font-weight: 500; }
+
 
 /* ── DETAIL MODAL ── */
 .overlay {

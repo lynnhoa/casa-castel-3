@@ -15,13 +15,18 @@ function renderPortfolio() {
   const tZins = props.reduce((s,p) => s + n(p.zinsen), 0);
   const tRest = props.reduce((s,p) => s + n(p.restschuld), 0);
 
-  /* Plain text summary */
-  document.getElementById('port-summary').innerHTML =
-    `<strong>${props.length} properties</strong><span class="sep"> · </span>` +
-    `<strong>${eur(tRate)} monthly</strong><span class="sep"> · </span>` +
-    `<span class="t">${eur(tTilg)} Tilgung</span><span class="sep"> · </span>` +
-    `<span class="z">${eur(tZins)} Zinsen</span><span class="sep"> · </span>` +
-    `${mio(tRest)} remaining debt`;
+  /* Portfolio header */
+  document.getElementById('port-summary').innerHTML = `
+    <div class="port-header">
+      <div class="port-header__left">
+        <div class="port-header__title">${props.length} properties</div>
+        <div class="port-header__meta">${mio(tRest)} remaining debt</div>
+      </div>
+      <div class="port-header__right">
+        <div class="port-header__amount">${eur(tRate)}<span class="port-header__mo"> / mo</span></div>
+        <div class="port-header__split"><span class="t">${eur(tTilg)} Tilgung</span> · <span class="z">${eur(tZins)} Zinsen</span></div>
+      </div>
+    </div>`;
 
   /* Rows */
   const rows = props.map(p => {
@@ -55,19 +60,7 @@ function renderPortfolio() {
       </div>`;
   }).join('');
 
-  /* Totals row */
-  const totals = `
-    <div class="port-totals">
-      <div class="port-totals__lbl">Total / Month</div>
-      <div class="port-totals__r">
-        <div class="port-totals__rate">${eur(tRate)}</div>
-        <div class="port-totals__split">
-          <span class="t">${eur(tTilg)}</span> Repay. · <span class="z">${eur(tZins)}</span> Int.
-        </div>
-      </div>
-    </div>`;
-
-  document.getElementById('port-list').innerHTML = totals + rows;
+  document.getElementById('port-list').innerHTML = rows;
 }
 
 /* ── DETAIL MODAL ── */
