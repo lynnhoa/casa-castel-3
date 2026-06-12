@@ -962,11 +962,14 @@ function _getRentInfo(r, type) {
 }
 
 function _getActiveType(r) {
-  // Persisted in Supabase rooms.active_price_type
-  if (r.active_price_type) return r.active_price_type;
-  // Default: mietvertrag if available, else kurzzeit
   const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || !!r.mietvertrag_miete;
   const hasKz = !!r.kurzzeit_kaltmiete;
+
+  // Only honour persisted type if that type actually has data
+  if (r.active_price_type === 'mietvertrag' && hasMv) return 'mietvertrag';
+  if (r.active_price_type === 'kurzzeit'    && hasKz) return 'kurzzeit';
+
+  // Fallback: mietvertrag first, then kurzzeit
   if (hasMv) return 'mietvertrag';
   if (hasKz) return 'kurzzeit';
   return null;
