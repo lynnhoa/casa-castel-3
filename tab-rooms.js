@@ -3626,13 +3626,15 @@ function _buildMietvertragOnlyData(room, s, {
     if (start.getDate() !== 1) {
       const daysInMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
       const tage = daysInMonth - start.getDate() + 1;
-      const rentForNote = (room.mietvertrag_pricing === 'kalt_nk' && room.kaltmiete)
-        ? Number(room.kaltmiete)
-        : Number(room.mietvertrag_miete) || Number(room.monatl_miete) || 0;
+      const mvKalt = Number(room.kaltmiete) || 0;
+      const mvNk   = Number(room.nk_pauschale) || 0;
+      const isKaltNk = room.mietvertrag_pricing === 'kalt_nk' && room.kaltmiete;
+      const rentForNote = isKaltNk ? mvKalt : mvKalt + mvNk;
+      const suffix      = isKaltNk ? ' (Kaltmiete-Anteil)' : ' (pauschal inkl. NK)';
       const betrag = rentForNote ? fmtEUR(Math.round(rentForNote / daysInMonth * tage * 100) / 100) : '';
       ersterMonatNote = ersterMonatVoll
         ? `Erster Monat (${start.toLocaleString('de-DE',{month:'long'})}) wird als voller Monat berechnet.`
-        : `Erster Monat anteilig: ${tage} von ${daysInMonth} Tagen${betrag ? ' = ' + betrag : ''}.`;
+        : `Erster Monat anteilig: ${tage} von ${daysInMonth} Tagen${betrag ? ' = ' + betrag + suffix : ''}.`;
     }
   }
 
