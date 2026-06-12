@@ -80,50 +80,49 @@ function renderDashboard() {
   /* ── Rate Card ── */
   const rateHTML = `
     <div class="rate-card">
-      <div class="rate-card__top">
-        <div>
-          <div class="rate-card__lbl">Total monthly payment</div>
-          <div class="rate-card__total">${eur(tRate)}</div>
-          <div class="rate-card__sub">${props.length} loans combined</div>
-        </div>
-      </div>
+      <div class="rate-card__lbl">Total monthly payment</div>
+      <div class="rate-card__total">${eur(tRate)}</div>
+      <div class="rate-card__sub">${props.length} loans combined</div>
       <div class="rate-split">
         <div class="rate-part rate-part--t">
           <div class="rate-part__lbl">Tilgung</div>
           <div class="rate-part__val">${eur(tTilg)}</div>
-          <div class="rate-part__pct">${tPct} % of payment · builds equity</div>
         </div>
         <div class="rate-part rate-part--z">
           <div class="rate-part__lbl">Zinsen</div>
           <div class="rate-part__val">${eur(tZins)}</div>
-          <div class="rate-part__pct">${zPct} % of payment · bank costs</div>
         </div>
       </div>
       <div class="rate-bar-bg">
         <div class="rb-t" style="width:${tPct}%"></div>
         <div class="rb-z" style="width:${zPct}%"></div>
       </div>
+      <div class="rate-bar-legend">
+        <div class="rbl-item">
+          <div class="rbl-dot rbl-dot--t"></div>
+          <span class="rbl-text"><strong>${tPct} %</strong> Tilgung · builds equity</span>
+        </div>
+        <div class="rbl-item">
+          <div class="rbl-dot rbl-dot--z"></div>
+          <span class="rbl-text"><strong>${zPct} %</strong> Zinsen · bank costs</span>
+        </div>
+      </div>
     </div>`;
 
   /* ── Progress Card ── */
   const progHTML = `
     <div class="prog-card">
-      <div class="prog-row1">
-        <span class="prog-card__lbl">Restschuld</span>
-        <span class="prog-restval">${mio(tRest)}</span>
+      <div class="prog-card__lbl">Debt overview</div>
+      <div class="prog-hero">${mio(tRest)}</div>
+      <div class="prog-ctx">outstanding · of <strong>${mio(tDar)}</strong> total loan</div>
+      <div class="prog-spacer"></div>
+      <div class="prog-bar-row">
+        <div class="prog-bar-wrap">
+          <div class="prog-bar-fill" style="width:${Math.max(pct, 0.5)}%"></div>
+        </div>
+        <span class="prog-bar-pct">${pct} %</span>
       </div>
-      <div class="prog-row2">
-        <span class="prog-outstanding">outstanding</span>
-        <span class="prog-pct-badge">${pct} % repaid</span>
-      </div>
-      <div class="prog-card__lbl" style="margin-bottom:6px;">Repayment progress</div>
-      <div class="prog-bg">
-        <div class="prog-fill" style="width:${Math.max(pct, 0.5)}%"></div>
-      </div>
-      <div class="prog-sub">
-        <span class="prog-sublbl"><strong>${mio(tAbb)}</strong> paid</span>
-        <span class="prog-sublbl">of <strong>${mio(tDar)}</strong> loan</span>
-      </div>
+      <div class="prog-summary"><strong>${mio(tAbb)}</strong> repaid across ${props.length} loans</div>
     </div>`;
 
   /* ── Market Value Card ── */
