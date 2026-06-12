@@ -67,7 +67,7 @@ function renderPortfolio() {
       </div>
     </div>`;
 
-  document.getElementById('port-list').innerHTML = rows + totals;
+  document.getElementById('port-list').innerHTML = totals + rows;
 }
 
 /* ── DETAIL MODAL ── */
