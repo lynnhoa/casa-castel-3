@@ -2997,10 +2997,37 @@ function _renderKurzzeitHTML(d) {
     <p class="nutzung">Ab Mietbeginn steht dem Mieter die Mitnutzung folgender Gemeinschaftsbereiche zu: ${d.gemeinschaftsraeume}. Die Nutzung erfolgt schonend und rücksichtsvoll. Eine Reinigungspflicht nach jeder Nutzung wird ausdrücklich vereinbart.</p>
 
     ${clause('1', 'Befristung und Beendigung', 'Das Mietverhältnis ist gemäß § 575 Abs. 1 Nr. 3 BGB auf ausdrücklichen Wunsch des Mieters befristet. Der Mieter hat erklärt, das Mietobjekt nur für den vereinbarten Zeitraum zu benötigen. Das Mietverhältnis endet automatisch ohne Kündigung. Eine stillschweigende Verlängerung nach § 545 BGB wird ausdrücklich ausgeschlossen. Ein Anspruch auf Verlängerung besteht nicht.', true)}
-    ${d.kzPricing === 'kalt_nk'
-      ? clause('2', 'Mietzins &amp; Anteilige Berechnung', 'Die monatliche Kaltmiete beträgt ' + eur(d.kzKaltmiete) + ', zuzüglich einer NK-Vorauszahlung von ' + eur(d.kzNk) + '. Zieht der Mieter nicht zum ersten eines Monats ein oder zum letzten eines Monats aus, werden die Tage anteilig berechnet. Der Tagespreis ergibt sich aus der Gesamtmiete (' + eur(d.monatlMiete) + ') geteilt durch die tatsächliche Anzahl der Kalendertage des jeweiligen Monats.', false)
-      : clause('2', 'Mietzins &amp; Anteilige Berechnung', 'Die monatliche Pauschalmiete beträgt ' + eur(d.monatlMiete) + '. Zieht der Mieter nicht zum ersten eines Monats ein oder zum letzten eines Monats aus, werden die Tage anteilig berechnet. Der Tagespreis ergibt sich aus der Monatsmiete geteilt durch die tatsächliche Anzahl der Kalendertage des jeweiligen Monats. Alle Nebenkosten (Strom, Wasser, Heizung, WLAN) sind in der Pauschale enthalten.', false)
-    }
+    ${(() => {
+      const hatPartiell = d.ersterMonatAnteilig || d.letzterMonatAnteilig;
+      const vollParts = [
+        d.ersterMonatAnteilig && d.ersterMonatVoll ? 'erster Monat' : null,
+        d.letzterMonatAnteilig && d.letzterMonatVoll ? 'letzter Monat' : null,
+      ].filter(Boolean).join(' und ');
+      const alleVoll = hatPartiell && vollParts.length > 0 &&
+        (!d.ersterMonatAnteilig || d.ersterMonatVoll) &&
+        (!d.letzterMonatAnteilig || d.letzterMonatVoll);
+
+      let proRataText;
+      if (!hatPartiell) {
+        proRataText = '';
+      } else if (alleVoll) {
+        proRataText = ' Der ' + vollParts + ' wird als voller Monat berechnet.';
+      } else {
+        proRataText = ' Zieht der Mieter nicht zum ersten eines Monats ein oder zum letzten eines Monats aus, werden die Tage anteilig berechnet. Der Tagespreis ergibt sich aus der Monatsmiete geteilt durch die tatsächliche Anzahl der Kalendertage des jeweiligen Monats.';
+      }
+
+      if (d.kzPricing === 'kalt_nk') {
+        const base = 'Die monatliche Kaltmiete beträgt ' + eur(d.kzKaltmiete) + ', zuzüglich einer NK-Vorauszahlung von ' + eur(d.kzNk) + '.';
+        const proRataKalt = !hatPartiell ? '' : alleVoll
+          ? ' Der ' + vollParts + ' wird als voller Monat berechnet.'
+          : ' Zieht der Mieter nicht zum ersten eines Monats ein oder zum letzten eines Monats aus, werden die Tage anteilig berechnet. Der Tagespreis ergibt sich aus der Gesamtmiete (' + eur(d.monatlMiete) + ') geteilt durch die tatsächliche Anzahl der Kalendertage des jeweiligen Monats.';
+        return clause('2', 'Mietzins &amp; Anteilige Berechnung', base + proRataKalt, false);
+      } else {
+        const base = 'Die monatliche Pauschalmiete beträgt ' + eur(d.monatlMiete) + '.';
+        const nkText = ' Alle Nebenkosten (Strom, Wasser, Heizung, WLAN) sind in der Pauschale enthalten.';
+        return clause('2', 'Mietzins &amp; Anteilige Berechnung', base + proRataText + nkText, false);
+      }
+    })()}
     ${clause('3', 'Fälligkeit der Mietzahlungen', 'Die Miete ist jeweils spätestens bis zum dritten Werktag des fälligen Monats zu überweisen (§ 556b BGB). Bei Zahlungsverzug ist der Vermieter berechtigt, Verzugszinsen gemäß § 288 BGB geltend zu machen.', false)}
     ${clause('4', 'Kaution', 'Der Mieter zahlt eine Kaution von ' + eur(d.kaution) + ' spätestens 5 Tage nach Unterzeichnung. Vom Mieter selbstverschuldete Schäden werden zu 100 % von der Kaution abgezogen. Kleinreparaturen bis 100 € pro Schadensfall gehen zu Lasten des Mieters (§ 535 BGB). Schäden in Gemeinschaftsbereichen werden anteilig auf alle Bewohner aufgeteilt. Der verbleibende Betrag wird nach Prüfung des Zustands zurückerstattet.', false)}
     ${clause('5', 'Schlüsselübergabe', 'Der Mieter erhält bei Einzug ' + d.hausstuerschluessel + ' Haustürschlüssel und ' + d.zimmerschluessel + ' Zimmerschlüssel. Alle Schlüssel sind bei Auszug an den Vermieter zurückzugeben. Bei Verlust trägt der Mieter die vollständigen Kosten für den Schlossaustausch.', false)}
