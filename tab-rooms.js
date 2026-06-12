@@ -1277,7 +1277,7 @@ function _roomCardHTML(r) {
           <span class="rc-tlabel">Custom Kaution</span>
           <label class="cc-sw"><input type="checkbox" data-f="kaution_override" ${r.kaution_override?'checked':''} onchange="_toggleKautionOverride(this)"/><span class="cc-sw__t"></span></label>
         </div>
-        <div data-kautionoverridefield style="${r.kaution_override?'':'display:none;}">
+        <div data-kautionoverridefield style="${r.kaution_override?'':'display:none;'}">
           <div class="rc-field"><label class="rc-field__label">Kaution (€)</label><input class="rc-input" type="number" data-f="kaution_default" value="${r.kaution_default||''}"/></div>
         </div>
       </div>
