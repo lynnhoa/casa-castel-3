@@ -3643,9 +3643,9 @@ function _buildMietvertragOnlyData(room, s, {
     gesamtmiete     = kaltmiete + nkVorauszahlung;
     pricingMode     = 'kalt_nk';
   } else {
-    kaltmiete       = Number(room.mietvertrag_miete) || Number(room.monatl_miete) || 0;
-    nkVorauszahlung = 0;
-    gesamtmiete     = kaltmiete;
+    kaltmiete       = Number(room.kaltmiete) || 0;
+    nkVorauszahlung = Number(room.nk_pauschale) || 0;
+    gesamtmiete     = kaltmiete + nkVorauszahlung;
     pricingMode     = 'pauschal';
   }
 
@@ -4015,17 +4015,29 @@ function _renderMietvertragHTML(d) {
       d.befristet
         ? 'Das befristete Mietverhältnis endet am '+d.mietende+' automatisch ohne Kündigung (\u00a7\u00a0575 BGB). Befristungsgrund: '+d.grundLabel+(d.eigenbedarfPerson?' \u2014 '+d.eigenbedarfPerson:'')+'. Eine ordentliche Kündigung ist ausgeschlossen; die außerordentliche Kündigung aus wichtigem Grund (\u00a7\u00a0543 BGB) bleibt unberührt. Im Falle einer Verlängerung beträgt die Kündigungsfrist für den Mieter 3\u00a0Monate zum Monatsende.'
         : 'Die ordentliche Kündigung richtet sich nach \u00a7\u00a0573c BGB. Kündigungsfrist für den Mieter: 3\u00a0Monate zum Monatsende. Für den Vermieter gilt die gesetzlich gestaffelte Frist. Die Kündigung bedarf der Schriftform. Eine stillschweigende Verlängerung nach \u00a7\u00a0545 BGB ist ausgeschlossen. Die außerordentliche Kündigung aus wichtigem Grund bleibt unberührt.')}
-    ${cl('3','Untervermietung',
+    ${(() => {
+      const istVoll = d.ersterMonatNote && d.ersterMonatNote.includes('voller Monat');
+      let proRataText = '';
+      if (d.ersterMonatNote && !istVoll) {
+        proRataText = ' Zieht der Mieter nicht zum ersten eines Monats ein, werden die Tage anteilig berechnet. Der Tagespreis ergibt sich aus der Monatsmiete geteilt durch die tatsächliche Anzahl der Kalendertage des jeweiligen Monats.';
+      } else if (istVoll) {
+        proRataText = ' Der erste Monat wird als voller Monat berechnet.';
+      }
+      return d.pricingMode === 'kalt_nk'
+        ? cl('3','Mietzins','Die monatliche Kaltmiete beträgt '+eur(d.kaltmiete)+', zuzüglich einer NK-Vorauszahlung von '+eur(d.nkVorauszahlung)+'.'+proRataText)
+        : cl('3','Mietzins','Die monatliche Pauschalmiete beträgt '+eur(d.gesamtmiete)+'. Alle Nebenkosten (Strom, Wasser, Heizung, WLAN) sind in der Pauschale enthalten.'+proRataText);
+    })()}
+    ${cl('4','Untervermietung',
       'Eine Untervermietung oder sonstige Überlassung des Mietobjekts an Dritte ist nicht gestattet.')}
-    ${cl('4','Schlüsselübergabe',
+    ${cl('5','Schlüsselübergabe',
       `Der Mieter erhält bei Einzug ${d.hausstuerschluessel}\u00a0Haustürschlüssel und ${d.zimmerschluessel}\u00a0Zimmerschlüssel. Weitere Schlüssel bedürfen der vorherigen Zustimmung (Textform). Bei Verlust trägt der Mieter die vollständigen Kosten des Schlossaustauschs. Alle Schlüssel sind bei Auszug zurückzugeben.`)}
-    ${cl('5','Kaution',
+    ${cl('6','Kaution',
       `Der Mieter überweist die Kaution von ${eur(d.kaution)} binnen 5 Tagen nach Unterzeichnung dieses Vertrages auf das oben genannte Konto. Der Vermieter legt die Barkaution getrennt von seinem Vermögen auf einem Treuhandkonto an (\u00a7\u00a0551 BGB). Rückzahlung nach Prüfung des Zustands bei Auszug.`)}
-    ${cl('6','Schönheitsreparaturen &amp; Kleinreparaturen',
+    ${cl('7','Schönheitsreparaturen &amp; Kleinreparaturen',
       'Schönheitsreparaturen je nach Abnutzungsgrad auf Kosten des Mieters. Kleinreparaturen an häufig zugänglichen Gegenständen bis 150\u00a0\u20ac pro Maßnahme, max. 8\u202f% der Jahres-Nettokaltmiete p.\u202fa.')}
-    ${cl('7','Tierhaltung',
+    ${cl('8','Tierhaltung',
       'Kleintiere ohne Belästigungspotenzial (Zierfische, Kleinnager) sind erlaubt. Alle weiteren Tiere bedürfen der Zustimmung (Textform).')}
-    ${cl('8','Betreten des Mietobjekts',
+    ${cl('9','Betreten des Mietobjekts',
       'Das Zimmer wird nur nach vorheriger Ankündigung (mind. 2\u00a0Werktage in Textform) betreten, z.\u202fB. zur Besichtigung bei Verkauf oder Weitervermietung sowie für notwendige Instandhaltungsarbeiten. Bei Gefahr im Verzug ist das Betreten jederzeit ohne Vorankündigung zulässig.')}
   </div>
 </div>`;
@@ -4033,19 +4045,19 @@ function _renderMietvertragHTML(d) {
   const page3 = `<div class="pdf-page page">
   ${hdr(d.zimmerName)}${ftr(3)}
   <div class="content">
-    ${cl('9','Rückgabe bei Vertragsende',
+    ${cl('10','Rückgabe bei Vertragsende',
       'Vollständig geräumt, gereinigt, in vertragsgemäßem Zustand, alle Schlüssel. Bauliche Änderungen sind rückzubauen. Ein Übergabeprotokoll wird erstellt und beidseitig unterzeichnet.',true)}
-    ${cl('10','Aufrechnung &amp; Zurückbehaltungsrecht',
+    ${cl('11','Aufrechnung &amp; Zurückbehaltungsrecht',
       'Der Mieter kann gegen Forderungen des Vermieters nur mit unbestrittenen oder rechtskräftig festgestellten Gegenforderungen aufrechnen. Das Zurückbehaltungsrecht ist auf Mängelrechte nach \u00a7\u00a7\u00a0536\u00a0ff. BGB beschränkt und setzt eine mindestens einmonatige vorherige Ankündigung in Textform voraus.')}
-    ${cl('11','Haftpflichtversicherung',
+    ${cl('12','Haftpflichtversicherung',
       'Der Mieter unterhält für die Dauer des Mietverhältnisses eine private Haftpflichtversicherung und weist sie auf Verlangen nach.')}
-    ${cl('12','Hausordnung',
+    ${cl('13','Hausordnung',
       'Rauchen ist im gesamten Gebäude nicht gestattet. Nachtruhe gilt von 22:00–07:00\u202fUhr. Die Hausordnung ist Bestandteil dieses Vertrages (Anlage\u00a0B).')}
-    ${cl('13','Datenschutz',
+    ${cl('14','Datenschutz',
       'Personenbezogene Daten werden gem. Art.\u00a06 Abs.\u00a01 lit.\u00a0b DSGVO zur Vertragsabwicklung verarbeitet, nicht an Dritte weitergegeben und 11\u00a0Jahre nach Vertragsende gelöscht.')}
-    ${cl('14','Sonstige Vereinbarungen',
+    ${cl('15','Sonstige Vereinbarungen',
       'Mündliche Nebenabreden bestehen nicht. Änderungen bedürfen der Schriftform. Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam. Gerichtsstand ist '+d.gerichtsstand+'.')}
-    ${cl('15','Energieausweis (\u00a7\u00a016a GEG)',
+    ${cl('16','Energieausweis (\u00a7\u00a016a GEG)',
       'Der Vermieter hat dem Mieter vor Vertragsschluss den Energieausweis vorgelegt. Energieeffizienzklasse: '+(d.energieklasse||'—')+'. Endenergiebedarf: '+(d.endenergiebedarf ? d.endenergiebedarf+' kWh/(m\u00b2\u00b7a)' : '—')+'. Art des Ausweises: '+(d.energieausweisart||'—')+'.')}
     <div class="comment-label">Sonstige Anmerkungen</div>
     <div class="comment-line"></div><div class="comment-line"></div>
