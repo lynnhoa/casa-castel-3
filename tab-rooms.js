@@ -949,9 +949,14 @@ function _getRentInfo(r, type) {
       return { kalt: tot - nk, nk, total: tot, detail: 'pauschal inkl. NK' };
     }
   }
-  if (type === 'kurzzeit' && r.monatl_miete) {
-    const tot = Number(r.monatl_miete)||0;
-    return { kalt: tot, nk: 0, total: tot, detail: 'pauschal inkl. NK' };
+  if (type === 'kurzzeit' && r.kurzzeit_kaltmiete) {
+    const kalt = Number(r.kurzzeit_kaltmiete)||0;
+    const nk   = Number(r.kurzzeit_nk)||0;
+    const isPauschal = (r.kurzzeit_pricing || 'pauschal') === 'pauschal';
+    const detail = isPauschal
+      ? fmtEUR(kalt+nk) + ' pauschal inkl. NK'
+      : fmtEUR(kalt) + ' kalt + ' + fmtEUR(nk) + ' NK';
+    return { kalt, nk, total: kalt+nk, detail };
   }
   return null;
 }
@@ -961,7 +966,7 @@ function _getActiveType(r) {
   if (r.active_price_type) return r.active_price_type;
   // Default: mietvertrag if available, else kurzzeit
   const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || !!r.mietvertrag_miete;
-  const hasKz = r.monatl_miete;
+  const hasKz = !!r.kurzzeit_kaltmiete;
   if (hasMv) return 'mietvertrag';
   if (hasKz) return 'kurzzeit';
   return null;
@@ -1004,7 +1009,7 @@ async function _toggleRentType(btn) {
 
 function _rentRowHTML(r) {
   const hasMv = (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) || r.mietvertrag_miete;
-  const hasKz = !!r.monatl_miete;
+  const hasKz = !!r.kurzzeit_kaltmiete;
   const hasBoth = hasMv && hasKz;
   const activeType = _getActiveType(r);
   const info = activeType ? _getRentInfo(r, activeType) : null;
@@ -1059,11 +1064,18 @@ function _roomCardHTML(r) {
 
   // Rent display
   let rentRead = '';
-  if (r.monatl_miete) rentRead += `<div class="rc-row"><span class="rc-row__k">Kurzzeit</span><span class="rc-row__v">${fmtEUR(r.monatl_miete)} / Monat</span></div>`;
+  if (r.kurzzeit_kaltmiete) {
+    const kalt = Number(r.kurzzeit_kaltmiete)||0;
+    const nk   = Number(r.kurzzeit_nk)||0;
+    const isPauschal = (r.kurzzeit_pricing||'pauschal') === 'pauschal';
+    const display = isPauschal ? fmtEUR(kalt+nk)+' pauschal inkl. NK' : fmtEUR(kalt)+' kalt + '+fmtEUR(nk)+' NK';
+    rentRead += `<div class="rc-row"><span class="rc-row__k">Kurzzeit</span><span class="rc-row__v">${display} / Monat</span></div>`;
+  }
   if (r.mietvertrag_pricing === 'kalt_nk' && r.kaltmiete) {
     rentRead += `<div class="rc-row"><span class="rc-row__k">Mietvertrag</span><span class="rc-row__v">${fmtEUR(r.kaltmiete)} kalt + ${fmtEUR(r.nk_pauschale||0)} NK</span></div>`;
-  } else if (r.mietvertrag_miete) {
-    rentRead += `<div class="rc-row"><span class="rc-row__k">Mietvertrag</span><span class="rc-row__v">${fmtEUR(r.mietvertrag_miete)} pauschal</span></div>`;
+  } else if (r.kaltmiete) {
+    const tot = (Number(r.kaltmiete)||0) + (Number(r.nk_pauschale)||0);
+    rentRead += `<div class="rc-row"><span class="rc-row__k">Mietvertrag</span><span class="rc-row__v">${fmtEUR(tot)} pauschal inkl. NK</span></div>`;
   }
 
   // Shared space chips (edit)
