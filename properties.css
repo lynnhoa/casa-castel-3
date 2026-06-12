@@ -201,8 +201,8 @@
   gap: 10px;
   margin-bottom: 10px;
 }
-@media (min-width: 600px)  { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 900px)  { .kpi-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 600px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px)  { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
 .kpi-card {
   background: var(--cc-white);
   border: var(--cc-border);
@@ -323,6 +323,26 @@
 .prog-sub { display: flex; justify-content: space-between; }
 .prog-sublbl { font-size: 11px; color: var(--cc-taupe); }
 .prog-sublbl strong { font-weight: 500; color: var(--cc-charcoal); }
+
+/* prog card redesign */
+.prog-row1 { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2px; }
+.prog-restval { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 300; color: var(--cc-ink); line-height: 1; }
+.prog-row2 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.prog-outstanding { font-size: 10px; color: var(--cc-stone); }
+.prog-pct-badge { font-size: 10px; font-weight: 500; color: var(--cc-gold); background: var(--cc-gold-lt); border-radius: 4px; padding: 2px 7px; border: 0.5px solid var(--cc-gold); }
+.prog-sub { display: flex; justify-content: space-between; margin-top: 8px; }
+
+/* right column wrapper */
+.dash-right { display: flex; flex-direction: column; gap: 10px; }
+
+/* market value card */
+.mw-card { background: var(--cc-gold-lt); border: 0.5px solid var(--cc-gold); border-radius: var(--cc-r-lg); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.mw-card__lbl { font-size: 9px; font-weight: 500; letter-spacing: 0.11em; text-transform: uppercase; color: #9A7040; }
+.mw-card__val { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 300; color: var(--cc-gold); line-height: 1; margin-top: 2px; }
+.mw-card__sub { font-size: 10px; color: var(--cc-gold); margin-top: 1px; }
+
+/* strategic insights label — all viewports */
+.sec-lbl { display: block; font-size: 9px; font-weight: 500; letter-spacing: 0.11em; text-transform: uppercase; color: var(--cc-taupe); margin-top: 20px; margin-bottom: 12px; }
 
 /* ── INSIGHTS ── */
 .insights-grid {
@@ -692,9 +712,10 @@
 }
 
 /* ── DESKTOP: Rate + Progress side by side ── */
-.dash-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-@media (min-width: 900px) {
+.dash-cards { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+@media (min-width: 700px) {
   .dash-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .prog-card   { align-self: start; }
 }
 
 /* ── OVERFLOW FIX — prevent horizontal scroll ── */

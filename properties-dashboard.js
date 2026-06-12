@@ -75,11 +75,7 @@ function renderDashboard() {
       <div class="kpi-card__val">${mio(tRest)}</div>
       <div class="kpi-card__sub">outstanding</div>
     </div>
-    <div class="kpi-card kpi-card--gold kpi-card--wide">
-      <div class="kpi-card__lbl">Market value today</div>
-      <div class="kpi-card__val">${mio(tMw)}</div>
-      <div class="kpi-card__sub">Equity ${mio(equity)}</div>
-    </div>`;
+    `;
 
   /* ── Rate Card ── */
   const rateHTML = `
@@ -112,10 +108,15 @@ function renderDashboard() {
   /* ── Progress Card ── */
   const progHTML = `
     <div class="prog-card">
-      <div class="prog-card__top">
-        <span class="prog-card__lbl">Repayment progress</span>
-        <span class="prog-card__pct">${pct} %</span>
+      <div class="prog-row1">
+        <span class="prog-card__lbl">Restschuld</span>
+        <span class="prog-restval">${mio(tRest)}</span>
       </div>
+      <div class="prog-row2">
+        <span class="prog-outstanding">outstanding</span>
+        <span class="prog-pct-badge">${pct} % repaid</span>
+      </div>
+      <div class="prog-card__lbl" style="margin-bottom:6px;">Repayment progress</div>
       <div class="prog-bg">
         <div class="prog-fill" style="width:${Math.max(pct, 0.5)}%"></div>
       </div>
@@ -125,8 +126,17 @@ function renderDashboard() {
       </div>
     </div>`;
 
+  /* ── Market Value Card ── */
+  const mwHTML = `
+    <div class="mw-card">
+      <div class="mw-card__lbl">Market value today</div>
+      <div class="mw-card__val">${mio(tMw)}</div>
+      <div class="mw-card__sub">Equity ${mio(equity)}</div>
+    </div>`;
+
   document.getElementById('dash-rate').innerHTML = rateHTML;
   document.getElementById('dash-prog').innerHTML = progHTML;
+  document.getElementById('dash-mw').innerHTML   = mwHTML;
 
   /* ── Strategic Insights ── */
   const withRate = props.filter(p => n(p.rate) > 0);
