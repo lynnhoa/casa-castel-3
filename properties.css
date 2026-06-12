@@ -432,6 +432,20 @@
 .port-row__split .t { color: var(--p-green); font-weight: 500; }
 .port-row__split .z { color: var(--p-amber); font-weight: 500; }
 .port-chev { color: var(--cc-stone); font-size: 18px; flex-shrink: 0; line-height: 1; }
+.port-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 16px;
+  border-top: var(--cc-border);
+  color: var(--cc-taupe);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .1s;
+}
+.port-add-row:hover { background: var(--cc-surface); color: var(--cc-ink); }
+.port-add-row i { font-size: 15px; }
 
 
 /* ── DETAIL MODAL ── */

@@ -60,7 +60,12 @@ function renderPortfolio() {
       </div>`;
   }).join('');
 
-  document.getElementById('port-list').innerHTML = rows;
+  const addRow = `
+    <div class="port-add-row" onclick="openAdd()">
+      <i class="ti ti-plus"></i> Add property
+    </div>`;
+
+  document.getElementById('port-list').innerHTML = rows + addRow;
 }
 
 /* ── DETAIL MODAL ── */
